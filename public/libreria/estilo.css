@@ -1,0 +1,447 @@
+/* Colores
+#6f4626, #f9801a, #e0d12b, #f5f08a, #7dbe7c 
+*/
+
+html {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0px;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+main {
+  width: 80%;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+/**
+* Anchors
+*/
+
+a:link {
+  color: black;
+}
+
+a:visited {
+  color: black;
+}
+
+/**
+* Main
+*/
+
+main {
+  display: flex;
+  flex-direction: column;
+  /* align-items: stretch; */
+}
+
+main>header {
+  margin-left: 120px;
+}
+
+main>header>h1 {
+  text-align: center;
+}
+
+main>header>h2 {
+  text-align: center;
+}
+
+main>article {
+  display: flex;
+  flex-grow: 1;
+}
+
+main>article>div.contenido {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
+}
+
+main>article>div.contenido>div.info {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: .5em;
+  margin-top: .5em;
+  align-items: center;
+}
+
+main>article>div.contenido>footer {
+  text-align: center;
+  margin-top: 16px;
+  border-top: 1px solid black;
+  padding-top: 16px;
+  padding-bottom: 24px;
+}
+
+/**
+* Mensajes
+*/
+main>article>div.contenido>div.info>mensajes-container {
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  width: 100%;
+
+}
+
+/**
+* Navbar
+*/
+nav.navbar {}
+
+nav.navbar ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 1em 0 0 0;
+  width: 120px;
+}
+
+nav.navbar ul li {
+  margin: 0;
+  margin-bottom: 8px;
+  padding: 0.5em;
+  /* margin-left: .5em;
+  margin-right: .5em; */
+  border-right: 0.5em solid chocolate;
+  border-left: 0.5em solid chocolate;
+}
+
+nav.navbar ul a {
+  text-decoration: none;
+  display: inline-block;
+}
+
+nav.navbar ul li:hover {
+  /* background-color: lightgray; */
+  border-right: 0.5em solid #6f4626;
+  border-left: 0.5em solid #6f4626;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/**
+* Toolbar
+**/
+nav.toolbar ul li.oculto {
+  display: none;
+}
+
+nav.toolbar {}
+
+nav.toolbar ul {
+  margin: 0;
+  list-style-type: none;
+  padding: 0;
+  margin: 1em 0 0 0;
+  display: flex;
+}
+
+nav.toolbar ul li {
+  padding: 0.25em;
+  display: block;
+  width: 100px;
+  text-align: center;
+  /* margin-bottom: .5em; */
+  border-bottom: 0.5em solid chocolate;
+  margin-left: .5em;
+}
+
+nav.toolbar ul a {
+  text-decoration: none;
+  display: block;
+}
+
+nav.toolbar ul li:hover {
+  border-bottom: 0.5em solid #6f4626;
+  margin-bottom: 0;
+}
+
+/**
+* Form
+*/
+
+form {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+  width: 100%;
+}
+
+form header {
+  display: flex;
+  justify-content: center;
+}
+
+form footer {
+  display: flex;
+  justify-content: end;
+}
+
+.boton,
+form>footer>input[type=submit] {
+  border: none;
+  padding: .5em;
+  color: black;
+  border-right: solid 1em chocolate;
+  border-left: solid 1em chocolate;
+  text-decoration: none;
+  cursor: pointer;
+  background-color: transparent;
+  display: inline-block;
+}
+
+form>footer>input[type=submit]:hover {
+  border-right: solid 1em #6f4626;
+  border-left: solid 1em #6f4626;
+}
+
+form textarea,
+form input[type=password],
+form input[type=email],
+form input[type=text],
+form input[type=number],
+form input[type=date] {
+  padding: 8px 12px;
+  margin: 4px 0;
+  border-radius: 4px;
+  border: 1px SOLID chocolate;
+}
+
+form select {
+  padding: 8px 12px;
+  margin: 4px 0;
+  border-radius: 4px;
+  border: 1px SOLID chocolate;
+}
+
+form label {
+  color: #6f4626;
+  font-weight: bold;
+}
+
+/**
+* Mensajes
+*/
+
+div.mensajes-container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+}
+
+div.mensajes {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin: 4px 0;
+  width: 100%;
+}
+
+.error {
+  border: 1px solid RED;
+  color: darkred;
+  background-color: lightcoral;
+  border-radius: 5px;
+  padding: 5px;
+
+}
+
+.log {
+  border: 1px solid black;
+  color: black;
+  background-color: lightgray;
+  border-radius: 5px;
+  padding: 5px;
+  word-wrap: break-word;
+  word-break: break-all;
+}
+
+.message {
+  border: 1px solid green;
+  color: darkgreen;
+  background-color: lightgreen;
+  border-radius: 5px;
+  padding: 5px;
+  word-wrap: break-word;
+  word-break: break-all;
+}
+
+.x {
+  padding-left: 1em;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/**
+* Catalogo
+*/
+
+.catalogo {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.libro {
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  border: SOLID 1px #6f4626;
+  width: 200px;
+}
+
+.libro p.titulo {
+  font-weight: bold;
+  background-color: #6f4626;
+  color: white;
+  padding: 1em;
+  margin: 0;
+}
+
+.libro p.autores {
+  font-style: italic;
+  background-color: #7dbe7c;
+  padding: 0.5em 1em;
+  margin: 0;
+  word-wrap: break-word;
+}
+
+.libro p.isbn {
+  font-size: x-small;
+  font-style: italic;
+  text-align: right;
+  margin: 0;
+  padding: 0.25em 1em;
+}
+
+.libro p.precio {
+  font-style: bolder;
+  font-size: larger;
+  text-align: right;
+  margin: 0;
+  padding: 0.25em 1em;
+}
+
+.libro img.portada {
+  width: 200px;
+  height: 200px;
+  padding: 0;
+  margin: 0;
+  vertical-align: top;
+}
+
+.libro footer {
+  display: flex;
+  justify-content: end;
+  margin: 8px;
+}
+
+/**
+* Ver Libro (detalle)
+*/
+
+.detalle label {
+  font-weight: bold;
+}
+
+.detalle img.portada {
+  width: 200px;
+  height: 200px;
+  padding: 0;
+  margin: 0;
+  vertical-align: top;
+}
+
+/**
+* Carro
+*/
+
+.carro {
+  width: 100%;
+  height: 100%;
+}
+
+.carro table {
+  height: 100%;
+  padding: 4px;
+  border-collapse: collapse;
+}
+
+.carro tfoot {
+  border-top: 1px solid black;
+  /* border-bottom: 1px solid black; */
+}
+
+.carro thead {
+  border-bottom: 1px solid black;
+  border-top: 1px solid black;
+}
+
+.carro th,
+.carro td {
+  padding: 4px;
+}
+
+.carro tr,
+.item-detalle {
+  width: 100%;
+}
+
+.carro tfoot th:first-child {
+  text-align: right;
+}
+
+.carro tbody {
+  /* .carro tbody tr:last-child { */
+  height: 100%;
+}
+
+.carro .item-cantidad,
+.carro .item-unidad,
+.carro .item-total,
+.carro .iva,
+.carro .total {
+  text-align: center;
+}
+
+.borrado {
+  text-decoration: line-through;
+  color: red;
+}
+
+.carro input[type=number] {
+  padding: 8px 12px;
+  margin: 4px 0;
+  border-radius: 4px;
+  border: 1px SOLID chocolate;
+  width: 3em;
+}
+
+/**
+* Factura
+*/
+
+div .factura-field {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+div .factura-field>input {
+  flex-grow: 1;
+}
