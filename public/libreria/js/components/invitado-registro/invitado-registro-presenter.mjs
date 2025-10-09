@@ -1,3 +1,5 @@
+// js/components/registro/registro-presenter.mjs
+
 import { Presenter } from "../../commons/presenter.mjs";
 import { ROL } from "../../model/model.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
@@ -12,6 +14,7 @@ export class InvitadoRegistroPresenter extends Presenter {
 
         const form = document.getElementById("registroForm");
         const mensajesContainer = document.getElementById("mensajesContainer");
+        const btnUsuarios = document.getElementById("mostrarUsuariosBtn");
 
         form.onsubmit = (e) => {
             e.preventDefault();
@@ -35,7 +38,11 @@ export class InvitadoRegistroPresenter extends Presenter {
 
                 // Guardamos en sesión
                 LibreriaSession.setUser(usuario);
-                LibreriaSession.addMessage("message", "Usuario registrado con éxito");
+
+                // Guardamos en localStorage la lista de usuarios
+                LibreriaSession.saveUsuario(usuario);
+
+                LibreriaSession.addMessage("success", "Usuario registrado con éxito");
 
                 mensajesContainer.innerHTML =
                     `<div class="message">Registro completado: ${usuario.email} (${usuario.rol})</div>`;
@@ -46,5 +53,19 @@ export class InvitadoRegistroPresenter extends Presenter {
                 mensajesContainer.innerHTML = `<div class="error">${err.message}</div>`;
             }
         };
+
+        if (btnUsuarios) {
+            btnUsuarios.onclick = () => {
+                const usuarios = LibreriaSession.getUsuarios();
+                mensajesContainer.innerHTML = `
+                    <h3>Usuarios registrados</h3>
+                    <ul>
+                        ${usuarios.map(u =>
+                    `<li>${u._id} - ${u.dni} - ${u.email} - ${u.rol}</li>`
+                ).join("")}
+                    </ul>
+                `;
+            };
+        }
     }
 }

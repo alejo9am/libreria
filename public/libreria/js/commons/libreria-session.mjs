@@ -3,6 +3,7 @@
 
 const SESSION_KEY = 'libreria_session';
 const MSGS_KEY = 'libreria_messages';
+const USERS_KEY = "libreria_usuarios";
 
 /**
  * Estructura de usuario guardada en sesión:
@@ -70,8 +71,10 @@ export const LibreriaSession = {
     // Gestión de sesión
     // ---------------------
     setUser(usuario) {
+        console.log("Set user in session:", usuario);
         if (!usuario) {
-            safeStorage.remove(SESSION_KEY);
+            // Si ya existe, mostramos mensaje de error
+            LibreriaSession.addMessage("error", "No se puede registrar el usuario");
             return;
         }
         const data = { _id: usuario._id, rol: usuario.rol };
@@ -171,5 +174,35 @@ export const LibreriaSession = {
         };
         window.addEventListener('storage', handler);
         return () => window.removeEventListener('storage', handler);
+    },
+
+    // ---------------------
+    // Gestión de usuarios persistidos
+    // ---------------------
+    saveUsuario(usuario) {
+        let usuarios = this.getUsuarios();
+        usuarios.push({
+            _id: usuario._id,
+            dni: usuario.dni,
+            email: usuario.email,
+            rol: usuario.rol,
+            nombre: usuario.nombre,
+            apellidos: usuario.apellidos
+        });
+        safeStorage.set(USERS_KEY, JSON.stringify(usuarios));
+    },
+
+    getUsuarios() {
+        const raw = safeStorage.get(USERS_KEY);
+        if (!raw) return [];
+        try {
+            return JSON.parse(raw) || [];
+        } catch {
+            return [];
+        }
+    },
+
+    clearUsuarios() {
+        safeStorage.remove(USERS_KEY);
     }
 };
