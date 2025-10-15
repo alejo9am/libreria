@@ -84,7 +84,7 @@ Se han definido pruebas en navegador usando **Mocha + Chai**, que validan:
 
 4. Abrir en el navegador:
    ```
-   http://localhost:3000
+   http://localhost:3000/libreria
    ```
 
 ---
