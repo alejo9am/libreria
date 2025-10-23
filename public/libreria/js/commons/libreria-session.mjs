@@ -94,7 +94,7 @@ export const LibreriaSession = {
     // ---------------------
     // Gestión de sesión
     // ---------------------
-    //La sesión se guarda en sessionStorage 
+    //La sesión se guarda en sessionStorage
     setUser(usuario) {
         console.log("Set user in session:", usuario);
         if (!usuario) {
@@ -102,11 +102,11 @@ export const LibreriaSession = {
             LibreriaSession.addMessage("error", "No se puede registrar el usuario");
             return;
         }
-        const data = { _id: usuario._id, rol: usuario.rol };
+        const data = { _id: usuario._id, email: usuario.email, rol: usuario.rol };
         SessionStorage.set(SESSION_KEY, JSON.stringify(data));
     },
 
-    getUser() {
+    getUserSession() {
         const raw = SessionStorage.get(SESSION_KEY);
         if (!raw) return null;
         try {
@@ -117,21 +117,21 @@ export const LibreriaSession = {
         }
     },
 
-    clearUser() {
+    clearUserSession() {
         LocalStorage.remove(SESSION_KEY);
     },
 
     isAuthenticated() {
-        return !!this.getUser();
+        return !!this.getUserSession();
     },
 
     getRole() {
-        const u = this.getUser();
+        const u = this.getUserSession();
         return u ? u.rol : null;
     },
 
     getUserId() {
-        const u = this.getUser();
+        const u = this.getUserSession();
         return u ? u._id : null;
     },
 
@@ -212,12 +212,13 @@ export const LibreriaSession = {
             email: usuario.email,
             rol: usuario.rol,
             nombre: usuario.nombre,
-            apellidos: usuario.apellidos
+            apellidos: usuario.apellidos,
+            password: usuario.password
         });
         LocalStorage.set(USERS_KEY, JSON.stringify(usuarios));
     },
 
-    getUsuarios() {
+    getUsuariosStorage() {
         const raw = LocalStorage.get(USERS_KEY);
         if (!raw) return [];
         try {
@@ -227,7 +228,17 @@ export const LibreriaSession = {
         }
     },
 
-    clearUsuarios() {
+    clearUsuariosStorage() {
         LocalStorage.remove(USERS_KEY);
+    },
+
+    getUsuarios() {
+        return this.getUsuariosStorage();
+    },
+
+    getUsuarioByEmail(email) {
+        const usuarios = this.getUsuarios();
+        return usuarios.find(u => u.email == email);
     }
+
 };

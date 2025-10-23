@@ -29,7 +29,7 @@ export class InvitadoRegistroPresenter extends Presenter {
                     password: form.password.value,
                     rol: form.rol.value === "ADMIN" ? ROL.ADMIN : ROL.CLIENTE
                 };
-
+                console.log("Nuevo usuario a registrar:", nuevoUsuario);
                 // Insertamos en el modelo
                 this.model.addUsuario(nuevoUsuario);
 
@@ -37,7 +37,7 @@ export class InvitadoRegistroPresenter extends Presenter {
                 const usuario = this.model.getUsuarioPorEmail(nuevoUsuario.email);
 
                 // Guardamos en sesión, lo comento porque no queremos loguear al usuario al registrarse
-                LibreriaSession.setUser(usuario); 
+                // LibreriaSession.setUser(usuario);
 
                 // Guardamos en localStorage la lista de usuarios
                 LibreriaSession.saveUsuario(usuario);

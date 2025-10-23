@@ -1,4 +1,3 @@
-// js/components/ingreso/invitado-ingreso-presenter.mjs
 import { Presenter } from "../../commons/presenter.mjs";
 import { model, ROL } from "../../model/model.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
@@ -7,7 +6,7 @@ import { router } from "../../commons/router.mjs";
 export class InvitadoIngresoPresenter extends Presenter {
     constructor(model, view, parentSelector) {
         super(model, view, parentSelector);
-    }
+}
 
     async refresh() {
         await super.refresh();
@@ -20,6 +19,7 @@ export class InvitadoIngresoPresenter extends Presenter {
 
         form.onsubmit = (e) => {
             e.preventDefault();
+
             const email = form.email.value.trim();
             const password = form.password.value.trim();
             const rolInput = form.rol.value.trim();
@@ -27,50 +27,43 @@ export class InvitadoIngresoPresenter extends Presenter {
             mensajesContainer.innerHTML = "";
 
             try {
-                // Buscamos el usuario por email
-                const usuario = model.getUsuarioPorEmail(email);
+                // Buscar usuario por email en localStorage (persistencia)
+                const usuario = LibreriaSession.getUsuarioByEmail(email);
 
-                if (!usuario) {
-                    throw new Error("El usuario no existe.");
-                }
-
-                // Validar contraseña
-                if (usuario.password !== password) {
+                if (!usuario) throw new Error("El usuario no existe.");
+                if (usuario.password && usuario.password !== password)
                     throw new Error("Contraseña incorrecta.");
-                }
 
-                // Validar rol
                 const rolEsperado = rolInput === "ADMIN" ? ROL.ADMIN : ROL.CLIENTE;
-                if (usuario.rol !== rolEsperado) {
+                if (usuario.rol !== rolEsperado)
                     throw new Error(`El usuario no tiene el rol ${rolInput}.`);
-                }
 
-                // Guardar en sesión
+                // Guardar sesión (en sessionStorage)
                 LibreriaSession.setUser({
                     _id: usuario._id,
-                    dni: usuario.dni,
-                    rol: usuario.rol
+                    email: usuario.email,
+                    rol: usuario.rol,
                 });
 
-                LibreriaSession.addMessage("success", `Bienvenido, ${usuario.nombre || usuario.email}`);
-
+                LibreriaSession.addMessage("success", `Bienvenido, ${usuario.email}`);
                 mensajesContainer.innerHTML = `<div class="message">Ingreso correcto como ${usuario.rol}</div>`;
 
-                // Redirigir según rol
-                if (usuario.rol === ROL.ADMIN) {
-                    router.navigate("admin-dashboard.html");
-                } else {
-                    router.navigate("catalogo.html");
-                }
+                // Espera 2 segundos antes de redirigir (para ver el mensaje)
+                setTimeout(() => {
+                    if (usuario.rol === ROL.ADMIN) {
+                        router.navigate("/libreria/admin-dashboard.html");
+                    } else {
+                        router.navigate("/libreria/catalogo.html");
+                    }
+                }, 2000);
 
-                form.reset();
             } catch (err) {
                 LibreriaSession.addMessage("error", err.message);
                 mensajesContainer.innerHTML = `<div class="error">${err.message}</div>`;
             }
         };
 
-        // Mostrar usuarios persistidos
+        // Mostrar usuarios persistidos (solo para depurar)
         if (btnUsuarios) {
             btnUsuarios.onclick = () => {
                 const usuarios = LibreriaSession.getUsuarios();
@@ -83,10 +76,7 @@ export class InvitadoIngresoPresenter extends Presenter {
           <h3>Usuarios registrados en localStorage</h3>
           <ul>
             ${usuarios
-                        .map(
-                            (u) =>
-                                `<li>${u._id} - ${u.dni} - ${u.email} - ${u.rol}</li>`
-                        )
+                        .map((u) => `<li>${u._id} - ${u.dni} - ${u.email} - ${u.rol}</li>`)
                         .join("")}
           </ul>
         `;
@@ -94,4 +84,3 @@ export class InvitadoIngresoPresenter extends Presenter {
         }
     }
 }
-
