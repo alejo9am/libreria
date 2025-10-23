@@ -36,8 +36,8 @@ export class InvitadoRegistroPresenter extends Presenter {
                 // Recuperamos el usuario recién creado (por email)
                 const usuario = this.model.getUsuarioPorEmail(nuevoUsuario.email);
 
-                // Guardamos en sesión
-                LibreriaSession.setUser(usuario);
+                // Guardamos en sesión, lo comento porque no queremos loguear al usuario al registrarse
+                LibreriaSession.setUser(usuario); 
 
                 // Guardamos en localStorage la lista de usuarios
                 LibreriaSession.saveUsuario(usuario);
