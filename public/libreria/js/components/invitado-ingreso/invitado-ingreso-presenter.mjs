@@ -51,9 +51,9 @@ export class InvitadoIngresoPresenter extends Presenter {
                 // Espera 2 segundos antes de redirigir (para ver el mensaje)
                 setTimeout(() => {
                     if (usuario.rol === ROL.ADMIN) {
-                        router.navigate("/libreria/admin-dashboard.html");
+                        router.navigate("/libreria/admin-home.html");
                     } else {
-                        router.navigate("/libreria/catalogo.html");
+                        router.navigate("/libreria/cliente-home.html");
                     }
                 }, 2000);
 
