@@ -1,26 +1,24 @@
 <header>
   <h1>Tecnologías y Sistemas Web 24/25</h1>
-  <h2>Página Principal</h2>
+  <h2>Página Principal de Administrador</h2>
 </header>
 <article>
-  <nav class="navbar">
+  <!-- <nav class="navbar">
     <ul>
       <li><a id="homeLink" href="admin-home.html">Inicio</a></li>
-      <li><a id="ingresoLink" href="invitado-ingreso.html">Ingreso</a></li>
-      <li><a id="registroLink" href="invitado-registro.html">Registro</a></li>
     </ul>
-  </nav>
+  </nav> !--> 
   <div class="contenido">
     <nav class="toolbar">
-      <!--<ul>
-         <li><a id="homeLink" href="index.html">Inicio</a></li>
-        <li><a id="ingresoLink" href="ingreso.html">Ingreso</a></li>
-        <li><a id="registroLink" href="registro.html">Registro</a></li> 
-      </ul>-->
+      <ul style="justify-content: flex-end;">
+        <li><a id="perfilLink" href="admin-perfil.html">Perfil</a></li>
+      </ul>
     </nav>
     <div class="info">
       <div class="mensajes-container" id="mensajesContainer"></div>
       <div id="catalogo" class="catalogo"></div>
+      <!-- Este botón redireccionará a la página de agregar libro -->
+      <button class="button"><a id="agregarLibroLink" href="admin-agregar-libro.html">Agregar Libro</a></button>
     </div>
     <footer>
       Prof. Dr. Ricardo Tesoriero Pszytula<br>

@@ -8,6 +8,7 @@ import { InvitadoRegistroPresenter } from "./components/invitado-registro/invita
 import { InvitadoIngresoPresenter } from "./components/invitado-ingreso/invitado-ingreso-presenter.mjs";
 import { AdminHomePresenter } from "./components/admin-home/admin-home-presenter.mjs";
 import { ClienteHomePresenter } from "./components/cliente-home/cliente-home-presenter.mjs";
+import { AdminAgregarLibroPresenter } from "./components/admin-agregar-libro/admin-agregar-libro-presenter.mjs";
 import { seed } from "./model/seeder.mjs";
 
 export function init() {
@@ -23,11 +24,14 @@ export function init() {
   router.register(/^\/libreria\/invitado-ver-libro.html/, new InvitadoVerLibroPresenter(model, 'invitado-ver-libro'));
   router.register(/^\/libreria\/invitado-registro.html$/, new InvitadoRegistroPresenter(model, 'invitado-registro'));
   router.register(/^\/libreria\/invitado-ingreso.html$/, new InvitadoIngresoPresenter(model, 'invitado-ingreso'));
+
+  // Páginas de administrador
+  router.register(/^\/libreria\/admin-home.html$/, new AdminHomePresenter(model, 'admin-home'));
+  router.register(/^\/libreria\/admin-agregar-libro.html$/, new AdminAgregarLibroPresenter(model, 'admin-agregar-libro'));
+  // router.register(/^\/libreria\/home.html$/, new HomePresenter(model, 'home'));
+
+  // Paginas de cliente
   router.register(/^\/libreria\/cliente-home.html$/, new ClienteHomePresenter(model, 'cliente-home'));
 
-  router.register(/^\/libreria\/admin-home.html$/, new AdminHomePresenter(model, 'admin-home'));
-  // router.register(/^\/libreria\/home.html$/, new HomePresenter(model, 'home'));
-  // router.register(/^\/libreria$/, new HomePresenter(model, 'home'));
-  // router.register(/^\/libreria\/agregar-libro.html$/, new AgregarLibroPresenter(model, 'agregar-libro'));
   router.handleLocation();
 }

@@ -445,3 +445,29 @@ div .factura-field {
 div .factura-field>input {
   flex-grow: 1;
 }
+
+/**
+* Botones dentro de .info
+*/
+.info .button {
+  border: none;
+  padding: .5em 1em;
+  color: black;
+  border-right: solid 1em chocolate;
+  border-left: solid 1em chocolate;
+  text-decoration: none;
+  cursor: pointer;
+  background-color: transparent;
+  display: inline-block;
+  transition: all 0.2s ease-in-out;
+}
+
+.info .button:hover {
+  border-right: solid 1em #6f4626;
+  border-left: solid 1em #6f4626;
+}
+
+.info .button a {
+  color: black;
+  text-decoration: none;
+}
