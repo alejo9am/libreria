@@ -1,5 +1,5 @@
 import { Presenter } from "../../commons/presenter.mjs";
-import { InvitadoCatalogoLibroPresenter } from "../invitado-catalogo-libro/invitado-catalogo-libro-presenter.mjs";
+import { ClienteCatalogoLibroPresenter } from "../cliente-catalogo-libro/cliente-catalogo-libro-presenter.mjs";
 
 export class ClienteHomePresenter extends Presenter {
   constructor(model, view, parentSelector) {
@@ -15,9 +15,9 @@ export class ClienteHomePresenter extends Presenter {
 
     await Promise.all(
       libros.map(async (l) => {
-        return await new InvitadoCatalogoLibroPresenter(
+        return await new ClienteCatalogoLibroPresenter(
           l,
-          "invitado-catalogo-libro",
+          "cliente-catalogo-libro",
           "#catalogo"
         ).refresh();
       })
