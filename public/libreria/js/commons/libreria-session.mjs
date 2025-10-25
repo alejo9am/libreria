@@ -6,14 +6,12 @@ const MSGS_KEY = 'libreria_messages';
 const USERS_KEY = "libreria_usuarios";
 
 /**
- * Estructura de usuario guardada en sesión:
- * { _id: Number, rol: String }
  *
  * Mensaje:
  * { id: Number, type: 'info'|'error'|'warn'|'success', text: String, ts: Number }
  */
 
-const safeStorage = {
+const LocalStorage = {
     get(key) {
         try {
             return localStorage.getItem(key);
@@ -38,6 +36,32 @@ const safeStorage = {
     }
 };
 
+// Similar a LocalStorage pero usando sessionStorage
+const SessionStorage = {
+    get(key) {
+        try {
+            return sessionStorage.getItem(key);
+        } catch (e) {
+            console.warn('sessionStorage inaccesible:', e);
+            return null;
+        }
+    },
+    set(key, value) {
+        try {
+            sessionStorage.setItem(key, value);
+        } catch (e) {
+            console.warn('sessionStorage inaccesible:', e);
+        }
+    },
+    remove(key) {
+        try {
+            sessionStorage.removeItem(key);
+        } catch (e) {
+            console.warn('sessionStorage inaccesible:', e);
+        }
+    }
+};
+
 // Generador simple de ids para mensajes
 let _msgLastId = Date.now();
 function genMsgId() {
@@ -53,7 +77,7 @@ function _emitEvent(message) {
 
 /** Mensajes en localStorage */
 function _loadMessagesFromStorage() {
-    const raw = safeStorage.get(MSGS_KEY);
+    const raw = LocalStorage.get(MSGS_KEY);
     if (!raw) return [];
     try {
         return JSON.parse(raw) || [];
@@ -63,13 +87,14 @@ function _loadMessagesFromStorage() {
     }
 }
 function _saveMessagesToStorage(msgs) {
-    safeStorage.set(MSGS_KEY, JSON.stringify(msgs || []));
+    LocalStorage.set(MSGS_KEY, JSON.stringify(msgs || []));
 }
 
 export const LibreriaSession = {
     // ---------------------
     // Gestión de sesión
     // ---------------------
+    //La sesión se guarda en sessionStorage
     setUser(usuario) {
         console.log("Set user in session:", usuario);
         if (!usuario) {
@@ -77,12 +102,12 @@ export const LibreriaSession = {
             LibreriaSession.addMessage("error", "No se puede registrar el usuario");
             return;
         }
-        const data = { _id: usuario._id, rol: usuario.rol };
-        safeStorage.set(SESSION_KEY, JSON.stringify(data));
+        const data = { _id: usuario._id, email: usuario.email, rol: usuario.rol };
+        SessionStorage.set(SESSION_KEY, JSON.stringify(data));
     },
 
-    getUser() {
-        const raw = safeStorage.get(SESSION_KEY);
+    getUserSession() {
+        const raw = SessionStorage.get(SESSION_KEY);
         if (!raw) return null;
         try {
             return JSON.parse(raw);
@@ -92,21 +117,21 @@ export const LibreriaSession = {
         }
     },
 
-    clearUser() {
-        safeStorage.remove(SESSION_KEY);
+    clearUserSession() {
+        LocalStorage.remove(SESSION_KEY);
     },
 
     isAuthenticated() {
-        return !!this.getUser();
+        return !!this.getUserSession();
     },
 
     getRole() {
-        const u = this.getUser();
+        const u = this.getUserSession();
         return u ? u.rol : null;
     },
 
     getUserId() {
-        const u = this.getUser();
+        const u = this.getUserSession();
         return u ? u._id : null;
     },
 
@@ -187,13 +212,14 @@ export const LibreriaSession = {
             email: usuario.email,
             rol: usuario.rol,
             nombre: usuario.nombre,
-            apellidos: usuario.apellidos
+            apellidos: usuario.apellidos,
+            password: usuario.password
         });
-        safeStorage.set(USERS_KEY, JSON.stringify(usuarios));
+        LocalStorage.set(USERS_KEY, JSON.stringify(usuarios));
     },
 
-    getUsuarios() {
-        const raw = safeStorage.get(USERS_KEY);
+    getUsuariosStorage() {
+        const raw = LocalStorage.get(USERS_KEY);
         if (!raw) return [];
         try {
             return JSON.parse(raw) || [];
@@ -202,7 +228,17 @@ export const LibreriaSession = {
         }
     },
 
-    clearUsuarios() {
-        safeStorage.remove(USERS_KEY);
+    clearUsuariosStorage() {
+        LocalStorage.remove(USERS_KEY);
+    },
+
+    getUsuarios() {
+        return this.getUsuariosStorage();
+    },
+
+    getUsuarioByEmail(email) {
+        const usuarios = this.getUsuarios();
+        return usuarios.find(u => u.email == email);
     }
+
 };
