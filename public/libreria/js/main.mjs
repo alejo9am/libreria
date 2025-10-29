@@ -9,6 +9,7 @@ import { InvitadoIngresoPresenter } from "./components/invitado-ingreso/invitado
 import { AdminHomePresenter } from "./components/admin-home/admin-home-presenter.mjs";
 import { ClienteHomePresenter } from "./components/cliente-home/cliente-home-presenter.mjs";
 import { AdminAgregarLibroPresenter } from "./components/admin-agregar-libro/admin-agregar-libro-presenter.mjs";
+import { AdminPerfilPresenter } from "./components/admin-perfil/admin-perfil-presenter.mjs";
 import { seed } from "./model/seeder.mjs";
 
 export function init() {
@@ -28,6 +29,7 @@ export function init() {
   // Páginas de administrador
   router.register(/^\/libreria\/admin-home.html$/, new AdminHomePresenter(model, 'admin-home'));
   router.register(/^\/libreria\/admin-agregar-libro.html$/, new AdminAgregarLibroPresenter(model, 'admin-agregar-libro'));
+  router.register(/^\/libreria\/admin-perfil.html$/, new AdminPerfilPresenter(model, 'admin-perfil'));
   // router.register(/^\/libreria\/home.html$/, new HomePresenter(model, 'home'));
 
   // Paginas de cliente
