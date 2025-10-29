@@ -35,5 +35,16 @@ export class AdminHomePresenter extends Presenter {
         ).refresh();
       })
     );
+
+    // Cerrar sesion
+    const salirLink = document.getElementById("salirLink");
+    if (salirLink) {
+      salirLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        LibreriaSession.clearUserSession();
+        LibreriaSession.addMessage("success", "Sesión cerrada correctamente");
+      });
+    }
+
   }
 }
