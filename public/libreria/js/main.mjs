@@ -1,6 +1,7 @@
 
 import { model } from "./model/model.mjs";
 import { router } from "./commons/router.mjs";
+import { LibreriaSession } from "./commons/libreria-session.mjs";
 import { InvitadoHomePresenter } from "./components/invitado-home/invitado-home-presenter.mjs";
 import { InvitadoCatalogoPresenter } from "./components/invitado-catalogo/invitado-catalogo-presenter.mjs";
 import { InvitadoVerLibroPresenter } from "./components/invitado-ver-libro/invitado-ver-libro-presenter.mjs";
@@ -12,6 +13,16 @@ import { seed } from "./model/seeder.mjs";
 
 export function init() {
   seed();
+
+  // SINCRONIZAR lastId del modelo
+  const usuariosPersistidos = LibreriaSession.getUsuarios();
+  if (usuariosPersistidos.length > 0) {
+    const maxId = Math.max(...usuariosPersistidos.map(u => u._id));
+    model.constructor.lastId = maxId;
+  } else {
+    model.constructor.lastId = 0;
+  }
+
   // console.log(model)
   // Distintas maneras de entrar a la página principal
   router.register(/^\/libreria\/index.html$/, new InvitadoHomePresenter(model, 'invitado-home'));
