@@ -11,19 +11,13 @@ import { AdminHomePresenter } from "./components/admin-home/admin-home-presenter
 import { ClienteHomePresenter } from "./components/cliente-home/cliente-home-presenter.mjs";
 import { AdminAgregarLibroPresenter } from "./components/admin-agregar-libro/admin-agregar-libro-presenter.mjs";
 import { AdminPerfilPresenter } from "./components/admin-perfil/admin-perfil-presenter.mjs";
+import { AdminCatalogoPresenter } from "./components/admin-catalogo/admin-catalogo-presenter.mjs";
+import { AdminVerLibroPresenter } from "./components/admin-ver-libro/admin-ver-libro-presenter.mjs";
+
 import { seed } from "./model/seeder.mjs";
 
 export function init() {
   seed();
-
-  // SINCRONIZAR lastId del modelo
-  const usuariosPersistidos = LibreriaSession.getUsuarios();
-  if (usuariosPersistidos.length > 0) {
-    const maxId = Math.max(...usuariosPersistidos.map(u => u._id));
-    model.constructor.lastId = maxId;
-  } else {
-    model.constructor.lastId = 0;
-  }
 
   // console.log(model)
   // Distintas maneras de entrar a la página principal
@@ -41,6 +35,8 @@ export function init() {
   router.register(/^\/libreria\/admin-home.html$/, new AdminHomePresenter(model, 'admin-home'));
   router.register(/^\/libreria\/admin-agregar-libro.html$/, new AdminAgregarLibroPresenter(model, 'admin-agregar-libro'));
   router.register(/^\/libreria\/admin-perfil.html$/, new AdminPerfilPresenter(model, 'admin-perfil'));
+  router.register(/^\/libreria\/admin-catalogo.html$/, new AdminCatalogoPresenter(model, 'admin-catalogo'));
+  router.register(/^\/libreria\/admin-ver-libro.html/, new AdminVerLibroPresenter(model, 'admin-ver-libro'));
   // router.register(/^\/libreria\/home.html$/, new HomePresenter(model, 'home'));
 
   // Paginas de cliente
