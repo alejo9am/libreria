@@ -52,18 +52,30 @@ class Router {
     return this.presenters[index];
   }
 
+  // router.mjs
+
+
+
   async handleLocation() {
-    console.log('Refreshing presenter', this.localLocation);
-    if (!this.presenter) {
-      // cambiar por recursivo
+    // 1. obtener la URL actual
+    const url = this.localLocation;                 
+    console.log('Refreshing presenter', url);
+
+    // 2. buscar el presenter que coincide
+    const presenter = this.presenter;
+
+    // 3. si no hay presenter para esa ruta, no petamos
+    if (!presenter) {
       console.error(`${url} not found`);
-      url = '/not-found?url=' + encodeURIComponent(url);
-      window.history.replaceState({}, '', url);
-      index = 0;
-      this.presenters[index].refresh();
+      // si quieres redirigir a una página de not found, lo haces aquí:
+      // window.history.replaceState({}, '', '/libreria/index.html');
+      return;
     }
-    else await this.presenter.refresh();
+
+    // 4. si lo hay, lo refrescamos
+    await presenter.refresh();
   }
+
 }
 
 export const router = Router.instance;
