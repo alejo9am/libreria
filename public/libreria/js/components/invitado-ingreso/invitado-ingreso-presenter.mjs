@@ -28,9 +28,11 @@ export class InvitadoIngresoPresenter extends Presenter {
 
             try {
                 // Buscar usuario por email en localStorage (persistencia)
-                const usuario = LibreriaSession.getUsuarioByEmail(email);
-
-                if (!usuario) throw new Error("El usuario no existe.");
+                let usuario = LibreriaSession.getUsuarioByEmail(email);
+                if (!usuario) {
+                    usuario = model.getUsuarioPorEmail(email);
+                    if (!usuario) throw new Error("El usuario no existe.");
+                }
                 if (usuario.password && usuario.password !== password)
                     throw new Error("Contraseña incorrecta.");
 
