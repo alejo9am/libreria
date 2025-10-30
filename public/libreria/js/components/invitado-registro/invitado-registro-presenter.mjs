@@ -39,10 +39,20 @@ export class InvitadoRegistroPresenter extends Presenter {
                 // Guardamos en sesión, lo comento porque no queremos loguear al usuario al registrarse
                 // LibreriaSession.setUser(usuario);
 
-                // Guardamos en localStorage la lista de usuarios
-                LibreriaSession.saveUsuario(usuario);
-
-                LibreriaSession.addMessage("success", "Usuario registrado con éxito");
+                // Guardamos en localStorage el usuario, si el email existe comprueba el ROL,
+                // si el ROL es diferente al que tiene, crea un usuario nuevo con el mismo email pero diferente ROL
+                if (usuario.email === LibreriaSession.getUsuarioByEmail(usuario.email)?.email) {
+                    if (usuario.rol !== LibreriaSession.getUsuarioByEmail(usuario.email)?.rol) {
+                        LibreriaSession.saveUsuario(usuario);
+                        LibreriaSession.addMessage("success", "Usuario registrado con éxito");
+                    }
+                    else {
+                        LibreriaSession.addMessage("error", "El email ya está registrado con ese ROL.");
+                    }
+                } else {
+                    LibreriaSession.saveUsuario(usuario);
+                    LibreriaSession.addMessage("success", "Usuario registrado con éxito");
+                }
 
                 mensajesContainer.innerHTML =
                     `<div class="message">Registro completado: ${usuario.email} (${usuario.rol})</div>`;
