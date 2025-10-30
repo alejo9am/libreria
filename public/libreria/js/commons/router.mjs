@@ -64,11 +64,8 @@ class Router {
     // 2. buscar el presenter que coincide
     const presenter = this.presenter;
 
-    // 3. si no hay presenter para esa ruta, no petamos
     if (!presenter) {
       console.error(`${url} not found`);
-      // si quieres redirigir a una página de not found, lo haces aquí:
-      // window.history.replaceState({}, '', '/libreria/index.html');
       return;
     }
 
@@ -77,5 +74,6 @@ class Router {
   }
 
 }
+
 
 export const router = Router.instance;
