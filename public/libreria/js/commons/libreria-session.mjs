@@ -118,7 +118,7 @@ export const LibreriaSession = {
     },
 
     clearUserSession() {
-        LocalStorage.remove(SESSION_KEY);
+        SessionStorage.remove(SESSION_KEY);
     },
 
     isAuthenticated() {

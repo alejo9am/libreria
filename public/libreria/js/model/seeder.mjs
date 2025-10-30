@@ -40,6 +40,13 @@ function crearAdmin(dni) {
 
 
 export function seed() {
+  // Asegurar que los IDs de los libros, usuarios y facturas no colisionen con los ya existentes en el MODELO
+  const maxLibroId = Math.max(0, ...model.libros.map(l => l._id || 0));
+  const maxUsuarioId = Math.max(0, ...model.usuarios.map(u => u._id || 0));
+  const maxFacturaId = Math.max(0, ...model.facturas.map(f => f._id || 0));
+
+  model.constructor.lastId = Math.max(maxLibroId, maxUsuarioId, maxFacturaId);
+
   const ISBNS = ['978-3-16-148410-0', '978-3-16-148410-1', '978-3-16-148410-2', '978-3-16-148410-3', '978-3-16-148410-4'];
   let libros = ISBNS.map(isbn => crearLibro(isbn));
   libros.forEach(l => model.addLibro(l));
