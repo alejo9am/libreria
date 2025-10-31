@@ -8,12 +8,13 @@ import { InvitadoVerLibroPresenter } from "./components/invitado-ver-libro/invit
 import { InvitadoRegistroPresenter } from "./components/invitado-registro/invitado-registro-presenter.mjs";
 import { InvitadoIngresoPresenter } from "./components/invitado-ingreso/invitado-ingreso-presenter.mjs";
 import { AdminHomePresenter } from "./components/admin-home/admin-home-presenter.mjs";
-import { ClienteHomePresenter } from "./components/cliente-home/cliente-home-presenter.mjs";
 import { AdminAgregarLibroPresenter } from "./components/admin-agregar-libro/admin-agregar-libro-presenter.mjs";
 import { AdminPerfilPresenter } from "./components/admin-perfil/admin-perfil-presenter.mjs";
 import { AdminCatalogoPresenter } from "./components/admin-catalogo/admin-catalogo-presenter.mjs";
 import { AdminVerLibroPresenter } from "./components/admin-ver-libro/admin-ver-libro-presenter.mjs";
 import { AdminModificarLibroPresenter } from "./components/admin-modificar-libro/admin-modificar-libro-presenter.mjs";
+import { ClienteHomePresenter } from "./components/cliente-home/cliente-home-presenter.mjs";
+import { ClienteVerLibroPresenter } from "./components/cliente-ver-libro/cliente-ver-libro-presenter.mjs";
 
 import { seed } from "./model/seeder.mjs";
 
@@ -43,6 +44,9 @@ export function init() {
 
   // Paginas de cliente
   router.register(/^\/libreria\/cliente-home.html$/, new ClienteHomePresenter(model, 'cliente-home'));
+  router.register(/^\/libreria\/cliente-ver-libro.html/, new ClienteVerLibroPresenter(model, 'cliente-ver-libro'));
+
+
 
   router.handleLocation();
 }
