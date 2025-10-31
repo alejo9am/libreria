@@ -67,9 +67,7 @@ export class AdminModificarLibroPresenter extends Presenter {
 
         LibreriaSession.addMessage("success", `Libro modificado correctamente: ${libroActualizado.titulo}`);
 
-        setTimeout(() => {
-          router.navigate("admin-home.html");
-        }, 2000);
+        router.navigate("admin-home.html");
 
       } catch (err) {
         LibreriaSession.addMessage("error", err.message);

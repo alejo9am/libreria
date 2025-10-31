@@ -56,7 +56,7 @@ export class InvitadoIngresoPresenter extends Presenter {
           rol: usuario.rol,
         });
 
-        LibreriaSession.addMessage("success", `Bienvenido, ${usuario.email}`);
+        LibreriaSession.addMessage("success", `Bienvenido, ${usuario.nombre} ${usuario.apellidos}`);
         mensajesContainer.innerHTML = `<div class="message">Ingreso correcto como ${usuario.rol}</div>`;
 
         // Redirigir según el rol

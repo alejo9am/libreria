@@ -110,19 +110,13 @@ export class AdminVerLibroPresenter extends Presenter {
       this.borrarLibroElement.addEventListener("click", () => {
         try {
           this.model.removeLibro(this.id);
-          LibreriaSession.addMessage({
-            type: "info",
-            text: "Libro borrado correctamente",
-          });
-          mensajesContainer.innerHTML = `<div class="message">Libro ${this.titulo} borrado correctamente</div>`;
-          setTimeout(() => {
-            router.navigate("admin-home.html");
-          }, 2000);
-        } catch (err) {
-          console.error(err);
-          LibreriaSession.addMessage({ type: "error", text: err.message });
-        }
-      });
+        LibreriaSession.addMessage("success", `Libro borrado correctamente: ${libro.titulo}`);
+        router.navigate("admin-home.html");
+      } catch (err) {
+        console.error(err);
+        LibreriaSession.addMessage("error", err.message);
+      }
+    });
     }
   }
 }
