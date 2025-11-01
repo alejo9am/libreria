@@ -12,6 +12,7 @@ import { AdminAgregarLibroPresenter } from "./components/admin-agregar-libro/adm
 import { AdminPerfilPresenter } from "./components/admin-perfil/admin-perfil-presenter.mjs";
 import { AdminCatalogoPresenter } from "./components/admin-catalogo/admin-catalogo-presenter.mjs";
 import { AdminVerLibroPresenter } from "./components/admin-ver-libro/admin-ver-libro-presenter.mjs";
+import { AdminModificarLibroPresenter } from "./components/admin-modificar-libro/admin-modificar-libro-presenter.mjs";
 import { ClienteHomePresenter } from "./components/cliente-home/cliente-home-presenter.mjs";
 import { ClienteVerLibroPresenter } from "./components/cliente-ver-libro/cliente-ver-libro-presenter.mjs";
 
@@ -38,6 +39,7 @@ export function init() {
   router.register(/^\/libreria\/admin-perfil.html$/, new AdminPerfilPresenter(model, 'admin-perfil'));
   router.register(/^\/libreria\/admin-catalogo.html$/, new AdminCatalogoPresenter(model, 'admin-catalogo'));
   router.register(/^\/libreria\/admin-ver-libro.html/, new AdminVerLibroPresenter(model, 'admin-ver-libro'));
+  router.register(/^\/libreria\/admin-modificar-libro.html/, new AdminModificarLibroPresenter(model, 'admin-modificar-libro'));
   // router.register(/^\/libreria\/home.html$/, new HomePresenter(model, 'home'));
 
   // Paginas de cliente

@@ -15,6 +15,14 @@ export class AdminHomePresenter extends Presenter {
   async refresh() {
     await super.refresh();
 
+    // Mostrar el último mensaje
+    const mensajesContainer = document.getElementById("mensajesContainer");
+    const mensajes = LibreriaSession.getMessages();
+    if (mensajes.length > 0) {
+        const ultimo = mensajes[mensajes.length - 1]; // solo el último
+        mensajesContainer.innerHTML = `<div class="message ${ultimo.type}">${ultimo.text}</div>`;
+    }
+
     // Verificar si el usuario es administrador, sino redirigir al login
     const userSession = LibreriaSession.getUserSession();
     if (!userSession || userSession.rol !== "ADMIN") {
