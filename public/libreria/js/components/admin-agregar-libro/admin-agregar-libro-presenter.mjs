@@ -1,5 +1,6 @@
 import { Presenter } from "../../commons/presenter.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
+import { router } from "../../commons/router.mjs";
 
 export class AdminAgregarLibroPresenter extends Presenter {
   constructor(model, view, parentSelector) {
@@ -11,7 +12,6 @@ export class AdminAgregarLibroPresenter extends Presenter {
 
     const form = document.getElementById("agregarLibroForm");
     const mensajesContainer = document.getElementById("mensajesContainer");
-    const btnMostrarLibros = document.getElementById("mostrarLibrosBtn");
 
     if (!form) return;
 
@@ -52,18 +52,13 @@ export class AdminAgregarLibroPresenter extends Presenter {
 
         // Mensaje de éxito
         LibreriaSession.addMessage("success", `Libro agregado: ${libro.titulo}`);
-        mensajesContainer.innerHTML = `<div class="message">Libro agregado correctamente: <strong>${libro.titulo}</strong></div>`;
 
-        // Limpia el formulario después de 2 segundos
-        setTimeout(() => {
-          form.reset();
-          mensajesContainer.innerHTML = "";
-        }, 2000);
+        // Si se ha añadido el libro correctamente, enviar a home
+        router.navigate("admin-home.html"); 
       } catch (err) {
         LibreriaSession.addMessage("error", err.message);
         mensajesContainer.innerHTML = `<div class="error">${err.message}</div>`;
       }
     };
-
   }
 }
