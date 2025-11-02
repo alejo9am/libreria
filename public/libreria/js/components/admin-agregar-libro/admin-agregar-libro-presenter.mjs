@@ -15,6 +15,14 @@ export class AdminAgregarLibroPresenter extends Presenter {
 
     if (!form) return;
 
+    // Verificar si el usuario es administrador, sino redirigir al login
+    const userSession = LibreriaSession.getUserSession();
+    if (!userSession || userSession.rol !== "ADMIN") {
+      LibreriaSession.addMessage("error", "Debe iniciar sesión como administrador");
+      console.log("ERROR, usuario no autorizado", userSession);
+      router.navigate("/libreria/invitado-ingreso.html");
+      return;
+    }
     form.onsubmit = (e) => {
       e.preventDefault();
       mensajesContainer.innerHTML = "";

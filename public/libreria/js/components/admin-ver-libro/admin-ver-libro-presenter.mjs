@@ -89,6 +89,16 @@ export class AdminVerLibroPresenter extends Presenter {
   async refresh() {
     await super.refresh();
     console.log(this.id);
+
+    // Verificar si el usuario es administrador, sino redirigir al login
+    const userSession = LibreriaSession.getUserSession();
+    if (!userSession || userSession.rol !== "ADMIN") {
+        LibreriaSession.addMessage("error", "Debe iniciar sesión como administrador");
+        console.log("ERROR, usuario no autorizado", userSession);
+        router.navigate("/libreria/invitado-ingreso.html");
+        return;
+    }
+
     let libro = this.getLibro();
     if (libro) this.libro = libro;
     else console.error(`Libro ${id} not found!`);
