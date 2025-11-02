@@ -10,13 +10,13 @@ export class AdminPerfilPresenter extends Presenter {
   async refresh() {
     await super.refresh();
 
+    // Verificar si el usuario es administrador, sino redirigir al login
     const userSession = LibreriaSession.getUserSession();
-
-    // Verificación de sesión
     if (!userSession || userSession.rol !== "ADMIN") {
-      LibreriaSession.addMessage("error", "Debe iniciar sesión como administrador");
-      router.navigate("/libreria/invitado-ingreso.html");
-      return;
+        LibreriaSession.addMessage("error", "Debe iniciar sesión como administrador");
+        console.log("ERROR, usuario no autorizado", userSession);
+        router.navigate("/libreria/invitado-ingreso.html");
+        return;
     }
 
     // Cargar usuario desde localStorage
