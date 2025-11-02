@@ -6,16 +6,49 @@ export class AdminCatalogoLibroPresenter extends Presenter {
   }
 
   async refresh() {
-    let html = await this.getHTML();
+    const html = await this.getHTML();
     this.parentElement.insertAdjacentHTML('beforeend', html);
 
-    let node = this.parentElement.querySelector(`#titulo`);
-    node.setAttribute('id', `titulo_${this.model._id}`);
-    node.innerHTML = this.model.titulo;
+    // obtenemos el último <article> insertado
+    const libroElement = this.parentElement.lastElementChild;
+    if (!libroElement) return;
 
-    node = this.parentElement.querySelector(`#verLink`);
-    node.setAttribute('id', `verLink_${this.model._id}`);
-    node.setAttribute('href', `admin-ver-libro.html?id=${this.model._id}`);
-    this.attachAnchors();
+    // Título
+    const tituloNode = libroElement.querySelector('#titulo');
+    if (tituloNode) {
+      tituloNode.setAttribute('id', `titulo_${this.model._id}`);
+      tituloNode.textContent = this.model.titulo || '';
+    }
+
+    // Autores
+    const autoresNode = libroElement.querySelector('.autores');
+    if (autoresNode) {
+      if (Array.isArray(this.model.autores))
+        autoresNode.textContent = this.model.autores.join('; ');
+      else autoresNode.textContent = this.model.autores || '';
+    }
+
+    // ISBN
+    const isbnNode = libroElement.querySelector('.isbn');
+    if (isbnNode) isbnNode.textContent = this.model.isbn || '';
+
+    // Precio
+    const precioNode = libroElement.querySelector('.precio');
+    if (precioNode) {
+        precioNode.textContent = `€ ${this.model.precio || ''}`;
+    }
+
+    // Portada
+    const portadaNode = libroElement.querySelector('img.portada');
+    if (portadaNode && this.model.portada)
+      portadaNode.src = this.model.portada;
+
+    // Enlace "Ver"
+    const verLinkNode = libroElement.querySelector('#verLink');
+    if (verLinkNode) {
+      verLinkNode.setAttribute('href', `admin-ver-libro.html?id=${this.model._id}`);
+    }
+
+    if (typeof this.attachAnchors === 'function') this.attachAnchors();
   }
 }

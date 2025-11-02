@@ -34,32 +34,18 @@ export class AdminPerfilPresenter extends Presenter {
 
   _fillForm(admin) {
     // Rellenamos campos y bloqueamos por defecto
+    document.querySelector("#dni").value = admin.dni || "";
     document.querySelector("#nombre").value = admin.nombre || "";
     document.querySelector("#apellidos").value = admin.apellidos || "";
+    document.querySelector("#direccion").value = admin.direccion || "";
     document.querySelector("#email").value = admin.email || "";
-    document.querySelector("#password").value = "";
+    document.querySelector("#password").value = admin.password || "";
 
-    // Bloquear todos los campos inicialmente
-    document.querySelector("#nombre").disabled = true;
-    document.querySelector("#apellidos").disabled = true;
-    document.querySelector("#email").disabled = true;
-    document.querySelector("#password").disabled = true;
   }
 
   _attachHandlers() {
     const form = document.querySelector("#perfilForm");
     const mensajesContainer = document.querySelector("#mensajesContainer");
-
-    const btnModificar = document.querySelector("#btnModificar");
-
-    // Botón modificar desbloquea campos
-    btnModificar.addEventListener("click", (ev) => {
-      ev.preventDefault();
-      document.querySelector("#nombre").disabled = false;
-      document.querySelector("#apellidos").disabled = false;
-      document.querySelector("#email").disabled = false;
-      document.querySelector("#password").disabled = false;
-    });
 
     // Guardar cambios
     form.addEventListener("submit", (ev) => {
@@ -69,6 +55,8 @@ export class AdminPerfilPresenter extends Presenter {
       const apellidos = form.apellidos.value.trim();
       const email = form.email.value.trim();
       const password = form.password.value.trim();
+      const direccion = form.direccion.value.trim();
+      const dni = form.dni.value.trim();
 
       try {
         if (!nombre || !apellidos || !email) throw new Error("Todos los campos son obligatorios");
@@ -77,36 +65,17 @@ export class AdminPerfilPresenter extends Presenter {
         this.admin.nombre = nombre;
         this.admin.apellidos = apellidos;
         this.admin.email = email;
+        this.admin.direccion = direccion;
+        this.admin.dni = dni;
         if (password) this.admin.password = password;
 
         LibreriaSession.putUsuario(this.admin);
 
         this._mostrarMensaje("success", "Perfil actualizado correctamente");
-        form.password.value = "";
-
-        // Bloquear campos otra vez
-        document.querySelector("#nombre").disabled = true;
-        document.querySelector("#apellidos").disabled = true;
-        document.querySelector("#email").disabled = true;
-        document.querySelector("#password").disabled = true;
 
       } catch (err) {
         this._mostrarMensaje("error", err.message);
       }
     });
-
-    // Logout
-    document.querySelector("#logoutLink").addEventListener("click", (ev) => {
-      ev.preventDefault();
-      LibreriaSession.clearUserSession();
-      LibreriaSession.addMessage("info", "Sesión cerrada correctamente");
-      router.navigate("/libreria/invitado-ingreso.html");
-    });
-  }
-
-  _mostrarMensaje(tipo, texto, tiempo = 2500) {
-    const cont = document.querySelector("#mensajesContainer");
-    cont.innerHTML = `<div class="msg ${tipo}">${texto}</div>`;
-    setTimeout(() => (cont.innerHTML = ""), tiempo);
   }
 }
