@@ -3,6 +3,8 @@ export const ROL = {
   CLIENTE: "CLIENTE",
 };
 
+import { LibreriaSession } from "../commons/libreria-session.mjs";
+
 class Identificable {
   _id;
   assignId() {
@@ -130,7 +132,36 @@ export class Libreria {
   }
 
   getClientePorId(id) {
-    return this.usuarios.find(u => u.rol == ROL.CLIENTE && u._id == id);
+    console.log('[Model] getClientePorId - Buscando cliente con id:', id, 'tipo:', typeof id);
+    console.log('[Model] getClientePorId - Clientes disponibles:', this.usuarios.filter(u => u.rol == ROL.CLIENTE).map(u => ({ _id: u._id, email: u.email })));
+    const numId = Number(id);
+    let cliente = this.usuarios.find(u => u.rol == ROL.CLIENTE && u._id === numId);
+    if (cliente) return cliente;
+
+    // Fallback: intentar restaurar desde localStorage si no está cargado aún
+    try {
+      console.warn('[Model] getClientePorId - Cliente no encontrado en modelo, intentando restaurar desde storage:', id);
+      const usuariosStorage = LibreriaSession.getUsuarios();
+      const data = usuariosStorage.find(u => Number(u._id) === numId && u.rol == ROL.CLIENTE);
+      if (data) {
+        console.log('[Model] getClientePorId - Restaurando cliente desde storage:', data.email);
+        // Agregar al modelo respetando el rol
+        this.addUsuario(data);
+        // Asegurar el mismo ID
+        const agregado = this.getUsuarioPorEmail(data.email);
+        if (agregado) {
+          agregado._id = Number(data._id);
+          if (agregado._id > this.constructor.lastId) {
+            this.constructor.lastId = agregado._id;
+          }
+          if (agregado.rol !== ROL.CLIENTE) agregado.rol = ROL.CLIENTE;
+          return agregado;
+        }
+      }
+    } catch (e) {
+      console.warn('[Model] getClientePorId - Error restaurando cliente:', e);
+    }
+    return undefined;
   }
 
   getAdministradorPorEmail(email) {
@@ -152,18 +183,35 @@ export class Libreria {
   }
 
   addClienteCarroItem(id, item) {
-    item.libro = this.getLibroPorId(item.libro);
-    item = this.getClientePorId(id).addCarroItem(item);
-    return item;
+    console.log('[Model] addClienteCarroItem - userId:', id, 'item:', item);
+    const libro = this.getLibroPorId(item.libro);
+    console.log('[Model] addClienteCarroItem - libro encontrado:', libro);
+    if (!libro) throw new Error('Libro no encontrado');
+    const cliente = this.getClientePorId(id);
+    console.log('[Model] addClienteCarroItem - cliente encontrado:', cliente);
+    if (!cliente) throw new Error('Cliente no encontrado');
+    item.libro = libro;
+    cliente.addCarroItem(item);
+    console.log('[Model] addClienteCarroItem - carrito actualizado:', cliente.carro.items);
+    
+    // Guardar carrito en localStorage
+    LibreriaSession.saveCarrito(id, cliente.carro);
+    
+    return cliente.carro;
   }
 
   setClienteCarroItemCantidad(id, index, cantidad) {
     let cliente = this.getClientePorId(id);
-    return cliente.setCarroItemCantidad(index, cantidad);
+    cliente.setCarroItemCantidad(index, cantidad);
+    // Guardar carrito en localStorage
+    LibreriaSession.saveCarrito(id, cliente.carro);
+    return cliente.carro;
   }
 
   getCarroCliente(id) {
-    return this.getClientePorId(id).carro;
+    const cliente = this.getClientePorId(id);
+    if (!cliente) return null;
+    return cliente.carro;
   }
 
   /**
@@ -368,7 +416,7 @@ class Carro {
 
   removeItems() {
     this.items = [];
-    calcular();
+    this.calcular();
   }
   calcular() {
     this.subtotal = this.items.reduce((total, i) => total + i.total, 0);

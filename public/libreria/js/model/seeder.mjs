@@ -1,4 +1,5 @@
 import { model, ROL } from './model.mjs';
+import { LibreriaSession } from '../commons/libreria-session.mjs';
 
 function crearLibro(isbn) {
   return {
@@ -58,4 +59,59 @@ export function seed() {
   const C_DNIS = ['00000000C', '00000001C', '00000002C', '00000003C', '00000004C'];
   let clientes = C_DNIS.map(dni => crearCliente(dni));
   clientes.forEach(c => model.addUsuario(c));
+
+  // Cargar usuarios registrados manualmente desde localStorage
+  const usuariosGuardados = LibreriaSession.getUsuarios();
+  console.log('[Seeder] Cargando usuarios desde localStorage:', usuariosGuardados.length);
+  usuariosGuardados.forEach(usuarioData => {
+    try {
+      // Verificar si el usuario ya existe en el modelo
+      const usuarioExistente = model.getUsuarioPorEmail(usuarioData.email);
+      if (!usuarioExistente) {
+        console.log('[Seeder] Agregando usuario desde localStorage:', usuarioData.email);
+        model.addUsuario(usuarioData);
+        // Asegurar que el ID se mantenga igual
+        const usuarioAgregado = model.getUsuarioPorEmail(usuarioData.email);
+        if (usuarioAgregado && usuarioData._id) {
+          usuarioAgregado._id = usuarioData._id;
+          // Actualizar lastId si es necesario
+          if (usuarioData._id > model.constructor.lastId) {
+            model.constructor.lastId = usuarioData._id;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[Seeder] Error al agregar usuario desde localStorage:', usuarioData.email, err);
+    }
+  });
+
+  // Cargar carritos persistidos desde localStorage
+  const carritosGuardados = LibreriaSession.getCarritos();
+  console.log('[Seeder] Cargando carritos desde localStorage:', carritosGuardados.length);
+  carritosGuardados.forEach(carritoData => {
+    try {
+      const cliente = model.getClientePorId(carritoData.userId);
+      if (cliente) {
+        console.log('[Seeder] Restaurando carrito para usuario:', carritoData.userId);
+        // Restaurar los items del carrito pero hay que convertir los libros a referencias correctas
+        if (carritoData.items && Array.isArray(carritoData.items)) {
+          carritoData.items.forEach(itemData => {
+            try {
+              const libro = model.getLibroPorId(itemData.libro?._id || itemData.libro);
+              if (libro) {
+                cliente.addCarroItem({
+                  libro: libro,
+                  cantidad: itemData.cantidad
+                });
+              }
+            } catch (err) {
+              console.warn('[Seeder] Error al restaurar item del carrito:', err);
+            }
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('[Seeder] Error al restaurar carrito:', carritoData.userId, err);
+    }
+  });
 }

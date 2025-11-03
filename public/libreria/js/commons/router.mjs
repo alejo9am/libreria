@@ -52,8 +52,14 @@ class Router {
     return this.presenters[index];
   }
 
+  // router.mjs
+
+
+
   async handleLocation() {
+
     console.log('Refreshing presenter', this.localLocation);
+    
     if (!this.presenter) {
       // cambiar por recursivo
       console.error(`${url} not found`);
@@ -61,9 +67,12 @@ class Router {
       window.history.replaceState({}, '', url);
       index = 0;
       this.presenters[index].refresh();
+      
     }
     else await this.presenter.refresh();
-  }
-}
 
+    await presenter.refresh();
+  }
+
+}
 export const router = Router.instance;

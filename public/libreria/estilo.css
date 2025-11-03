@@ -75,7 +75,8 @@ main>article>div.contenido>div.info {
   flex-direction: column;
   margin-left: .5em;
   margin-top: .5em;
-  align-items: center;
+  align-items: flex-start;
+  width: 100%;
 }
 
 main>article>div.contenido>footer {
@@ -242,7 +243,6 @@ div.mensajes-container {
   flex-direction: column;
   align-items: stretch;
   width: 100%;
-  margin-bottom: 5px;
 }
 
 div.mensajes {
@@ -368,6 +368,98 @@ div.mensajes {
   vertical-align: top;
 }
 
+.carrito-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #ccc;
+}
+
+.carrito-table thead {
+  background-color: #f5f5f5;
+  border-bottom: 2px solid #333;
+}
+
+.carrito-table thead th {
+  padding: 12px;
+  text-align: left;
+  font-weight: bold;
+  border-right: 1px solid #ccc;
+}
+
+.carrito-table thead th:last-child {
+  border-right: none;
+}
+
+.carrito-table tbody tr {
+  border-bottom: 1px solid #ddd;
+}
+
+.carrito-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.carrito-table tbody td {
+  padding: 12px;
+  border-right: 1px solid #ddd;
+}
+
+.carrito-table tbody td:last-child {
+  border-right: none;
+}
+
+.carrito-table .col-cant {
+  text-align: center;
+  width: 80px;
+}
+
+.carrito-table .col-detalle {
+  flex: 1;
+  text-align: left;
+}
+
+.carrito-table .col-unidad {
+  text-align: right;
+  width: 100px;
+}
+
+.carrito-table .col-total {
+  text-align: right;
+  width: 100px;
+  font-weight: bold;
+}
+
+.carrito-table input.qty-input {
+  width: 60px;
+  padding: 6px;
+  border: 1px solid #999;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.carrito-table tfoot {
+  border-top: 2px solid #333;
+  background-color: #f9f9f9;
+  font-weight: bold;
+}
+
+.carrito-table tfoot tr {
+  border-bottom: 1px solid #ddd;
+}
+
+.carrito-table tfoot td {
+  padding: 12px;
+  border-right: 1px solid #ddd;
+  text-align: right;
+}
+
+.carrito-table tfoot td:last-child {
+  border-right: none;
+}
+
+.hidden {
+  display: none !important;
+}
+
 /**
 * Carro
 */
@@ -472,12 +564,3 @@ div .factura-field>input {
   color: black;
   text-decoration: none;
 }
-
-.borrarLibro {
-  cursor: pointer;
-  padding: 6px 12px;
-  transition: background-color 0.2s, transform 0.1s;
-  display: inline-block;
-  user-select: none;
-}
-

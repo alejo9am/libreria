@@ -4,6 +4,7 @@
 const SESSION_KEY = 'libreria_session';
 const MSGS_KEY = 'libreria_messages';
 const USERS_KEY = "libreria_usuarios";
+const CARRITOS_KEY = "libreria_carritos";
 
 /**
  *
@@ -103,6 +104,7 @@ export const LibreriaSession = {
             return;
         }
         const data = { _id: usuario._id, email: usuario.email, rol: usuario.rol };
+        console.log("[LibreriaSession] Guardando usuario en sesión con _id:", data._id, "tipo:", typeof data._id);
         SessionStorage.set(SESSION_KEY, JSON.stringify(data));
     },
 
@@ -132,7 +134,9 @@ export const LibreriaSession = {
 
     getUserId() {
         const u = this.getUserSession();
-        return u ? u._id : null;
+        const userId = u ? u._id : null;
+        console.log("[LibreriaSession] getUserId:", userId, "tipo:", typeof userId);
+        return userId;
     },
 
     // ---------------------
@@ -213,8 +217,7 @@ export const LibreriaSession = {
             rol: usuario.rol,
             nombre: usuario.nombre,
             apellidos: usuario.apellidos,
-            password: usuario.password,
-            direccion: usuario.direccion
+            password: usuario.password
         });
         LocalStorage.set(USERS_KEY, JSON.stringify(usuarios));
     },
@@ -242,13 +245,52 @@ export const LibreriaSession = {
         return usuarios.find(u => u.email == email);
     },
 
-    // Reemplazar usuario existente
-    putUsuario(usuario) {
-        let usuarios = this.getUsuarios();
-        const index = usuarios.findIndex(u => u._id === usuario._id);
-        if (index !== -1) {
-            usuarios[index] = usuario;
-            LocalStorage.set(USERS_KEY, JSON.stringify(usuarios));
+    // ---------------------
+    // Gestión de carritos persistidos
+    // ---------------------
+    saveCarrito(userId, carro) {
+        console.log(`[LibreriaSession] Guardando carrito del usuario ${userId}`);
+        let carritos = this.getCarritos();
+        // Eliminar carrito anterior del mismo usuario si existe
+        carritos = carritos.filter(c => c.userId !== userId);
+        
+        // Serializar items transformando referencias de libro a solo IDs
+        const itemsSerializables = (carro.items || []).map(item => ({
+            libro: item.libro?._id || item.libro,
+            cantidad: item.cantidad,
+            total: item.total
+        }));
+        
+        console.log(`[LibreriaSession] Items a guardar:`, itemsSerializables);
+        
+        carritos.push({
+            userId: userId,
+            items: itemsSerializables,
+            subtotal: carro.subtotal || 0,
+            iva: carro.iva || 0,
+            total: carro.total || 0
+        });
+        LocalStorage.set(CARRITOS_KEY, JSON.stringify(carritos));
+        console.log(`[LibreriaSession] Carrito guardado en localStorage`);
+    },
+
+    getCarritos() {
+        const raw = LocalStorage.get(CARRITOS_KEY);
+        if (!raw) return [];
+        try {
+            return JSON.parse(raw) || [];
+        } catch {
+            return [];
         }
+    },
+
+    getCarrito(userId) {
+        const carritos = this.getCarritos();
+        return carritos.find(c => c.userId === userId);
+    },
+
+    clearCarritos() {
+        LocalStorage.remove(CARRITOS_KEY);
     }
-}
+
+};
