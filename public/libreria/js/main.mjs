@@ -8,11 +8,13 @@ import { InvitadoVerLibroPresenter } from "./components/invitado-ver-libro/invit
 import { InvitadoRegistroPresenter } from "./components/invitado-registro/invitado-registro-presenter.mjs";
 import { InvitadoIngresoPresenter } from "./components/invitado-ingreso/invitado-ingreso-presenter.mjs";
 import { AdminHomePresenter } from "./components/admin-home/admin-home-presenter.mjs";
-import { ClienteHomePresenter } from "./components/cliente-home/cliente-home-presenter.mjs";
 import { AdminAgregarLibroPresenter } from "./components/admin-agregar-libro/admin-agregar-libro-presenter.mjs";
 import { AdminPerfilPresenter } from "./components/admin-perfil/admin-perfil-presenter.mjs";
 import { AdminCatalogoPresenter } from "./components/admin-catalogo/admin-catalogo-presenter.mjs";
 import { AdminVerLibroPresenter } from "./components/admin-ver-libro/admin-ver-libro-presenter.mjs";
+import { AdminModificarLibroPresenter } from "./components/admin-modificar-libro/admin-modificar-libro-presenter.mjs";
+import { ClienteHomePresenter } from "./components/cliente-home/cliente-home-presenter.mjs";
+import { ClienteVerLibroPresenter } from "./components/cliente-ver-libro/cliente-ver-libro-presenter.mjs";
 
 import { seed } from "./model/seeder.mjs";
 
@@ -37,10 +39,14 @@ export function init() {
   router.register(/^\/libreria\/admin-perfil.html$/, new AdminPerfilPresenter(model, 'admin-perfil'));
   router.register(/^\/libreria\/admin-catalogo.html$/, new AdminCatalogoPresenter(model, 'admin-catalogo'));
   router.register(/^\/libreria\/admin-ver-libro.html/, new AdminVerLibroPresenter(model, 'admin-ver-libro'));
+  router.register(/^\/libreria\/admin-modificar-libro.html/, new AdminModificarLibroPresenter(model, 'admin-modificar-libro'));
   // router.register(/^\/libreria\/home.html$/, new HomePresenter(model, 'home'));
 
   // Paginas de cliente
   router.register(/^\/libreria\/cliente-home.html$/, new ClienteHomePresenter(model, 'cliente-home'));
+  router.register(/^\/libreria\/cliente-ver-libro.html/, new ClienteVerLibroPresenter(model, 'cliente-ver-libro'));
+
+
 
   router.handleLocation();
 }

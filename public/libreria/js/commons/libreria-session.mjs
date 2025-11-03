@@ -213,7 +213,8 @@ export const LibreriaSession = {
             rol: usuario.rol,
             nombre: usuario.nombre,
             apellidos: usuario.apellidos,
-            password: usuario.password
+            password: usuario.password,
+            direccion: usuario.direccion
         });
         LocalStorage.set(USERS_KEY, JSON.stringify(usuarios));
     },
@@ -239,6 +240,15 @@ export const LibreriaSession = {
     getUsuarioByEmail(email) {
         const usuarios = this.getUsuarios();
         return usuarios.find(u => u.email == email);
-    }
+    },
 
-};
+    // Reemplazar usuario existente
+    putUsuario(usuario) {
+        let usuarios = this.getUsuarios();
+        const index = usuarios.findIndex(u => u._id === usuario._id);
+        if (index !== -1) {
+            usuarios[index] = usuario;
+            LocalStorage.set(USERS_KEY, JSON.stringify(usuarios));
+        }
+    }
+}
