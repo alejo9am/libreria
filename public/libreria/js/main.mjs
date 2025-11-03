@@ -22,6 +22,16 @@ import { seed } from "./model/seeder.mjs";
 export function init() {
   seed();
 
+   // 2️⃣ Cargar usuarios persistidos desde localStorage
+  // Esto sobrescribirá/añadirá usuarios que ya existan en localStorage
+  model.loadUsuariosFromStorage();
+  
+  console.log(`Estado inicial:
+  - Libros: ${model.getLibros().length}
+  - Usuarios: ${model.usuarios.length}
+    - Clientes: ${model.getClientes().length}
+    - Admins: ${model.getAdmins().length}`);
+
   // console.log(model)
   // Distintas maneras de entrar a la página principal
   router.register(/^\/libreria\/index.html$/, new InvitadoHomePresenter(model, 'invitado-home'));

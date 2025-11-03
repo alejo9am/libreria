@@ -1,3 +1,8 @@
+// js/model/model.mjs
+// VERSIÓN CON SINCRONIZACIÓN DE USUARIOS CON LOCALSTORAGE
+
+import { LibreriaSession } from '../commons/libreria-session.mjs';
+
 export const ROL = {
   ADMIN: "ADMIN",
   CLIENTE: "CLIENTE",
@@ -24,9 +29,43 @@ export class Libreria {
     return ++this.lastId;
   }
 
+  // ==================== SINCRONIZACIÓN DE USUARIOS ====================
+
   /**
-   * Libros
+   * Carga usuarios desde localStorage al modelo
+   * Debe llamarse al iniciar la aplicación
    */
+  loadUsuariosFromStorage() {
+    const usuariosData = LibreriaSession.getAllUsuarios();
+    
+    this.usuarios = usuariosData.map(data => {
+      let usuario;
+      if (data.rol === ROL.CLIENTE) {
+        usuario = new Cliente();
+      } else {
+        usuario = new Administrador();
+      }
+      Object.assign(usuario, data);
+      
+      // Actualizar lastId si es necesario
+      if (data._id > Libreria.lastId) {
+        Libreria.lastId = data._id;
+      }
+      
+      return usuario;
+    });
+
+    console.log(`${this.usuarios.length} usuarios cargados desde localStorage al modelo`);
+  }
+
+  /**
+   * Guarda todos los usuarios del modelo en localStorage
+   */
+  syncUsuariosToStorage() {
+    LibreriaSession.saveAllUsuarios(this.usuarios);
+  }
+
+  // ==================== LIBROS (sin persistencia) ====================
 
   getLibros() {
     return this.libros;
@@ -34,7 +73,7 @@ export class Libreria {
 
   addLibro(obj) {
     if (!obj.isbn) throw new Error('El libro no tiene ISBN');
-    if (this.getLibroPorIsbn(obj.isbn)) throw new Error(`El ISBN ${obj.isbn} ya existe`)
+    if (this.getLibroPorIsbn(obj.isbn)) throw new Error(`El ISBN ${obj.isbn} ya existe`);
     let libro = new Libro();
     Object.assign(libro, obj);
     libro.assignId();
@@ -64,28 +103,35 @@ export class Libreria {
     return libro;
   }
 
-
   updateLibro(obj) {
     let libro = this.getLibroPorId(obj._id);
     Object.assign(libro, obj);
     return libro;
   }
 
-  /**
-   * Usuario
-   */
+  // ==================== USUARIOS (con persistencia) ====================
 
   addUsuario(obj) {
-    if (obj.rol == ROL.CLIENTE)
-      this.addCliente(obj);
-    else if (obj.rol == ROL.ADMIN)
-      this.addAdmin(obj);
-    else throw new Error('Rol desconocido');
+    let usuario;
+    if (obj.rol == ROL.CLIENTE) {
+      usuario = this.addCliente(obj);
+    } else if (obj.rol == ROL.ADMIN) {
+      usuario = this.addAdmin(obj);
+    } else {
+      throw new Error('Rol desconocido');
+    }
+    
+    //  Sincronizar con localStorage
+    LibreriaSession.saveUsuario(usuario);
+    
+    return usuario;
   }
 
   addCliente(obj) {
+    //  Verificar si ya existe un CLIENTE con ese email (puede haber ADMIN con mismo email)
     let cliente = this.getClientePorEmail(obj.email);
-    if (cliente) throw new Error('Correo electrónico registrado');
+    if (cliente) throw new Error('Ya existe un CLIENTE registrado con ese email');
+    
     cliente = new Cliente();
     Object.assign(cliente, obj);
     cliente.assignId();
@@ -94,8 +140,12 @@ export class Libreria {
   }
 
   addAdmin(obj) {
-    let admin = new Administrador();
-    Object.assign(admin, obj)
+    // Verificar si ya existe un ADMIN con ese email (puede haber CLIENTE con mismo email)
+    let admin = this.getAdministradorPorEmail(obj.email);
+    if (admin) throw new Error('Ya existe un ADMIN registrado con ese email');
+    
+    admin = new Administrador();
+    Object.assign(admin, obj);
     admin.assignId();
     this.usuarios.push(admin);
     return admin;
@@ -123,7 +173,12 @@ export class Libreria {
 
   updateUsuario(obj) {
     let usuario = this.getUsuarioPorId(obj._id);
+    if (!usuario) throw new Error('Usuario no encontrado');
     Object.assign(usuario, obj);
+    
+    //  Sincronizar con localStorage
+    LibreriaSession.saveUsuario(usuario);
+    
     return usuario;
   }
 
@@ -214,9 +269,7 @@ export class Libreria {
     return cliente.carro;
   }
 
-  /**
-   * Factura
-   */
+  // ==================== FACTURAS ====================
 
   getFacturas() {
     return this.facturas;
@@ -235,7 +288,7 @@ export class Libreria {
     let cliente = this.getClientePorId(obj.cliente);
     if (cliente.getCarro().items.length < 1) throw new Error('No hay que comprar');
     let factura = new Factura();
-    Object.assign(factura, obj)
+    Object.assign(factura, obj);
     factura.assignId();
     factura.assignNumero();
     factura.cliente = new Cliente();
@@ -252,6 +305,8 @@ export class Libreria {
     return factura;
   }
 }
+
+// ==================== CLASES DE DOMINIO ====================
 
 class Libro extends Identificable {
   isbn;
@@ -304,20 +359,25 @@ class Cliente extends Usuario {
     this.carro = new Carro();
   }
 
-
   getCarro() {
     return this.carro;
   }
+
   addCarroItem(item) {
     this.carro.addItem(item);
   }
+
   setCarroItemCantidad(index, cantidad) {
     this.getCarro().setItemCantidad(index, cantidad);
   }
+
   borrarCarroItem(index) {
     this.carro.borrarItem(index);
   }
 
+  removeItems() {
+    this.carro.removeItems();
+  }
 }
 
 class Administrador extends Usuario {
@@ -340,8 +400,8 @@ class Factura extends Identificable {
   total;
   cliente;
 
-  genNumero() {
-    this.numero = Libreria.genNumeroFactura();
+  assignNumero() {
+    this.numero = `F-${Date.now()}-${this._id}`;
   }
 
   addItem(obj) {
@@ -359,8 +419,8 @@ class Factura extends Identificable {
 
   calcular() {
     this.subtotal = this.items.reduce((total, i) => total + i.total, 0);
-    this.iva = this.total * 0.21;
-    this.total = this.subtotal * this.iva;
+    this.iva = this.subtotal * 0.21;
+    this.total = this.subtotal + this.iva;
   }
 }
 
@@ -404,7 +464,7 @@ class Carro {
   }
 
   setItemCantidad(index, cantidad) {
-    if (cantidad < 0) throw new Error('Cantidad inferior a 0')
+    if (cantidad < 0) throw new Error('Cantidad inferior a 0');
     if (cantidad == 0) this.items = this.items.filter((v, i) => i != index);
     else {
       let item = this.items[index];
@@ -418,11 +478,12 @@ class Carro {
     this.items = [];
     this.calcular();
   }
+
   calcular() {
     this.subtotal = this.items.reduce((total, i) => total + i.total, 0);
     this.iva = this.subtotal * 0.21;
     this.total = this.subtotal + this.iva;
   }
-
 }
+
 export const model = new Libreria();

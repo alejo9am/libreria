@@ -1,5 +1,7 @@
+// js/components/invitado-ingreso/invitado-ingreso-presenter.mjs
+
 import { Presenter } from "../../commons/presenter.mjs";
-import { model, ROL } from "../../model/model.mjs";
+import { ROL } from "../../model/model.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { router } from "../../commons/router.mjs";
 
@@ -19,42 +21,34 @@ export class InvitadoIngresoPresenter extends Presenter {
 
     form.onsubmit = (e) => {
       e.preventDefault();
-
-      const email = form.email.value.trim();
-      const password = form.password.value.trim();
-      const rolInput = form.rol.value.trim();
-
       mensajesContainer.innerHTML = "";
 
       try {
-        if (!email || !password || !rolInput)
-          throw new Error("Debe completar todos los campos.");
+        const email = form.email.value.trim();
+        const password = form.password.value.trim();
+        const rolInput = form.rol.value.trim();
 
-        // Rol solicitado
+        if (!email || !password || !rolInput) {
+          throw new Error("Debe completar todos los campos.");
+        }
+
+        // Determinar el rol esperado
         const rolEsperado = rolInput === "ADMIN" ? ROL.ADMIN : ROL.CLIENTE;
 
-        // Buscar usuarios por email (puede haber más de uno)
-        const usuarios = LibreriaSession.getUsuarios().filter(u => u.email === email);
+        console.log(`Intentando login: ${email} como ${rolEsperado}`);
 
-        if (usuarios.length === 0)
-          throw new Error("El usuario no existe.");
-
-        // Buscar el usuario con el rol solicitado
-        const usuario = usuarios.find(u => u.rol === rolEsperado);
-
-        if (!usuario)
-          throw new Error(`No se encontró un usuario con el rol ${rolInput}.`);
-
-        // Validar contraseña
-        if (usuario.password !== password)
-          throw new Error("Contraseña incorrecta.");
-
-        // Guardar sesión (solo con el usuario y rol elegido)
-        LibreriaSession.setUser({
-          _id: usuario._id,
-          email: usuario.email,
-          rol: usuario.rol,
+        // Buscar usuario en el MODELO (ya tiene los usuarios de localStorage cargados)
+        const usuario = this.model.autenticar({
+          email: email,
+          password: password,
+          rol: rolEsperado
         });
+
+        // Si llegamos aquí, la autenticación fue exitosa
+        console.log("Login exitoso:", usuario);
+
+        // Guardar sesión
+        LibreriaSession.setUser(usuario);
 
         LibreriaSession.addMessage("success", `Bienvenido, ${usuario.nombre} ${usuario.apellidos}`);
         mensajesContainer.innerHTML = `<div class="message">Ingreso correcto como ${usuario.rol}</div>`;
@@ -66,29 +60,38 @@ export class InvitadoIngresoPresenter extends Presenter {
           } else {
             router.navigate("/libreria/cliente-home.html");
           }
-        }, 1500);
+        }, 1000);
+
       } catch (err) {
+        console.error("Error en login:", err);
         LibreriaSession.addMessage("error", err.message);
         mensajesContainer.innerHTML = `<div class="error">${err.message}</div>`;
       }
     };
 
-    // Botón para depurar usuarios guardados
+    // Botón para depurar usuarios
     if (btnUsuarios) {
       btnUsuarios.onclick = () => {
-        const usuarios = LibreriaSession.getUsuarios();
+        const usuarios = this.model.usuarios;
+        
         if (usuarios.length === 0) {
-          mensajesContainer.innerHTML = `<div class="info">No hay usuarios guardados.</div>`;
+          mensajesContainer.innerHTML = `<div class="log">No hay usuarios registrados.</div>`;
           return;
         }
 
         mensajesContainer.innerHTML = `
-          <h3>Usuarios registrados en localStorage</h3>
+          <h3>👥 Usuarios registrados (${usuarios.length})</h3>
           <ul>
-            ${usuarios
-              .map((u) => `<li>${u._id} - ${u.dni} - ${u.email} - ${u.rol}</li>`)
-              .join("")}
+            ${usuarios.map(u => `
+              <li>
+                <strong>ID:</strong> ${u._id} | 
+                <strong>Email:</strong> ${u.email} | 
+                <strong>Rol:</strong> ${u.rol} | 
+                <strong>Nombre:</strong> ${u.nombre} ${u.apellidos}
+              </li>
+            `).join("")}
           </ul>
+          <p><em>Usa estos datos para hacer login. La contraseña es el DNI del usuario.</em></p>
         `;
       };
     }
