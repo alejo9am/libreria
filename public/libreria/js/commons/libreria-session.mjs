@@ -1,16 +1,13 @@
 // js/commons/libreria-session.mjs
-// Gestiona la sesión (localStorage) y los mensajes globales del sistema.
+// VERSIÓN MEJORADA: Gestión clara de sesión y persistencia de usuarios
 
 const SESSION_KEY = 'libreria_session';
 const MSGS_KEY = 'libreria_messages';
-const USERS_KEY = "libreria_usuarios";
+const USERS_KEY = 'libreria_usuarios';
 
 /**
- *
- * Mensaje:
- * { id: Number, type: 'info'|'error'|'warn'|'success', text: String, ts: Number }
+ * Helpers para localStorage
  */
-
 const LocalStorage = {
     get(key) {
         try {
@@ -36,7 +33,9 @@ const LocalStorage = {
     }
 };
 
-// Similar a LocalStorage pero usando sessionStorage
+/**
+ * Helpers para sessionStorage (para la sesión actual)
+ */
 const SessionStorage = {
     get(key) {
         try {
@@ -62,20 +61,20 @@ const SessionStorage = {
     }
 };
 
-// Generador simple de ids para mensajes
+// Generador de IDs para mensajes
 let _msgLastId = Date.now();
 function genMsgId() {
     return ++_msgLastId;
 }
 
-// EventTarget para listeners en la pestaña actual
+// EventTarget para listeners
 const _evt = new EventTarget();
 
 function _emitEvent(message) {
     _evt.dispatchEvent(new CustomEvent('libreria:message', { detail: message }));
 }
 
-/** Mensajes en localStorage */
+/** Mensajes */
 function _loadMessagesFromStorage() {
     const raw = LocalStorage.get(MSGS_KEY);
     if (!raw) return [];
@@ -86,26 +85,35 @@ function _loadMessagesFromStorage() {
         return [];
     }
 }
+
 function _saveMessagesToStorage(msgs) {
     LocalStorage.set(MSGS_KEY, JSON.stringify(msgs || []));
 }
 
 export const LibreriaSession = {
-    // ---------------------
-    // Gestión de sesión
-    // ---------------------
-    //La sesión se guarda en sessionStorage
+    
+    // ==================== GESTIÓN DE SESIÓN (sessionStorage) ====================
+    
+    /**
+     * Guarda la sesión del usuario actual
+     * Solo guarda info mínima: _id, email, rol
+     */
     setUser(usuario) {
-        console.log("Set user in session:", usuario);
         if (!usuario) {
-            // Si ya existe, mostramos mensaje de error
-            LibreriaSession.addMessage("error", "No se puede registrar el usuario");
+            console.warn("setUser: usuario inválido");
             return;
         }
-        const data = { _id: usuario._id, email: usuario.email, rol: usuario.rol };
+        const data = { 
+            _id: usuario._id, 
+            email: usuario.email, 
+            rol: usuario.rol 
+        };
         SessionStorage.set(SESSION_KEY, JSON.stringify(data));
     },
 
+    /**
+     * Obtiene la sesión del usuario actual
+     */
     getUserSession() {
         const raw = SessionStorage.get(SESSION_KEY);
         if (!raw) return null;
@@ -117,27 +125,172 @@ export const LibreriaSession = {
         }
     },
 
+    /**
+     * Limpia la sesión del usuario
+     */
     clearUserSession() {
         SessionStorage.remove(SESSION_KEY);
     },
 
+    /**
+     * Verifica si hay un usuario autenticado
+     */
     isAuthenticated() {
         return !!this.getUserSession();
     },
 
+    /**
+     * Obtiene el rol del usuario actual
+     */
     getRole() {
         const u = this.getUserSession();
         return u ? u.rol : null;
     },
 
+    /**
+     * Obtiene el ID del usuario actual
+     */
     getUserId() {
         const u = this.getUserSession();
         return u ? u._id : null;
     },
 
-    // ---------------------
-    // Gestión de mensajes
-    // ---------------------
+    // ==================== PERSISTENCIA DE USUARIOS (localStorage) ====================
+    
+    /**
+     * Guarda todos los usuarios en localStorage
+     * Reemplaza completamente el array de usuarios
+     */
+    saveAllUsuarios(usuarios) {
+        const data = usuarios.map(u => ({
+            _id: u._id,
+            dni: u.dni,
+            email: u.email,
+            rol: u.rol,
+            nombre: u.nombre,
+            apellidos: u.apellidos,
+            password: u.password,
+            direccion: u.direccion
+        }));
+        LocalStorage.set(USERS_KEY, JSON.stringify(data));
+        console.log(`${data.length} usuarios guardados en localStorage`);
+    },
+
+    /**
+     * Obtiene todos los usuarios desde localStorage
+     */
+    getAllUsuarios() {
+        const raw = LocalStorage.get(USERS_KEY);
+        if (!raw) return [];
+        try {
+            return JSON.parse(raw) || [];
+        } catch {
+            return [];
+        }
+    },
+
+    /**
+     * Guarda un usuario individual en localStorage
+     * Si el usuario ya existe (mismo _id), lo reemplaza
+     * Si no existe, lo agrega
+     */
+    saveUsuario(usuario) {
+        let usuarios = this.getAllUsuarios();
+        
+        // Buscar si ya existe
+        const index = usuarios.findIndex(u => u._id === usuario._id);
+        
+        if (index !== -1) {
+            // Actualizar usuario existente
+            usuarios[index] = {
+                _id: usuario._id,
+                dni: usuario.dni,
+                email: usuario.email,
+                rol: usuario.rol,
+                nombre: usuario.nombre,
+                apellidos: usuario.apellidos,
+                password: usuario.password,
+                direccion: usuario.direccion
+            };
+            console.log(`Usuario actualizado en localStorage: ${usuario.email}`);
+        } else {
+            // Agregar nuevo usuario
+            usuarios.push({
+                _id: usuario._id,
+                dni: usuario.dni,
+                email: usuario.email,
+                rol: usuario.rol,
+                nombre: usuario.nombre,
+                apellidos: usuario.apellidos,
+                password: usuario.password,
+                direccion: usuario.direccion
+            });
+            console.log(`Usuario agregado a localStorage: ${usuario.email}`);
+        }
+        
+        LocalStorage.set(USERS_KEY, JSON.stringify(usuarios));
+    },
+
+    /**
+     * Busca un usuario por email en localStorage
+     */
+    getUsuarioByEmail(email) {
+        const usuarios = this.getAllUsuarios();
+        return usuarios.find(u => u.email === email);
+    },
+
+    /**
+     * Busca un usuario por ID en localStorage
+     */
+    getUsuarioById(id) {
+        const usuarios = this.getAllUsuarios();
+        return usuarios.find(u => u._id == id);
+    },
+
+    /**
+     * Busca usuarios por email y rol en localStorage
+     * Útil porque puedes tener mismo email con diferentes roles
+     */
+    getUsuarioByEmailAndRol(email, rol) {
+        const usuarios = this.getAllUsuarios();
+        return usuarios.find(u => u.email === email && u.rol === rol);
+    },
+
+    /**
+     * Verifica si existe un usuario con un email y rol específico
+     */
+    existeUsuarioConEmailYRol(email, rol) {
+        return !!this.getUsuarioByEmailAndRol(email, rol);
+    },
+
+    /**
+     * Obtiene todos los usuarios con un email específico (puede haber varios con diferentes roles)
+     */
+    getUsuariosByEmail(email) {
+        const usuarios = this.getAllUsuarios();
+        return usuarios.filter(u => u.email === email);
+    },
+
+    /**
+     * Elimina un usuario de localStorage por ID
+     */
+    deleteUsuario(id) {
+        let usuarios = this.getAllUsuarios();
+        usuarios = usuarios.filter(u => u._id != id);
+        LocalStorage.set(USERS_KEY, JSON.stringify(usuarios));
+        console.log(`Usuario eliminado de localStorage: ${id}`);
+    },
+
+    /**
+     * Limpia todos los usuarios de localStorage
+     */
+    clearAllUsuarios() {
+        LocalStorage.remove(USERS_KEY);
+        console.log("Todos los usuarios eliminados de localStorage");
+    },
+
+    // ==================== GESTIÓN DE MENSAJES ====================
+    
     addMessage(type, text, options = { persist: true }) {
         if (!text) return null;
         const msg = {
@@ -184,9 +337,6 @@ export const LibreriaSession = {
         return () => _evt.removeEventListener('libreria:message', listener);
     },
 
-    /**
-     * Listener para cambios en mensajes desde otras pestañas/ventanas
-     */
     onStorageMessagesChange(callback) {
         const handler = (ev) => {
             if (ev.key === MSGS_KEY) {
@@ -199,56 +349,5 @@ export const LibreriaSession = {
         };
         window.addEventListener('storage', handler);
         return () => window.removeEventListener('storage', handler);
-    },
-
-    // ---------------------
-    // Gestión de usuarios persistidos
-    // ---------------------
-    saveUsuario(usuario) {
-        let usuarios = this.getUsuarios();
-        usuarios.push({
-            _id: usuario._id,
-            dni: usuario.dni,
-            email: usuario.email,
-            rol: usuario.rol,
-            nombre: usuario.nombre,
-            apellidos: usuario.apellidos,
-            password: usuario.password,
-            direccion: usuario.direccion
-        });
-        LocalStorage.set(USERS_KEY, JSON.stringify(usuarios));
-    },
-
-    getUsuariosStorage() {
-        const raw = LocalStorage.get(USERS_KEY);
-        if (!raw) return [];
-        try {
-            return JSON.parse(raw) || [];
-        } catch {
-            return [];
-        }
-    },
-
-    clearUsuariosStorage() {
-        LocalStorage.remove(USERS_KEY);
-    },
-
-    getUsuarios() {
-        return this.getUsuariosStorage();
-    },
-
-    getUsuarioByEmail(email) {
-        const usuarios = this.getUsuarios();
-        return usuarios.find(u => u.email == email);
-    },
-
-    // Reemplazar usuario existente
-    putUsuario(usuario) {
-        let usuarios = this.getUsuarios();
-        const index = usuarios.findIndex(u => u._id === usuario._id);
-        if (index !== -1) {
-            usuarios[index] = usuario;
-            LocalStorage.set(USERS_KEY, JSON.stringify(usuarios));
-        }
     }
-}
+};
