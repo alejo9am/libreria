@@ -2,7 +2,7 @@ import { Presenter } from "../../commons/presenter.mjs";
 import { model } from "../../model/model.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { router } from "../../commons/router.mjs";
-import { CarritoStorage } from "../../commons/carrito-storage.mjs";
+import { CarritoStorage } from "../../commons/libreria-session.mjs";
 
 export class ClienteCarritoPresenter extends Presenter {
   constructor(model, view) {

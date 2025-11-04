@@ -1,8 +1,7 @@
 // js/model/model.mjs
 // VERSIÓN CON SINCRONIZACIÓN DE USUARIOS CON LOCALSTORAGE
 
-import { LibreriaSession } from '../commons/libreria-session.mjs';
-import { CarritoStorage } from '../commons/carrito-storage.mjs';
+import { LibreriaSession, CarritoStorage } from '../commons/libreria-session.mjs';
 
 export const ROL = {
   ADMIN: "ADMIN",

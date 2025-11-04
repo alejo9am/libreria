@@ -1,7 +1,5 @@
 import { model, ROL } from './model.mjs';
-import { LibreriaSession } from '../commons/libreria-session.mjs';
-import { LibrosStorage } from '../commons/libros-storage.mjs';
-import { CarritoStorage } from '../commons/carrito-storage.mjs';
+import { LibreriaSession, LibrosStorage, CarritoStorage } from '../commons/libreria-session.mjs';
 
 function crearLibro(isbn) {
   return {
