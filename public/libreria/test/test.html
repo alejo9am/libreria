@@ -1,22 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tests del Modelo - Librería TSW 24/25</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mocha/10.7.3/mocha.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/10.7.3/mocha.js"></script>
+
+    <!-- Configuración de Mocha -->
     <script>
-        mocha.setup('bdd'); // configuración mínima
-        mocha.setup({ timeout: 99999 });
+        mocha.setup('bdd'); // Usar sintaxis BDD (describe, it)
+        mocha.setup({
+            timeout: 99999,  // Timeout largo para debugging
+        });
     </script>
-    <script type="module" src="./model/model.mjs"></script>
 </head>
 
 <body>
-    <script type="module" src="./test/model.spec.js"></script>
-    <div id="mocha"></div> <!-- ¡ejectuar los tests! -->
+    <!-- Header -->
+    <div class="header">
+        <h1>Tests del Modelo - Librería</h1>
+        <p><strong>Tecnologías y Sistemas Web 24/25</strong></p>
+        <p>Universidad de Castilla-La Mancha</p>
+        <p>Escuela Superior de Ingeniería Informática</p>
+    </div>
+
+    <!-- Contenedor de Resultados de Mocha -->
+    <div id="mocha"></div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p><strong>Prof. Dr. Ricardo Tesoriero Pszytula</strong></p>
+        <p>Tecnologías y Sistemas Web 24/25</p>
+        <p>Universidad de Castilla-La Mancha</p>
+    </div>
+
+    <!-- Cargar el modelo a testear -->
+    <script type="module" src="../js/model/model.mjs"></script>
+
+    <!-- Cargar los tests -->
+    <script type="module" src="./model.spec.mjs"></script>
+
+    <!-- Ejecutar los tests -->
     <script type="module">
-        mocha.run();
+        // Agregar listener para mostrar estadísticas al final
+        mocha.run(function (failures) {
+            console.log('\n' + '='.repeat(60));
+            if (failures === 0) {
+                console.log('¡TODOS LOS TESTS PASARON!');
+            } else {
+                console.log('Hay ' + failures + ' test(s) fallidos');
+            }
+            console.log('='.repeat(60) + '\n');
+        });
     </script>
 </body>
 
