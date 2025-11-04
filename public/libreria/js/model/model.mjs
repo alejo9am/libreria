@@ -1,12 +1,13 @@
 // js/model/model.mjs
 // VERSIÓN CON SINCRONIZACIÓN DE USUARIOS CON LOCALSTORAGE
 
-import { LibreriaSession } from '../commons/libreria-session.mjs';
+import { LibreriaSession, CarritoStorage } from '../commons/libreria-session.mjs';
 
 export const ROL = {
   ADMIN: "ADMIN",
   CLIENTE: "CLIENTE",
 };
+
 
 class Identificable {
   _id;
@@ -74,7 +75,12 @@ export class Libreria {
     if (this.getLibroPorIsbn(obj.isbn)) throw new Error(`El ISBN ${obj.isbn} ya existe`);
     let libro = new Libro();
     Object.assign(libro, obj);
-    libro.assignId();
+    if (!libro._id) {
+      libro.assignId();
+    } else {
+      // Mantener el _id proporcionado y actualizar lastId
+      Libreria.lastId = Math.max(Libreria.lastId, Number(libro._id));
+    }
     this.libros.push(libro);
     return libro;
   }
@@ -185,7 +191,36 @@ export class Libreria {
   }
 
   getClientePorId(id) {
-    return this.usuarios.find(u => u.rol == ROL.CLIENTE && u._id == id);
+    console.log('[Model] getClientePorId - Buscando cliente con id:', id, 'tipo:', typeof id);
+    console.log('[Model] getClientePorId - Clientes disponibles:', this.usuarios.filter(u => u.rol == ROL.CLIENTE).map(u => ({ _id: u._id, email: u.email })));
+    const numId = Number(id);
+    let cliente = this.usuarios.find(u => u.rol == ROL.CLIENTE && u._id === numId);
+    if (cliente) return cliente;
+
+    // Fallback: intentar restaurar desde localStorage si no está cargado aún
+    try {
+      console.warn('[Model] getClientePorId - Cliente no encontrado en modelo, intentando restaurar desde storage:', id);
+  const usuariosStorage = LibreriaSession.getAllUsuarios();
+      const data = usuariosStorage.find(u => Number(u._id) === numId && u.rol == ROL.CLIENTE);
+      if (data) {
+        console.log('[Model] getClientePorId - Restaurando cliente desde storage:', data.email);
+        // Agregar al modelo respetando el rol
+        this.addUsuario(data);
+        // Asegurar el mismo ID
+        const agregado = this.getUsuarioPorEmail(data.email);
+        if (agregado) {
+          agregado._id = Number(data._id);
+          if (agregado._id > this.constructor.lastId) {
+            this.constructor.lastId = agregado._id;
+          }
+          if (agregado.rol !== ROL.CLIENTE) agregado.rol = ROL.CLIENTE;
+          return agregado;
+        }
+      }
+    } catch (e) {
+      console.warn('[Model] getClientePorId - Error restaurando cliente:', e);
+    }
+    return undefined;
   }
 
   getAdministradorPorEmail(email) {
@@ -207,18 +242,54 @@ export class Libreria {
   }
 
   addClienteCarroItem(id, item) {
-    item.libro = this.getLibroPorId(item.libro);
-    item = this.getClientePorId(id).addCarroItem(item);
-    return item;
+    console.log('[Model] addClienteCarroItem - userId:', id, 'item:', item);
+    const libro = this.getLibroPorId(item.libro);
+    console.log('[Model] addClienteCarroItem - libro encontrado:', libro);
+    if (!libro) throw new Error('Libro no encontrado');
+    const cliente = this.getClientePorId(id);
+    console.log('[Model] addClienteCarroItem - cliente encontrado:', cliente);
+    if (!cliente) throw new Error('Cliente no encontrado');
+    item.libro = libro;
+    cliente.addCarroItem(item);
+    console.log('[Model] addClienteCarroItem - carrito actualizado:', cliente.carro.items);
+    
+  // Guardar carrito en localStorage (persistencia independiente)
+  CarritoStorage.save(id, cliente.carro);
+    
+    return cliente.carro;
   }
 
   setClienteCarroItemCantidad(id, index, cantidad) {
     let cliente = this.getClientePorId(id);
-    return cliente.setCarroItemCantidad(index, cantidad);
+    cliente.setCarroItemCantidad(index, cantidad);
+    // Guardar carrito en localStorage (persistencia independiente)
+    CarritoStorage.save(id, cliente.carro);
+    return cliente.carro;
   }
 
   getCarroCliente(id) {
-    return this.getClientePorId(id).carro;
+    const cliente = this.getClientePorId(id);
+    if (!cliente) return null;
+
+    // Restauración perezosa: si el carro está vacío, intenta reconstruir desde storage
+    try {
+      if (!cliente.carro || !Array.isArray(cliente.carro.items) || cliente.carro.items.length === 0) {
+        const persisted = CarritoStorage.getByUser(id);
+        if (persisted && Array.isArray(persisted.items) && persisted.items.length > 0) {
+          console.log('[Model] getCarroCliente - Restaurando carrito perezosamente desde storage para usuario:', id);
+          persisted.items.forEach(it => {
+            const libro = this.getLibroPorId(it.libro?._id || it.libro);
+            if (libro) {
+              cliente.addCarroItem({ libro, cantidad: it.cantidad });
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('[Model] getCarroCliente - Error en restauración perezosa:', e);
+    }
+
+    return cliente.carro;
   }
 
   // ==================== FACTURAS ====================

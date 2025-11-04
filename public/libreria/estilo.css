@@ -75,7 +75,8 @@ main>article>div.contenido>div.info {
   flex-direction: column;
   margin-left: .5em;
   margin-top: .5em;
-  align-items: center;
+  align-items: flex-start;
+  width: 100%;
 }
 
 main>article>div.contenido>footer {
@@ -100,7 +101,6 @@ main>article>div.contenido>div.info>mensajes-container {
 /**
 * Navbar
 */
-nav.navbar {}
 
 nav.navbar ul {
   list-style-type: none;
@@ -138,8 +138,6 @@ nav.navbar ul li:hover {
 nav.toolbar ul li.oculto {
   display: none;
 }
-
-nav.toolbar {}
 
 nav.toolbar ul {
   margin: 0;
@@ -242,7 +240,6 @@ div.mensajes-container {
   flex-direction: column;
   align-items: stretch;
   width: 100%;
-  margin-bottom: 5px;
 }
 
 div.mensajes {
@@ -301,7 +298,7 @@ div.mensajes {
   color: inherit;
   opacity: 0.6;
   transition: opacity 0.2s ease, transform 0.2s ease;
-  user-select: none;
+ 
 }
 
 .x:hover {
@@ -392,19 +389,149 @@ div.mensajes {
   vertical-align: top;
 }
 
+/* ======= BLOQUE OPCIONAL: estilos alternativos de tabla (no usados en carrito actual) ======= */
+.carrito-table {
+  width: 150%;
+  margin: 0 auto; /* centrar dentro del bloque */
+  border-collapse: collapse;
+  border: 1px solid #ccc;
+}
+
+.carrito-table thead {
+  background-color: #f5f5f5;
+  border-bottom: 2px solid #333;
+}
+
+.carrito-table thead th {
+  padding: 12px;
+  text-align: left;
+  font-weight: bold;
+  border-right: 1px solid #ccc;
+}
+
+.carrito-table thead th:last-child {
+  border-right: none;
+}
+
+.carrito-table tbody tr {
+  border-bottom: 1px solid #ddd;
+}
+
+.carrito-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.carrito-table tbody td {
+  padding: 12px;
+  border-right: 1px solid #ddd;
+}
+
+.carrito-table tbody td:last-child {
+  border-right: none;
+}
+
+.carrito-table .col-cant {
+  text-align: center;
+  width: 80px;
+}
+
+.carrito-table .col-detalle {
+  flex: 1;
+  text-align: left;
+}
+
+.carrito-table .col-unidad {
+  text-align: right;
+  width: 100px;
+}
+
+.carrito-table .col-total {
+  text-align: right;
+  width: 100px;
+  font-weight: bold;
+}
+
+.carrito-table input.qty-input {
+  width: 60px;
+  padding: 6px;
+  border: 1px solid #999;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.carrito-table tfoot {
+  border-top: 2px solid #333;
+  background-color: #f9f9f9;
+  font-weight: bold;
+}
+
+.carrito-table tfoot tr {
+  border-bottom: 1px solid #ddd;
+}
+
+.carrito-table tfoot td {
+  padding: 12px;
+  border-right: 1px solid #ddd;
+  text-align: right;
+}
+
+.carrito-table tfoot td:last-child {
+  border-right: none;
+}
+
+/* Resaltar la fila TOTAL */
+.carrito-table tfoot tr.total-row {
+  background-color: #f5f08a; /* amarillo suave del esquema */
+  border-top: 3px solid #6f4626;
+}
+.carrito-table tfoot tr.total-row td {
+  font-weight: 800;
+  color: #333;
+}
+
+/* ======= FIN bloque opcional ======= */
+
+/* Contenedor de acciones del carrito */
+.carrito-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Centrar contenido del detalle (tabla + acciones) */
+.detalle {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: start; 
+}
+
 /**
 * Carro
 */
 
 .carro {
-  width: 100%;
+  width: 150%;
   height: 100%;
 }
 
+/* NUEVO: centrar el contenedor del carrito en esta vista */
+.carrito-detalle .carro {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;        /* centra horizontalmente */
+}
+
 .carro table {
+  width: 100%;           
   height: 100%;
   padding: 4px;
   border-collapse: collapse;
+  table-layout: fixed;   
 }
 
 .carro tfoot {
@@ -415,11 +542,15 @@ div.mensajes {
 .carro thead {
   border-bottom: 1px solid black;
   border-top: 1px solid black;
+  text-align: center;
+
 }
 
 .carro th,
 .carro td {
   padding: 4px;
+  vertical-align: middle;
+
 }
 
 .carro tr,
@@ -428,7 +559,7 @@ div.mensajes {
 }
 
 .carro tfoot th:first-child {
-  text-align: right;
+  text-align: center;
 }
 
 .carro tbody {
@@ -444,6 +575,11 @@ div.mensajes {
   text-align: center;
 }
 
+.carro .item-cantidad { width: 90px; text-align: center; }
+.carro .item-unidad { width: 110px; text-align: right; }
+.carro .item-total  { width: 110px; text-align: right; }
+.carro .item-detalle { width: auto; text-align: left; }
+
 .borrado {
   text-decoration: line-through;
   color: red;
@@ -455,6 +591,14 @@ div.mensajes {
   border-radius: 4px;
   border: 1px SOLID chocolate;
   width: 3em;
+  text-align: center;
+}
+
+.carrito-actions {
+  width: 75%;
+  max-width: 900px;
+  margin: 16px auto 0;
+  text-align: center;
 }
 
 /**
@@ -497,11 +641,50 @@ div .factura-field>input {
   text-decoration: none;
 }
 
-.borrarLibro {
-  cursor: pointer;
-  padding: 6px 12px;
-  transition: background-color 0.2s, transform 0.1s;
-  display: inline-block;
-  user-select: none;
+.carrito-detalle #mensajesContainer,
+.carrito-detalle .carro,
+.carrito-actions {
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;   /* centra horizontalmente */
 }
 
+/* Tabla del carro */
+.carro table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.carro thead th { 
+  vertical-align: middle;
+  border-bottom: 1px solid #000;
+}
+
+/* Alineaciones por columna (como en la referencia) */
+.carro .item-cantidad   { width: 90px;  text-align: center; }
+.carro .item-detalle    {              text-align: left;   }
+.carro .item-unidad     { width: 110px; text-align: right;  }
+.carro .item-total      { width: 110px; text-align: right;  }
+
+.carro td, .carro th { vertical-align: middle; padding: 4px; }
+.carro input[type=number] { text-align: center; }
+
+/* Pie: totales a la derecha, bajo las columnas “Unidad/Total” */
+.carro tfoot td {
+  text-align: right;           /* Números a la derecha */
+  border-top: 1px solid #000;  /* línea separadora */
+}
+
+/* Mantén las dos primeras celdas del pie como “espaciador” a la izquierda */
+.carro tfoot td:nth-child(1),
+.carro tfoot td:nth-child(2) {
+  text-align: left;   /* por si algún texto cae ahí */
+  width: auto;
+}
+
+/* Opcional: botón con la misma caja de ancho que la tabla */
+.carrito-actions {
+  margin: 16px auto 0;
+  text-align: center;
+}

@@ -4,6 +4,8 @@
 const SESSION_KEY = 'libreria_session';
 const MSGS_KEY = 'libreria_messages';
 const USERS_KEY = 'libreria_usuarios';
+const CARRITOS_KEY = 'libreria_carritos';
+const LIBROS_KEY = 'libreria_libros_session';
 
 /**
  * Helpers para localStorage
@@ -90,10 +92,24 @@ function _saveMessagesToStorage(msgs) {
     LocalStorage.set(MSGS_KEY, JSON.stringify(msgs || []));
 }
 
+/** Carritos */
+function _readAllCarritos() {
+    const raw = LocalStorage.get(CARRITOS_KEY);
+    if (!raw) return [];
+    try {
+        return JSON.parse(raw) || [];
+    } catch {
+        return [];
+    }
+}
+
+function _writeAllCarritos(list) {
+    LocalStorage.set(CARRITOS_KEY, JSON.stringify(list || []));
+}
 export const LibreriaSession = {
-    
+
     // ==================== GESTIÓN DE SESIÓN (sessionStorage) ====================
-    
+
     /**
      * Guarda la sesión del usuario actual
      * Solo guarda info mínima: _id, email, rol
@@ -103,10 +119,10 @@ export const LibreriaSession = {
             console.warn("setUser: usuario inválido");
             return;
         }
-        const data = { 
-            _id: usuario._id, 
-            email: usuario.email, 
-            rol: usuario.rol 
+        const data = {
+            _id: usuario._id,
+            email: usuario.email,
+            rol: usuario.rol
         };
         SessionStorage.set(SESSION_KEY, JSON.stringify(data));
     },
@@ -152,11 +168,13 @@ export const LibreriaSession = {
      */
     getUserId() {
         const u = this.getUserSession();
-        return u ? u._id : null;
+        const userId = u ? u._id : null;
+        console.log("[LibreriaSession] getUserId:", userId, "tipo:", typeof userId);
+        return userId;
     },
 
     // ==================== PERSISTENCIA DE USUARIOS (localStorage) ====================
-    
+
     /**
      * Guarda todos los usuarios en localStorage
      * Reemplaza completamente el array de usuarios
@@ -196,10 +214,10 @@ export const LibreriaSession = {
      */
     saveUsuario(usuario) {
         let usuarios = this.getAllUsuarios();
-        
+
         // Buscar si ya existe
         const index = usuarios.findIndex(u => u._id === usuario._id);
-        
+
         if (index !== -1) {
             // Actualizar usuario existente
             usuarios[index] = {
@@ -227,7 +245,7 @@ export const LibreriaSession = {
             });
             console.log(`Usuario agregado a localStorage: ${usuario.email}`);
         }
-        
+
         LocalStorage.set(USERS_KEY, JSON.stringify(usuarios));
     },
 
@@ -290,7 +308,7 @@ export const LibreriaSession = {
     },
 
     // ==================== GESTIÓN DE MENSAJES ====================
-    
+
     addMessage(type, text, options = { persist: true }) {
         if (!text) return null;
         const msg = {
@@ -349,5 +367,91 @@ export const LibreriaSession = {
         };
         window.addEventListener('storage', handler);
         return () => window.removeEventListener('storage', handler);
+    },
+
+    // ==================== PERSISTENCIA DE CARRITOS (localStorage) ====================
+
+    saveCarrito(userId, carro) {
+        console.log('[LibreriaSession] Guardando carrito para usuario:', userId);
+        const all = _readAllCarritos().filter(c => c.userId != userId);
+        const items = (carro?.items || []).map(it => ({
+            libro: it.libro?._id ?? it.libro,
+            cantidad: it.cantidad,
+            total: it.total
+        }));
+        all.push({
+            userId,
+            items,
+            subtotal: carro?.subtotal || 0,
+            iva: carro?.iva || 0,
+            total: carro?.total || 0
+        });
+        _writeAllCarritos(all);
+        console.log('[LibreriaSession] Carrito guardado. Items:', items.length);
+    },
+
+    getAllCarritos() {
+        const list = _readAllCarritos();
+        console.log('[LibreriaSession] getAllCarritos ->', list.length);
+        return list;
+    },
+
+    getCarritoByUser(userId) {
+        const c = _readAllCarritos().find(c => c.userId == userId) || null;
+        console.log('[LibreriaSession] getCarritoByUser', userId, '->', c ? (c.items?.length || 0) : 'null');
+        return c;
+    },
+
+    clearAllCarritos() {
+        LocalStorage.remove(CARRITOS_KEY);
+    },
+
+    deleteCarrito(userId) {
+        const all = _readAllCarritos().filter(c => c.userId != userId);
+        _writeAllCarritos(all);
+    },
+
+    // ==================== PERSISTENCIA DE LIBROS (sessionStorage) ====================
+
+    getAllLibros() {
+        const raw = SessionStorage.get(LIBROS_KEY);
+        if (!raw) return [];
+        try {
+            return JSON.parse(raw) || [];
+        } catch {
+            return [];
+        }
+    },
+
+    saveAllLibros(libros) {
+        const data = (libros || []).map(l => ({
+            _id: l._id,
+            isbn: l.isbn,
+            titulo: l.titulo,
+            autores: l.autores,
+            portada: l.portada,
+            resumen: l.resumen,
+            stock: l.stock,
+            precio: typeof l.precio === 'string' ? parseFloat(l.precio) : l.precio
+        }));
+        SessionStorage.set(LIBROS_KEY, JSON.stringify(data));
+    },
+
+    clearAllLibros() {
+        SessionStorage.remove(LIBROS_KEY);
     }
+};
+
+// Exports de compatibilidad con versiones anteriores en las que habia un archivo para el carrito-storage y otro para libros-storage
+export const CarritoStorage = {
+    save: (userId, carro) => LibreriaSession.saveCarrito(userId, carro),
+    getAll: () => LibreriaSession.getAllCarritos(),
+    getByUser: (userId) => LibreriaSession.getCarritoByUser(userId),
+    clearAll: () => LibreriaSession.clearAllCarritos()
+};
+
+export const LibrosStorage = {
+    getAll: () => LibreriaSession.getAllLibros(),
+    saveAll: (libros) => LibreriaSession.saveAllLibros(libros),
+    clear: () => LibreriaSession.clearAllLibros()
 };

@@ -13,8 +13,8 @@ export class InvitadoHomePresenter extends Presenter {
   async refresh() {
     await super.refresh();
 
-    renderUltimoMensaje("#mensajesContainer");
-    let libros = this.model.getLibros();
+    /* renderUltimoMensaje("#mensajesContainer"); */
+    let libros = this.model.getLibros(); 
 
     await Promise.all(
       libros.map(async (l) => {
