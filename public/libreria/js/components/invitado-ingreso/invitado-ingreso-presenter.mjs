@@ -52,8 +52,7 @@ export class InvitadoIngresoPresenter extends Presenter {
         LibreriaSession.setUser(usuario);
 
         LibreriaSession.addMessage("success", `Bienvenido, ${usuario.nombre} ${usuario.apellidos}`);
-        mensajesContainer.innerHTML = `<div class="message">Ingreso correcto como ${usuario.rol}</div>`;
-
+        renderUltimoMensaje("#mensajesContainer");
         // Redirigir según el rol
         setTimeout(() => {
           if (usuario.rol === ROL.ADMIN) {

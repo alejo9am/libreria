@@ -61,19 +61,13 @@ export function closeMensaje(messageId) {
   // Eliminar el elemento visualmente primero (con animación)
   const elemento = document.querySelector(`[data-message-id="${messageId}"]`);
   if (elemento) {
-    elemento.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-    elemento.style.opacity = '0';
-    elemento.style.transform = 'translateX(20px)';
-    
-    setTimeout(() => {
-      elemento.remove();
-      
-      // Si no quedan más mensajes visibles, limpiar el contenedor
-      const container = elemento.parentElement;
-      if (container && container.children.length === 0) {
-        container.innerHTML = '';
-      }
-    }, 300);
+    elemento.remove();
+
+    // Si no quedan más mensajes visibles, limpiar el contenedor
+    const container = elemento.parentElement;
+    if (container && container.children.length === 0) {
+      container.innerHTML = '';
+    }
   }
   
   // Eliminar del localStorage
