@@ -1,6 +1,7 @@
 import { Presenter } from "../../commons/presenter.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { router } from "../../commons/router.mjs";
+import { clearMensajes, renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";
 
 export class AdminAgregarLibroPresenter extends Presenter {
   constructor(model, view, parentSelector) {
@@ -25,8 +26,8 @@ export class AdminAgregarLibroPresenter extends Presenter {
     }
     form.onsubmit = (e) => {
       e.preventDefault();
-      mensajesContainer.innerHTML = "";
-
+      clearMensajes("#mensajesContainer");
+      
       try {
         const nuevoLibro = {
           isbn: form.isbn.value.trim(),
@@ -57,7 +58,7 @@ export class AdminAgregarLibroPresenter extends Presenter {
         router.navigate("admin-home.html"); 
       } catch (err) {
         LibreriaSession.addMessage("error", err.message);
-        mensajesContainer.innerHTML = `<div class="error">${err.message}</div>`;
+        renderUltimoMensaje("#mensajesContainer");
       }
     };
 

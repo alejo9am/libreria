@@ -3,6 +3,7 @@
 import { Presenter } from "../../commons/presenter.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { router } from "../../commons/router.mjs";
+import { renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";
 
 export class AdminPerfilPresenter extends Presenter {
   constructor(model, view, parentSelector) {
@@ -22,7 +23,7 @@ export class AdminPerfilPresenter extends Presenter {
 
     // Buscar el usuario completo en el MODELO (no en localStorage)
     const admin = this.model.getUsuarioPorId(userSession._id);
-    
+
     if (!admin) {
       LibreriaSession.addMessage("error", "Administrador no encontrado");
       router.navigate("/libreria/invitado-ingreso.html");
@@ -33,7 +34,7 @@ export class AdminPerfilPresenter extends Presenter {
     this._fillForm(admin);
     this._attachHandlers();
 
-        // Cerrar sesion
+    // Cerrar sesion
     const salirLink = document.getElementById("salirLink");
     if (salirLink) {
       salirLink.addEventListener("click", (e) => {
@@ -97,7 +98,7 @@ export class AdminPerfilPresenter extends Presenter {
         this.model.updateUsuario(datosActualizados);
 
         LibreriaSession.addMessage("success", "Perfil actualizado correctamente");
-        mensajesContainer.innerHTML = `<div class="message">Perfil actualizado correctamente</div>`;
+        renderUltimoMensaje("#mensajesContainer");
 
         // Limpiar campo de password
         form.password.value = "";
@@ -105,7 +106,7 @@ export class AdminPerfilPresenter extends Presenter {
       } catch (err) {
         console.error("Error actualizando perfil:", err);
         LibreriaSession.addMessage("error", err.message);
-        mensajesContainer.innerHTML = `<div class="error">${err.message}</div>`;
+        renderUltimoMensaje("#mensajesContainer");
       }
     });
   }

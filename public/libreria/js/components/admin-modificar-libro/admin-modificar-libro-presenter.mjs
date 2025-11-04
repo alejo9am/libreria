@@ -1,6 +1,7 @@
 import { Presenter } from "../../commons/presenter.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { router } from "../../commons/router.mjs";
+import { renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";
 
 export class AdminModificarLibroPresenter extends Presenter {
   constructor(model, view, parentSelector) {
@@ -37,7 +38,8 @@ export class AdminModificarLibroPresenter extends Presenter {
 
     const libro = this.getLibro();
     if (!libro) {
-      mensajesContainer.innerHTML = `<div class="error">Libro no encontrado</div>`;
+      LibreriaSession.addMessage("error", "Libro no encontrado");
+      renderUltimoMensaje("#mensajesContainer");
       return;
     }
 

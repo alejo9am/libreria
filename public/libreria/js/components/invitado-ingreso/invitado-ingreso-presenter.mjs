@@ -4,6 +4,7 @@ import { Presenter } from "../../commons/presenter.mjs";
 import { ROL } from "../../model/model.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { router } from "../../commons/router.mjs";
+import { renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";
 
 export class InvitadoIngresoPresenter extends Presenter {
   constructor(model, view, parentSelector) {
@@ -65,7 +66,7 @@ export class InvitadoIngresoPresenter extends Presenter {
       } catch (err) {
         console.error("Error en login:", err);
         LibreriaSession.addMessage("error", err.message);
-        mensajesContainer.innerHTML = `<div class="error">${err.message}</div>`;
+        renderUltimoMensaje("#mensajesContainer");
       }
     };
 
@@ -73,7 +74,7 @@ export class InvitadoIngresoPresenter extends Presenter {
     if (btnUsuarios) {
       btnUsuarios.onclick = () => {
         const usuarios = this.model.usuarios;
-        
+
         if (usuarios.length === 0) {
           mensajesContainer.innerHTML = `<div class="log">No hay usuarios registrados.</div>`;
           return;

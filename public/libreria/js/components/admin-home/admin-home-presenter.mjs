@@ -2,6 +2,7 @@ import { Presenter } from "../../commons/presenter.mjs";
 import { AdminCatalogoLibroPresenter } from "../admin-catalogo-libro/admin-catalogo-libro-presenter.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { router } from "../../commons/router.mjs";
+import { renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";
 
 export class AdminHomePresenter extends Presenter {
   constructor(model, view, parentSelector) {
@@ -16,22 +17,17 @@ export class AdminHomePresenter extends Presenter {
     await super.refresh();
 
     // Mostrar el último mensaje
-    const mensajesContainer = document.getElementById("mensajesContainer");
-    const mensajes = LibreriaSession.getMessages();
-    if (mensajes.length > 0) {
-        const ultimo = mensajes[mensajes.length - 1]; // solo el último
-        mensajesContainer.innerHTML = `<div class="message ${ultimo.type}">${ultimo.text}</div>`;
-    }
+    renderUltimoMensaje("#mensajesContainer");
 
     // Verificar si el usuario es administrador, sino redirigir al login
     const userSession = LibreriaSession.getUserSession();
     if (!userSession || userSession.rol !== "ADMIN") {
-        LibreriaSession.addMessage("error", "Debe iniciar sesión como administrador");
-        console.log("ERROR, usuario no autorizado", userSession);
-        router.navigate("/libreria/invitado-ingreso.html");
-        return;
+      LibreriaSession.addMessage("error", "Debe iniciar sesión como administrador");
+      console.log("ERROR, usuario no autorizado", userSession);
+      router.navigate("/libreria/invitado-ingreso.html");
+      return;
     }
-    
+
     let libros = this.model.getLibros();
 
     await Promise.all(
