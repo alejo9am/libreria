@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mocha/10.7.3/mocha.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/10.7.3/mocha.js"></script>
+    <script>
+        mocha.setup('bdd'); // configuración mínima
+        mocha.setup({ timeout: 99999 });
+    </script>
+    <script type="module" src="./model/model.mjs"></script>
+</head>
+
+<body>
+    <script type="module" src="./test/model.spec.js"></script>
+    <div id="mocha"></div> <!-- ¡ejectuar los tests! -->
+    <script type="module">
+        mocha.run();
+    </script>
+</body>
+
+</html>
