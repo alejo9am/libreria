@@ -254,39 +254,63 @@ div.mensajes {
   width: 100%;
 }
 
+/**
+* Mejoras para mensajes con botón cerrar
+* AÑADIR o REEMPLAZAR en la sección de mensajes de estilo.css
+*/
+
+.error,
+.log,
+.message {
+  border-radius: 5px;
+  padding: 10px 35px 10px 10px; /* Espacio a la derecha para la X */
+  word-wrap: break-word;
+  word-break: break-all;
+  position: relative; /* Para posicionar la X */
+  margin-bottom: 5px;
+}
+
 .error {
   border: 1px solid RED;
   color: darkred;
   background-color: lightcoral;
-  border-radius: 5px;
-  padding: 5px;
-
 }
 
 .log {
   border: 1px solid black;
   color: black;
   background-color: lightgray;
-  border-radius: 5px;
-  padding: 5px;
-  word-wrap: break-word;
-  word-break: break-all;
 }
 
 .message {
   border: 1px solid green;
   color: darkgreen;
   background-color: lightgreen;
-  border-radius: 5px;
-  padding: 5px;
-  word-wrap: break-word;
-  word-break: break-all;
 }
 
+/* Botón X para cerrar */
 .x {
-  padding-left: 1em;
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  padding: 0 6px;
   font-weight: bold;
+  font-size: 18px;
   cursor: pointer;
+  color: inherit;
+  opacity: 0.6;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  user-select: none;
+}
+
+.x:hover {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.2);
+}
+
+.x:active {
+  transform: translateY(-50%) scale(0.9);
 }
 
 /**
