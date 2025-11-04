@@ -298,7 +298,7 @@ div.mensajes {
   color: inherit;
   opacity: 0.6;
   transition: opacity 0.2s ease, transform 0.2s ease;
-  user-select: none;
+ 
 }
 
 .x:hover {
