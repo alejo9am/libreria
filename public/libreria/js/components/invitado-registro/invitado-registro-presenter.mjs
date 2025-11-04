@@ -1,8 +1,7 @@
-// js/components/invitado-registro/invitado-registro-presenter.mjs
-
 import { Presenter } from "../../commons/presenter.mjs";
 import { ROL } from "../../model/model.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
+import { clearMensajes, renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";
 
 export class InvitadoRegistroPresenter extends Presenter {
     constructor(model, view, parentSelector) {
@@ -18,7 +17,7 @@ export class InvitadoRegistroPresenter extends Presenter {
 
         form.onsubmit = (e) => {
             e.preventDefault();
-            mensajesContainer.innerHTML = "";
+            clearMensajes("#mensajesContainer");
 
             try {
                 const nuevoUsuario = {
@@ -49,14 +48,14 @@ export class InvitadoRegistroPresenter extends Presenter {
                 const usuario = this.model.addUsuario(nuevoUsuario);
 
                 LibreriaSession.addMessage("success", `Usuario registrado: ${usuario.email} (${usuario.rol})`);
-                mensajesContainer.innerHTML = `<div class="message">Registro completado: ${usuario.email} (${usuario.rol})</div>`;
+                renderUltimoMensaje("#mensajesContainer");
 
                 form.reset();
 
             } catch (err) {
                 console.error("Error en registro:", err);
                 LibreriaSession.addMessage("error", err.message);
-                mensajesContainer.innerHTML = `<div class="error">${err.message}</div>`;
+                renderUltimoMensaje("#mensajesContainer");
             }
         };
 
@@ -65,7 +64,7 @@ export class InvitadoRegistroPresenter extends Presenter {
             btnUsuarios.onclick = () => {
                 // Mostrar usuarios del MODELO (fuente de verdad)
                 const usuarios = this.model.usuarios;
-                
+
                 if (usuarios.length === 0) {
                     mensajesContainer.innerHTML = `<div class="log">No hay usuarios en el modelo.</div>`;
                     return;
@@ -108,10 +107,10 @@ export class InvitadoRegistroPresenter extends Presenter {
                         </thead>
                         <tbody>
                             ${usuarios.map(u => {
-                                const tieneMultiplesRoles = usuariosPorEmail[u.email].length > 1;
-                                const style = tieneMultiplesRoles ? 
-                                    'background: #fff9c4; border-left: 4px solid #ff9800;' : '';
-                                return `
+                    const tieneMultiplesRoles = usuariosPorEmail[u.email].length > 1;
+                    const style = tieneMultiplesRoles ?
+                        'background: #fff9c4; border-left: 4px solid #ff9800;' : '';
+                    return `
                                     <tr style="${style}">
                                         <td style="padding: 8px;">${u._id}</td>
                                         <td style="padding: 8px;">${u.email}</td>
@@ -119,7 +118,7 @@ export class InvitadoRegistroPresenter extends Presenter {
                                         <td style="padding: 8px;">${u.nombre} ${u.apellidos}</td>
                                     </tr>
                                 `;
-                            }).join("")}
+                }).join("")}
                         </tbody>
                     </table>
                     <p style="margin-top: 15px;"><em>
