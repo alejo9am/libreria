@@ -1,5 +1,7 @@
 import { model, ROL } from './model.mjs';
 import { LibreriaSession } from '../commons/libreria-session.mjs';
+import { LibrosStorage } from '../commons/libros-storage.mjs';
+import { CarritoStorage } from '../commons/carrito-storage.mjs';
 
 function crearLibro(isbn) {
   return {
@@ -48,9 +50,18 @@ export function seed() {
 
   model.constructor.lastId = Math.max(maxLibroId, maxUsuarioId, maxFacturaId);
 
+  // Libros: intentar cargar desde sesión para mantener precios estables en recargas
   const ISBNS = ['978-3-16-148410-0', '978-3-16-148410-1', '978-3-16-148410-2', '978-3-16-148410-3', '978-3-16-148410-4'];
-  let libros = ISBNS.map(isbn => crearLibro(isbn));
-  libros.forEach(l => model.addLibro(l));
+  let librosSesion = LibrosStorage.getAll();
+  if (librosSesion && librosSesion.length > 0) {
+    console.log('[Seeder] Restaurando libros desde sesión:', librosSesion.length);
+    librosSesion.forEach(l => model.addLibro(l));
+  } else {
+    let libros = ISBNS.map(isbn => crearLibro(isbn));
+    libros.forEach(l => model.addLibro(l));
+    // Guardar en sesión para evitar que el precio cambie en recargas
+    LibrosStorage.saveAll(model.getLibros());
+  }
 
   const A_DNIS = ['00000000A', '00000001A', '00000002A', '00000003A', '00000004A'];
   let admins = A_DNIS.map(dni => crearAdmin(dni));
@@ -61,12 +72,14 @@ export function seed() {
   clientes.forEach(c => model.addUsuario(c));
 
   // Cargar usuarios registrados manualmente desde localStorage
-  const usuariosGuardados = LibreriaSession.getUsuarios();
+  const usuariosGuardados = LibreriaSession.getAllUsuarios();
   console.log('[Seeder] Cargando usuarios desde localStorage:', usuariosGuardados.length);
   usuariosGuardados.forEach(usuarioData => {
     try {
-      // Verificar si el usuario ya existe en el modelo
-      const usuarioExistente = model.getUsuarioPorEmail(usuarioData.email);
+      // Verificar si el usuario ya existe en el modelo por rol
+      const usuarioExistente = (usuarioData.rol === ROL.CLIENTE)
+        ? model.getClientePorEmail(usuarioData.email)
+        : model.getAdministradorPorEmail(usuarioData.email);
       if (!usuarioExistente) {
         console.log('[Seeder] Agregando usuario desde localStorage:', usuarioData.email);
         model.addUsuario(usuarioData);
@@ -86,7 +99,7 @@ export function seed() {
   });
 
   // Cargar carritos persistidos desde localStorage
-  const carritosGuardados = LibreriaSession.getCarritos();
+  const carritosGuardados = CarritoStorage.getAll();
   console.log('[Seeder] Cargando carritos desde localStorage:', carritosGuardados.length);
   carritosGuardados.forEach(carritoData => {
     try {

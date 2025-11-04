@@ -101,7 +101,6 @@ main>article>div.contenido>div.info>mensajes-container {
 /**
 * Navbar
 */
-nav.navbar {}
 
 nav.navbar ul {
   list-style-type: none;
@@ -139,8 +138,6 @@ nav.navbar ul li:hover {
 nav.toolbar ul li.oculto {
   display: none;
 }
-
-nav.toolbar {}
 
 nav.toolbar ul {
   margin: 0;
@@ -368,8 +365,10 @@ div.mensajes {
   vertical-align: top;
 }
 
+/* ======= BLOQUE OPCIONAL: estilos alternativos de tabla (no usados en carrito actual) ======= */
 .carrito-table {
-  width: 100%;
+  width: 150%;
+  margin: 0 auto; /* centrar dentro del bloque */
   border-collapse: collapse;
   border: 1px solid #ccc;
 }
@@ -456,8 +455,34 @@ div.mensajes {
   border-right: none;
 }
 
+/* Resaltar la fila TOTAL */
+.carrito-table tfoot tr.total-row {
+  background-color: #f5f08a; /* amarillo suave del esquema */
+  border-top: 3px solid #6f4626;
+}
+.carrito-table tfoot tr.total-row td {
+  font-weight: 800;
+  color: #333;
+}
+
+/* ======= FIN bloque opcional ======= */
+
+/* Contenedor de acciones del carrito */
+.carrito-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
 .hidden {
   display: none !important;
+}
+
+/* Centrar contenido del detalle (tabla + acciones) */
+.detalle {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* centra horizontalmente los hijos */
 }
 
 /**
@@ -469,10 +494,19 @@ div.mensajes {
   height: 100%;
 }
 
+/* NUEVO: centrar el contenedor del carrito en esta vista */
+.carrito-detalle .carro {
+  width: 75%;
+  max-width: 900px;
+  margin: 0 auto;        /* centra horizontalmente */
+}
+
 .carro table {
+  width: 100%;           /* NUEVO: ocupar todo el contenedor centrado */
   height: 100%;
   padding: 4px;
   border-collapse: collapse;
+  table-layout: fixed;   /* NUEVO: columnas más predecibles */
 }
 
 .carro tfoot {
@@ -483,11 +517,15 @@ div.mensajes {
 .carro thead {
   border-bottom: 1px solid black;
   border-top: 1px solid black;
+  text-align: center;
+
 }
 
 .carro th,
 .carro td {
   padding: 4px;
+  vertical-align: middle;
+
 }
 
 .carro tr,
@@ -496,7 +534,7 @@ div.mensajes {
 }
 
 .carro tfoot th:first-child {
-  text-align: right;
+  text-align: center;
 }
 
 .carro tbody {
@@ -512,6 +550,11 @@ div.mensajes {
   text-align: center;
 }
 
+.carro .item-cantidad { width: 90px; text-align: center; }
+.carro .item-unidad { width: 110px; text-align: right; }
+.carro .item-total  { width: 110px; text-align: right; }
+.carro .item-detalle { width: auto; text-align: left; }
+
 .borrado {
   text-decoration: line-through;
   color: red;
@@ -523,6 +566,14 @@ div.mensajes {
   border-radius: 4px;
   border: 1px SOLID chocolate;
   width: 3em;
+  text-align: center;
+}
+
+.carrito-actions {
+  width: 75%;
+  max-width: 900px;
+  margin: 16px auto 0;
+  text-align: center;
 }
 
 /**
@@ -563,4 +614,52 @@ div .factura-field>input {
 .info .button a {
   color: black;
   text-decoration: none;
+}
+
+.carrito-detalle #mensajesContainer,
+.carrito-detalle .carro,
+.carrito-actions {
+  width: 75%;
+  max-width: 900px;
+  margin: 0 auto;   /* centra horizontalmente */
+}
+
+/* Tabla del carro */
+.carro table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.carro thead th { 
+  vertical-align: middle;
+  border-bottom: 1px solid #000;
+}
+
+/* Alineaciones por columna (como en la referencia) */
+.carro .item-cantidad   { width: 90px;  text-align: center; }
+.carro .item-detalle    {              text-align: left;   }
+.carro .item-unidad     { width: 110px; text-align: right;  }
+.carro .item-total      { width: 110px; text-align: right;  }
+
+.carro td, .carro th { vertical-align: middle; padding: 4px; }
+.carro input[type=number] { text-align: center; }
+
+/* Pie: totales a la derecha, bajo las columnas “Unidad/Total” */
+.carro tfoot td {
+  text-align: right;           /* Números a la derecha */
+  border-top: 1px solid #000;  /* línea separadora */
+}
+
+/* Mantén las dos primeras celdas del pie como “espaciador” a la izquierda */
+.carro tfoot td:nth-child(1),
+.carro tfoot td:nth-child(2) {
+  text-align: left;   /* por si algún texto cae ahí */
+  width: auto;
+}
+
+/* Opcional: botón con la misma caja de ancho que la tabla */
+.carrito-actions {
+  margin: 16px auto 0;
+  text-align: center;
 }

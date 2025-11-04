@@ -2,13 +2,13 @@
 // VERSIÓN CON SINCRONIZACIÓN DE USUARIOS CON LOCALSTORAGE
 
 import { LibreriaSession } from '../commons/libreria-session.mjs';
+import { CarritoStorage } from '../commons/carrito-storage.mjs';
 
 export const ROL = {
   ADMIN: "ADMIN",
   CLIENTE: "CLIENTE",
 };
 
-import { LibreriaSession } from "../commons/libreria-session.mjs";
 
 class Identificable {
   _id;
@@ -76,7 +76,12 @@ export class Libreria {
     if (this.getLibroPorIsbn(obj.isbn)) throw new Error(`El ISBN ${obj.isbn} ya existe`);
     let libro = new Libro();
     Object.assign(libro, obj);
-    libro.assignId();
+    if (!libro._id) {
+      libro.assignId();
+    } else {
+      // Mantener el _id proporcionado y actualizar lastId
+      Libreria.lastId = Math.max(Libreria.lastId, Number(libro._id));
+    }
     this.libros.push(libro);
     return libro;
   }
@@ -196,7 +201,7 @@ export class Libreria {
     // Fallback: intentar restaurar desde localStorage si no está cargado aún
     try {
       console.warn('[Model] getClientePorId - Cliente no encontrado en modelo, intentando restaurar desde storage:', id);
-      const usuariosStorage = LibreriaSession.getUsuarios();
+  const usuariosStorage = LibreriaSession.getAllUsuarios();
       const data = usuariosStorage.find(u => Number(u._id) === numId && u.rol == ROL.CLIENTE);
       if (data) {
         console.log('[Model] getClientePorId - Restaurando cliente desde storage:', data.email);
@@ -249,8 +254,8 @@ export class Libreria {
     cliente.addCarroItem(item);
     console.log('[Model] addClienteCarroItem - carrito actualizado:', cliente.carro.items);
     
-    // Guardar carrito en localStorage
-    LibreriaSession.saveCarrito(id, cliente.carro);
+  // Guardar carrito en localStorage (persistencia independiente)
+  CarritoStorage.save(id, cliente.carro);
     
     return cliente.carro;
   }
@@ -258,14 +263,33 @@ export class Libreria {
   setClienteCarroItemCantidad(id, index, cantidad) {
     let cliente = this.getClientePorId(id);
     cliente.setCarroItemCantidad(index, cantidad);
-    // Guardar carrito en localStorage
-    LibreriaSession.saveCarrito(id, cliente.carro);
+    // Guardar carrito en localStorage (persistencia independiente)
+    CarritoStorage.save(id, cliente.carro);
     return cliente.carro;
   }
 
   getCarroCliente(id) {
     const cliente = this.getClientePorId(id);
     if (!cliente) return null;
+
+    // Restauración perezosa: si el carro está vacío, intenta reconstruir desde storage
+    try {
+      if (!cliente.carro || !Array.isArray(cliente.carro.items) || cliente.carro.items.length === 0) {
+        const persisted = CarritoStorage.getByUser(id);
+        if (persisted && Array.isArray(persisted.items) && persisted.items.length > 0) {
+          console.log('[Model] getCarroCliente - Restaurando carrito perezosamente desde storage para usuario:', id);
+          persisted.items.forEach(it => {
+            const libro = this.getLibroPorId(it.libro?._id || it.libro);
+            if (libro) {
+              cliente.addCarroItem({ libro, cantidad: it.cantidad });
+            }
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('[Model] getCarroCliente - Error en restauración perezosa:', e);
+    }
+
     return cliente.carro;
   }
 

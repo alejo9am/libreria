@@ -26,38 +26,43 @@
     </nav>
     <div class="info">
       <div class="mensajes-container" id="mensajesContainer"></div>
-      <div id="detalle" class="detalle">
-        <!-- Tabla del carrito: Cant., Detalle, Unidad, Total -->
-        <table class="carrito-table">
-          <thead>
-            <tr>
-              <th class="col-cant">Cant.</th>
-              <th class="col-detalle">Detalle</th>
-              <th class="col-unidad">Unidad</th>
-              <th class="col-total">Total</th>
-            </tr>
-          </thead>
-          <tbody id="carritoItems">
-            <!-- Filas generadas dinámicamente -->
-          </tbody>
-          <tfoot id="carritoTotales">
-            <tr>
-              <td colspan="2"></td>
-              <td>Subtotal</td>
-              <td id="subtotalCell">0,00</td>
-            </tr>
-            <tr>
-              <td colspan="2"></td>
-              <td>IVA (21%)</td>
-              <td id="ivaCell">0,00</td>
-            </tr>
-            <tr>
-              <td colspan="2"></td>
-              <td>Total</td>
-              <td id="totalCell">0,00</td>
-            </tr>
-          </tfoot>
-        </table>
+  <div id="detalle" class="detalle carrito-detalle">
+        <!-- Tabla del carrito (estilos .carro existentes) -->
+        <div class="carro">
+          <table>
+            <thead>
+              <tr>
+                <th class="item-cantidad">Cant.</th>
+                <th class="item-detalle">Detalle</th>
+                <th class="item-unidad">Unidad</th>
+                <th class="item-total">Total</th>
+              </tr>
+            </thead>
+            <tbody id="carritoItems">
+              <!-- Filas generadas dinámicamente -->
+            </tbody>
+            <tfoot id="carritoTotales">
+              <tr>
+                <td colspan="2"></td>
+                <td>Subtotal</td>
+                <td id="subtotalCell">0,00</td>
+              </tr>
+              <tr>
+                <td colspan="2"></td>
+                <td>IVA (21%)</td>
+                <td id="ivaCell" class="iva">0,00</td>
+              </tr>
+              <tr>
+                <td colspan="2"></td>
+                <td>Total</td>
+                <td id="totalCell" class="total">0,00</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="carrito-actions">
+          <button id="btnPagar" class="button">Pagar</button>
+        </div>
         <div id="carritoEmpty" class="info hidden">El carrito está vacío.</div>
       </div>
     </div>

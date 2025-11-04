@@ -113,24 +113,18 @@ export class ClienteVerLibroPresenter extends Presenter {
           // Añadir 1 unidad del libro al carrito del cliente
           model.addClienteCarroItem(userId, { libro: libro._id, cantidad: 1 });
 
-          // Mensaje de éxito
-            LibreriaSession.addMessage("success", `Libro agregado a carrito: ${libro.titulo}`);
-            mensajesContainer.innerHTML = `<div class="message">Libro agregado correctamente al carrito: <strong>${libro.titulo}</strong></div>`;
-
-          // Espera 3 segundos antes de ir al carrito para que se vea el mensaje
-          console.log('[ClienteVerLibroPresenter] Esperando 3 segundos antes de redirigir...');
-          setTimeout(() => {
-            console.log('[ClienteVerLibroPresenter] Redirigiendo al carrito');
-            router.navigate('/libreria/cliente-carrito.html');
-          }, 3000);
+          // Mensaje de éxito persistido (se mostrará en la página del carrito)
+          LibreriaSession.addMessage("success", `Libro agregado a carrito: ${libro.titulo}`);
+          // Navegar inmediatamente al carrito, donde se mostrará el mensaje
+          router.navigate('/libreria/cliente-carrito.html');
 
         } catch (err) {
           console.error('[ClienteVerLibroPresenter] Error:', err);
           LibreriaSession.addMessage('error', err.message);
           if (mensajesContainer) mensajesContainer.innerHTML = `<div class="error">${err.message}</div>`;
-          // Si no está autenticado, redirigir al formulario de ingreso pasado 2s
+          // Si no está autenticado, redirigir al formulario de ingreso pasado 1s
           if (err.message && err.message.toLowerCase().includes('iniciar sesión')) {
-            setTimeout(() => router.navigate('/libreria/invitado-ingreso.html'), 2000);
+            setTimeout(() => router.navigate('/libreria/invitado-ingreso.html'), 1000);
           }
         }
       });
