@@ -246,24 +246,59 @@ describe("Tests del Modelo de Librería", function () {
         describe("Carro - Excepciones", function () {
             it("debe lanzar error al establecer cantidad negativa", function () {
                 // Por hacer asi que se pone como fallido
+                const cliente = libreria.addUsuario({
+                    dni: "CNEG001",
+                    nombre: "Negativo",
+                    apellidos: "Test",
+                    email: "neg@test.com",
+                    password: "pass",
+                    rol: ROL.CLIENTE
+                });
+
+                const libro = libreria.addLibro({
+                    isbn: "NEG-L1",
+                    titulo: "Libro Neg",
+                    precio: 10,
+                    stock: 5
+                });
+
+                // Añade 1 unidad y luego intenta poner cantidad negativa.
+                libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 1 });
+
                 assert.throws(
-                    Error
+                    () => libreria.setClienteCarroItemCantidad(cliente._id, 0, -1),
+                    Error,
+                    "Cantidad inferior a 0"
                 );
             });
         });
 
         describe("Factura - Excepciones", function () {
-            it("debe lanzar error al facturar sin cliente", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+            it("debe lanzar error al pagar sin cliente", function () {
+                
             });
 
-            it("debe lanzar error al facturar carro vacío", function () {
-                // Por hacer asi que se pone como fallido
+            it("debe lanzar error al pagar carro vacío", function () {
+                const cliente = libreria.addUsuario({
+                    dni: "CVOID001",
+                    nombre: "Vacio",
+                    apellidos: "Test",
+                    email: "void@test.com",
+                    password: "pass",
+                    rol: ROL.CLIENTE
+                });
+
+                // No hay items en el carro -> debe fallar
                 assert.throws(
-                    Error
+                    () => libreria.facturarCompraCliente({
+                        cliente: cliente._id,
+                        razonSocial: "Acme S.A.",
+                        direccion: "Calle Falsa 123",
+                        email: "fact@acme.com",
+                        dni: "A0000000Z"
+                    }),
+                    Error,
+                    "No hay que comprar"
                 );
             });
         });
@@ -560,38 +595,66 @@ describe("Tests del Modelo de Librería", function () {
             });
 
             it("debe agregar item al carro del cliente", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
+                const carro = libreria.getCarroCliente(cliente._id);
+
+                assert.equal(carro.items.length, 1);
+                assert.equal(carro.items[0].cantidad, 2);
+                assert.equal(carro.items[0].libro._id, libro1._id);
+
+                const subtotalEsperado = 2 * libro1.precio;
+                const ivaEsperado = subtotalEsperado * 0.21;
+                const totalEsperado = subtotalEsperado + ivaEsperado;
+
+                assert.closeTo(carro.subtotal, subtotalEsperado, 1e-9);
+                assert.closeTo(carro.iva, ivaEsperado, 1e-9);
+                assert.closeTo(carro.total, totalEsperado, 1e-9);
             });
 
             it("debe incrementar cantidad si el libro ya existe en carro", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
+                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 }); // mismo libro
+
+                const carro = libreria.getCarroCliente(cliente._id);
+                assert.equal(carro.items.length, 1); // no duplica el ítem
+                assert.equal(carro.items[0].cantidad, 3); // 1 + 2
+                assert.closeTo(carro.subtotal, 3 * libro1.precio, 1e-9);
             });
 
             it("debe modificar cantidad de item en carro", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
+                libreria.setClienteCarroItemCantidad(cliente._id, 0, 4);
+
+                const carro = libreria.getCarroCliente(cliente._id);
+                assert.equal(carro.items[0].cantidad, 4);
+                assert.closeTo(carro.subtotal, 4 * libro1.precio, 1e-9);
+                assert.closeTo(carro.iva, 4 * libro1.precio * 0.21, 1e-9);
+                assert.closeTo(carro.total, 4 * libro1.precio * 1.21, 1e-9);
             });
 
             it("debe eliminar item cuando cantidad es 0", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
+                libreria.setClienteCarroItemCantidad(cliente._id, 0, 0);
+
+                const carro = libreria.getCarroCliente(cliente._id);
+                assert.equal(carro.items.length, 0);
+                assert.equal(carro.subtotal, 0);
+                assert.equal(carro.iva, 0);
+                assert.equal(carro.total, 0);
             });
 
             it("debe vaciar el carro", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
+                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 1 });
+
+                const clienteObj = libreria.getClientePorId(cliente._id);
+                clienteObj.removeItems();
+
+                const carro = libreria.getCarroCliente(cliente._id);
+                assert.equal(carro.items.length, 0);
+                assert.equal(carro.subtotal, 0);
+                assert.equal(carro.iva, 0);
+                assert.equal(carro.total, 0);
             });
         });
 
@@ -708,25 +771,97 @@ describe("Tests del Modelo de Librería", function () {
         });
 
         describe("Item - Cálculo de Total", function () {
+            let cliente, libro;
+
+            beforeEach(function () {
+                // Creamos un cliente y un libro nuevos para cada caso
+                cliente = libreria.addUsuario({
+                    dni: "ITEM-T-DNI",
+                    nombre: "ItemTester",
+                    apellidos: "Spec",
+                    email: "item@test.com",
+                    password: "pass",
+                    rol: ROL.CLIENTE
+                });
+
+                libro = libreria.addLibro({
+                    isbn: "ITEM-T1",
+                    titulo: "Libro para Item Test",
+                    precio: 15,   // € unitario
+                    stock: 100
+                });
+            });
+
             it("debe calcular total del item (cantidad * precio)", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                // Arrange: añadimos 4 unidades del libro al carro del cliente
+                libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 4 });
+
+                // Act: obtenemos el carro y el item
+                const carro = libreria.getCarroCliente(cliente._id);
+                const item = carro.items[0];
+
+                // Assert: total del ítem y coherencia con subtotal/IVA/total
+                assert.equal(carro.items.length, 1);
+                assert.equal(item.cantidad, 4);
+
+                const subtotalEsperado = 4 * libro.precio;
+                const ivaEsperado = subtotalEsperado * 0.21;
+                const totalEsperado = subtotalEsperado + ivaEsperado;
+
+                assert.closeTo(item.total, subtotalEsperado, 1e-9);
+                assert.closeTo(carro.subtotal, subtotalEsperado, 1e-9);
+                assert.closeTo(carro.iva, ivaEsperado, 1e-9);
+                assert.closeTo(carro.total, totalEsperado, 1e-9);   
             });
 
             it("debe recalcular total al cambiar cantidad", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                // Arrange: añadimos 1 unidad del libro
+                libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 1 });
+                let carro = libreria.getCarroCliente(cliente._id);
+                assert.equal(carro.items.length, 1);
+                assert.closeTo(carro.items[0].total, 1 * libro.precio, 1e-9);
+
+                // Act: cambiamos la cantidad a 5
+                libreria.setClienteCarroItemCantidad(cliente._id, 0, 5);
+                carro = libreria.getCarroCliente(cliente._id);
+                const item = carro.items[0];
+
+                // Assert: item.total y totales del carro se recalculan
+                const subtotalEsperado = 5 * libro.precio;
+                const ivaEsperado = subtotalEsperado * 0.21;
+                const totalEsperado = subtotalEsperado + ivaEsperado;
+
+                assert.equal(item.cantidad, 5);
+                assert.closeTo(item.total, subtotalEsperado, 1e-9);
+                assert.closeTo(carro.subtotal, subtotalEsperado, 1e-9);
+                assert.closeTo(carro.iva, ivaEsperado, 1e-9);
+                assert.closeTo(carro.total, totalEsperado, 1e-9);
             });
 
             it("debe recalcular total al cambiar precio del libro", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                // Arrange: añadimos 2 unidades del libro al carrito
+                libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 2 });
+                let carro = libreria.getCarroCliente(cliente._id);
+                let item = carro.items[0];
+
+                // Comprobamos estado inicial
+                assert.equal(item.cantidad, 2);
+                assert.closeTo(item.total, 2 * libro.precio, 1e-9);
+
+                // Act: cambiamos el precio del libro y forzamos recálculo
+                libro.precio = 30;
+                item.calcular();     // recalcula el total del item
+                carro.calcular();    // recalcula subtotal, iva y total del carro
+
+                // Assert: totales actualizados con el nuevo precio
+                const subtotalEsperado = 2 * 30;
+                const ivaEsperado = subtotalEsperado * 0.21;
+                const totalEsperado = subtotalEsperado + ivaEsperado;
+
+                assert.closeTo(item.total, subtotalEsperado, 1e-9);
+                assert.closeTo(carro.subtotal, subtotalEsperado, 1e-9);
+                assert.closeTo(carro.iva, ivaEsperado, 1e-9);
+                assert.closeTo(carro.total, totalEsperado, 1e-9);
             });
         });
 
@@ -759,52 +894,98 @@ describe("Tests del Modelo de Librería", function () {
             });
 
             it("debe calcular subtotal correctamente", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                // 2 x libro1 (10) + 1 x libro2 (20) = 40
+                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
+                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 1 });
+
+                const carro = libreria.getCarroCliente(cliente._id);
+                const subtotalEsperado = 2 * libro1.precio + 1 * libro2.precio; // 40
+
+                assert.closeTo(carro.subtotal, subtotalEsperado, 1e-9);
             });
 
             it("debe calcular IVA (21%) correctamente", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                // Subtotal 40 => IVA 8.4
+                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
+                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 1 });
+
+                const carro = libreria.getCarroCliente(cliente._id);
+                const ivaEsperado = (2 * libro1.precio + 1 * libro2.precio) * 0.21; // 8.4
+
+                assert.closeTo(carro.iva, ivaEsperado, 1e-9);
             });
 
             it("debe calcular total (subtotal + IVA) correctamente", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                // Subtotal 40 + IVA 8.4 => total 48.4
+                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
+                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 1 });
+
+                const carro = libreria.getCarroCliente(cliente._id);
+                const subtotal = 2 * libro1.precio + 1 * libro2.precio; // 40
+                const totalEsperado = subtotal * 1.21; // 48.4
+
+                assert.closeTo(carro.total, totalEsperado, 1e-9);
             });
 
             it("debe recalcular al agregar items", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                // Paso 1: 1 x libro1 => subtotal 10
+                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
+                let carro = libreria.getCarroCliente(cliente._id);
+                assert.closeTo(carro.subtotal, 10, 1e-9);
+
+                // Paso 2: agrego 2 x libro2 => +40 => subtotal 50
+                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 2 });
+                carro = libreria.getCarroCliente(cliente._id);
+
+                const subtotalEsperado = 1 * libro1.precio + 2 * libro2.precio; // 10 + 40 = 50
+                const ivaEsperado = subtotalEsperado * 0.21;
+                const totalEsperado = subtotalEsperado + ivaEsperado;
+
+                assert.closeTo(carro.subtotal, subtotalEsperado, 1e-9);
+                assert.closeTo(carro.iva, ivaEsperado, 1e-9);
+                assert.closeTo(carro.total, totalEsperado, 1e-9);
             });
 
             it("debe recalcular al modificar cantidad", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                // 1 x libro1 => 10
+                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
+                // Cambio cantidad a 3 => 30
+                libreria.setClienteCarroItemCantidad(cliente._id, 0, 3);
+
+                const carro = libreria.getCarroCliente(cliente._id);
+                const subtotalEsperado = 3 * libro1.precio; // 30
+                const ivaEsperado = subtotalEsperado * 0.21;
+                const totalEsperado = subtotalEsperado + ivaEsperado;
+
+                assert.equal(carro.items[0].cantidad, 3);
+                assert.closeTo(carro.subtotal, subtotalEsperado, 1e-9);
+                assert.closeTo(carro.iva, ivaEsperado, 1e-9);
+                assert.closeTo(carro.total, totalEsperado, 1e-9);
             });
 
             it("debe recalcular al eliminar items", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                // 2 x libro1 (20) + 2 x libro2 (40) => 60
+                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
+                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 2 });
+                let carro = libreria.getCarroCliente(cliente._id);
+                assert.closeTo(carro.subtotal, 60, 1e-9);
+
+                // Elimino el primer ítem (index 0) poniendo cantidad 0 => quedan 2 x libro2 => 40
+                libreria.setClienteCarroItemCantidad(cliente._id, 0, 0);
+                carro = libreria.getCarroCliente(cliente._id);
+
+                assert.equal(carro.items.length, 1);
+                assert.closeTo(carro.subtotal, 2 * libro2.precio, 1e-9);
+                assert.closeTo(carro.iva, 2 * libro2.precio * 0.21, 1e-9);
+                assert.closeTo(carro.total, 2 * libro2.precio * 1.21, 1e-9);
             });
 
             it("debe tener valores en cero con carro vacío", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                const carro = libreria.getCarroCliente(cliente._id);
+                assert.equal(carro.items.length, 0);
+                assert.equal(carro.subtotal, 0);
+                assert.equal(carro.iva, 0);
+                assert.equal(carro.total, 0);
             });
 
             describe("Factura - Cálculos", function () {
