@@ -352,11 +352,11 @@ class Libro extends Identificable {
   }
 
   incPrecioP(porcentaje) {
-    this.precio = this.precio * (1 + porcentaje / 100);
+    this.precio = Math.round(this.precio * (1 + porcentaje / 100) * 100) / 100;
   }
 
   dexPrecioP(porcentaje) {
-    this.precio = this.precio * (porcentaje / 100);
+    this.precio = Math.round(this.precio * (porcentaje / 100) * 100) / 100;
   }
 }
 
