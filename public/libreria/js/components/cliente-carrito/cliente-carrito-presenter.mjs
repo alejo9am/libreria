@@ -18,7 +18,7 @@ export class ClienteCarritoPresenter extends Presenter {
     await super.refresh();
 
     const mensajesContainer = document.getElementById("mensajesContainer");
-    // Mostrar el último mensaje persistido (mismo patrón que AdminHome)
+    // Mostrar el último mensaje persistido
     if (mensajesContainer) {
       const mensajes = LibreriaSession.getMessages();
       if (mensajes && mensajes.length > 0) {
@@ -69,6 +69,11 @@ export class ClienteCarritoPresenter extends Presenter {
       if (subtotalCell) subtotalCell.textContent = this.formatCurrency(0);
       if (ivaCell) ivaCell.textContent = this.formatCurrency(0);
       if (totalCell) totalCell.textContent = this.formatCurrency(0);
+
+      //mostrar mensaje tipo info de que el carrito está vacío
+      LibreriaSession.addMessage('warn', 'El carrito está vacío');
+      if (mensajesContainer) mensajesContainer.innerHTML = `<div class="warn">El carrito está vacío</div>`;
+
       // Asegurar botón de pagar deshabilitado
       const btnPagar = document.getElementById('btnPagar');
       if (btnPagar) btnPagar.setAttribute('disabled', 'true');
@@ -133,26 +138,7 @@ export class ClienteCarritoPresenter extends Presenter {
       btnPagar.removeAttribute('disabled');
       btnPagar.onclick = (e) => {
         e.preventDefault();
-        try {
-          const current = model.getCarroCliente(userId);
-          if (!current || !current.items || current.items.length === 0) {
-            if (mensajesContainer) mensajesContainer.innerHTML = `<div class="error">El carrito está vacío</div>`;
-            return;
-          }
-          // Facturar
-          model.facturarCompraCliente({ cliente: userId });
-          // Persistir carrito vacío tras compra
-          const after = model.getCarroCliente(userId);
-          CarritoStorage.save(userId, after);
-          LibreriaSession.addMessage('success', 'Compra realizada correctamente');
-          if (mensajesContainer) mensajesContainer.innerHTML = `<div class="message">Compra realizada correctamente</div>`;
-          // Refrescar vista
-          this.refresh();
-        } catch (err) {
-          console.error('[CarritoPresenter] Error al pagar:', err);
-          LibreriaSession.addMessage('error', err.message || 'Error al procesar el pago');
-          if (mensajesContainer) mensajesContainer.innerHTML = `<div class="error">${err.message || 'Error al procesar el pago'}</div>`;
-        }
+        router.navigate('/libreria/cliente-comprar.html');
       };
     }
   }

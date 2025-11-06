@@ -97,7 +97,7 @@ function getTypeClass(type) {
     'success': 'message',
     'info': 'message',
     'log': 'log',
-    'warn': 'log'
+    'warn': 'warn'
   };
   return typeMap[type] || 'message';
 }
