@@ -326,6 +326,8 @@ export class Libreria {
     Object.assign(factura, cliente.carro);
     cliente.removeItems();
 
+    this.facturas.push(factura);
+
     return factura;
   }
 
