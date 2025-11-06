@@ -3,6 +3,7 @@ import { model } from "../../model/model.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { router } from "../../commons/router.mjs";
 import { CarritoStorage } from "../../commons/libreria-session.mjs";
+import { renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";
 
 export class ClienteComprarPresenter extends Presenter {
   constructor(model, view) {
@@ -18,17 +19,10 @@ export class ClienteComprarPresenter extends Presenter {
     await super.refresh();
 
     const mensajesContainer = document.getElementById("mensajesContainer");
-    const mensajes = LibreriaSession.getMessages();
-    if (mensajes && mensajes.length > 0) {
-      const ultimo = mensajes[mensajes.length - 1];
-      mensajesContainer.innerHTML = `<div class="message ${ultimo.type}">${ultimo.text}</div>`;
-    } else {
-      mensajesContainer.innerHTML = "";
-    }
+    renderUltimoMensaje("#mensajesContainer");
 
     const userId = LibreriaSession.getUserId();
     const clienteData = LibreriaSession.getUsuarioById(userId);
-    // console.log('[ComprarPresenter] Datos del cliente:', clienteData);
 
     // =============ESTABLECER DATOS DEL FORMULARIO================
 
@@ -91,11 +85,14 @@ export class ClienteComprarPresenter extends Presenter {
       if (ivaCell) ivaCell.textContent = this.formatCurrency(0);
       if (totalCell) totalCell.textContent = this.formatCurrency(0);
 
-      LibreriaSession.addMessage('warn', 'El carrito está vacío');
-      if (mensajesContainer) mensajesContainer.innerHTML = `<div class="warn">El carrito está vacío</div>`;
+      LibreriaSession.addMessage('error', 'Has vaciado el carrito. No se puede procesar la compra.');
+      if (mensajesContainer) {
+        renderUltimoMensaje("#mensajesContainer");
+      }
 
       const btnPagar = document.getElementById('btnPagar');
       if (btnPagar) btnPagar.setAttribute('disabled', 'true');
+      btnPagar.style.cursor = 'not-allowed';
       return;
     }
     if (carritoEmpty) carritoEmpty.classList.add('hidden');
@@ -119,9 +116,8 @@ export class ClienteComprarPresenter extends Presenter {
             model.setClienteCarroItemCantidad(userId, idx, v);
             console.log('[ComprarPresenter] Cantidad actualizada para item index', idx, 'a', v);
             LibreriaSession.addMessage('success', 'Cantidad actualizada');
-            if (mensajesContainer) mensajesContainer.innerHTML = `<div class="message">Cantidad actualizada</div>`;
-            // Re-render para actualizar totales
             this.refresh();
+            if (mensajesContainer) renderUltimoMensaje("#mensajesContainer");
           } catch (err) {
             LibreriaSession.addMessage('error', err.message);
             if (mensajesContainer) mensajesContainer.innerHTML = `<div class="error">${err.message}</div>`;
@@ -215,10 +211,10 @@ export class ClienteComprarPresenter extends Presenter {
 
           // Mensaje de éxito
           LibreriaSession.addMessage('success', 'Compra realizada correctamente. Factura generada.');
-          if (mensajesContainer) mensajesContainer.innerHTML = `<div class="message">Compra realizada correctamente. Factura generada.</div>`;
+          if (mensajesContainer) { renderUltimoMensaje("#mensajesContainer"); }
           
           //redirigir a la pagina de inicio después de unos segundos, manteniendo la sesion iniciada del cliente
-          setTimeout(() => router.navigate('/libreria/cliente-home.html'), 3000);
+          router.navigate('/libreria/cliente-home.html');
           
         } catch (err) {
           console.error('[ComprarPresenter] Error al pagar:', err);
