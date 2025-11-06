@@ -275,7 +275,7 @@ describe("Tests del Modelo de Librería", function () {
 
         describe("Factura - Excepciones", function () {
             it("debe lanzar error al pagar sin cliente", function () {
-                
+                Error
             });
 
             it("debe lanzar error al pagar carro vacío", function () {
@@ -647,15 +647,19 @@ describe("Tests del Modelo de Librería", function () {
                 libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
                 libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 1 });
 
-                const clienteObj = libreria.getClientePorId(cliente._id);
-                clienteObj.removeItems();
+                // Mientras queden items, borra el primero (índice 0)
+                let carro = libreria.getCarroCliente(cliente._id);
+                while (carro.items.length > 0) {
+                    libreria.setClienteCarroItemCantidad(cliente._id, 0, 0);
+                    carro = libreria.getCarroCliente(cliente._id);
+                }
 
-                const carro = libreria.getCarroCliente(cliente._id);
                 assert.equal(carro.items.length, 0);
                 assert.equal(carro.subtotal, 0);
                 assert.equal(carro.iva, 0);
                 assert.equal(carro.total, 0);
             });
+
         });
 
         describe("Facturas - CRUD", function () {
@@ -1026,11 +1030,32 @@ describe("Tests del Modelo de Librería", function () {
                     });
 
                     it("debe calcular correctamente con múltiples items de diferentes precios", function () {
-                        // Por hacer asi que se pone como fallido
-                        assert.throws(
-                            Error
-                        );
+                      
+                        const libro3 = libreria.addLibro({
+                            isbn: "CARRO-L3",
+                            titulo: "Libro 3",
+                            precio: 7.5,
+                            stock: 100
+                        });
+
+                        // Añadimos varias cantidades de cada uno
+                        libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 4 }); // 4 * 10 = 40
+                        libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 3 }); // 3 * 20 = 60
+                        libreria.addClienteCarroItem(cliente._id, { libro: libro3._id, cantidad: 5 }); // 5 * 7.5 = 37.5
+
+                        // Act
+                        const carro = libreria.getCarroCliente(cliente._id);
+
+                        // Assert
+                        const subtotalEsperado = (4 * libro1.precio) + (3 * libro2.precio) + (5 * libro3.precio); // 137.5
+                        const ivaEsperado = subtotalEsperado * 0.21;  // 28.875
+                        const totalEsperado = subtotalEsperado + ivaEsperado; // 166.375
+
+                        assert.closeTo(carro.subtotal, subtotalEsperado, 1e-9);
+                        assert.closeTo(carro.iva, ivaEsperado, 1e-9);
+                        assert.closeTo(carro.total, totalEsperado, 1e-9);
                     });
+
                 });
             });
 
