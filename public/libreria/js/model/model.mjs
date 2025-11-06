@@ -261,8 +261,14 @@ export class Libreria {
 
   setClienteCarroItemCantidad(id, index, cantidad) {
     let cliente = this.getClientePorId(id);
+    if (cantidad === 0 && cliente.carro.items.length === 0) {
+      LibreriaSession.deleteCarrito(id);
+    }
+
     cliente.setCarroItemCantidad(index, cantidad);
+    
     // Guardar carrito en localStorage (persistencia independiente)
+  
     CarritoStorage.save(id, cliente.carro);
     return cliente.carro;
   }
