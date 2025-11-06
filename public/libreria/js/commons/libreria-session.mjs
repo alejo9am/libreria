@@ -6,6 +6,7 @@ const MSGS_KEY = 'libreria_messages';
 const USERS_KEY = 'libreria_usuarios';
 const CARRITOS_KEY = 'libreria_carritos';
 const LIBROS_KEY = 'libreria_libros_session';
+const FACTURAS_KEY = 'libreria_facturas';
 
 /**
  * Helpers para localStorage
@@ -106,6 +107,22 @@ function _readAllCarritos() {
 function _writeAllCarritos(list) {
     LocalStorage.set(CARRITOS_KEY, JSON.stringify(list || []));
 }
+
+/** Facturas */
+function _readAllFacturas() {
+    const raw = LocalStorage.get(FACTURAS_KEY);
+    if (!raw) return [];
+    try {
+        return JSON.parse(raw) || [];
+    } catch {
+        return [];
+    }
+}
+
+function _writeAllFacturas(list) {
+    LocalStorage.set(FACTURAS_KEY, JSON.stringify(list || []));
+}
+
 export const LibreriaSession = {
 
     // ==================== GESTIÓN DE SESIÓN (sessionStorage) ====================
@@ -409,6 +426,16 @@ export const LibreriaSession = {
     deleteCarrito(userId) {
         const all = _readAllCarritos().filter(c => c.userId != userId);
         _writeAllCarritos(all);
+    },
+
+    // ==================== PERSISTENCIA DE FACTURAS (localStorage) ====================
+    
+    //INFO que debe guardar la factura> *id*, *fecha*, *totalFactura*, razonSocial, dni, direccion, email, items (cantidad, detalle, precioUnitario, totalItem)
+
+    saveFactura(factura) {
+        const all = _readAllFacturas()
+        all.push(factura);
+        _writeAllFacturas(all);
     },
 
     // ==================== PERSISTENCIA DE LIBROS (sessionStorage) ====================

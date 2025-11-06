@@ -56,10 +56,11 @@ class Router {
     console.log('Refreshing presenter', this.localLocation);
     if (!this.presenter) {
       // cambiar por recursivo
+      let url = this.localLocation;
       console.error(`${url} not found`);
       url = '/not-found?url=' + encodeURIComponent(url);
       window.history.replaceState({}, '', url);
-      index = 0;
+      let index = 0;
       this.presenters[index].refresh();
     }
     else await this.presenter.refresh();

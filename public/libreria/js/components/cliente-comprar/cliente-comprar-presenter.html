@@ -1,0 +1,93 @@
+<header>
+  <h1>Tecnologías y Sistemas Web 24/25</h1>
+  <h2 id="verLibroTitulo">Cliente Comprar</h2>
+</header>
+<article>
+  <nav class="navbar">
+    <ul>
+      <li><a id="homeLink" href="cliente-home.html">Inicio</a></li>
+      <li><a id="carritoLink" href="cliente-carrito.html">Carro</a></li>
+      <li><a id="facturasLink" href="cliente-facturas.html">Facturas</a></li>
+      <li><a id="perfilLink" href="cliente-perfil.html">Perfil</a></li>
+      <li><a id="salirLink" href="invitado-home.html">Salir</a></li>
+    </ul>
+  </nav>
+  <div class="contenido">
+    <div class="info">
+
+        <div class="mensajes-container" id="mensajesContainer">
+        </div>
+
+        <form id="formPago">
+            <h3>Detalles de Factura</h3>
+            <div class="form-group">
+                <label for="fecha">Fecha</label>
+                <input type="date" id="fecha" name="fecha" required>
+            </div>
+            <div class="form-group">
+                <label for="dni">DNI</label>
+                <input type="text" id="dni" name="dni" value="00000000C" required pattern="[0-9]{8}[A-Z]" maxlength="9">
+            </div>
+            <div class="form-group">
+                <label for="razonSocial">Razón Social</label>
+                <input type="text" id="razonSocial" name="razonSocial" value="Razón Social" required>
+            </div>
+            <div class="form-group">
+                <label for="direccion">Dirección</label>
+                <textarea id="direccion" name="direccion" required rows="3">Escuela Superior de Ingeniería Informática, Universidad de Castilla-La Mancha. C/Paseo de los estudiantes S/N, (02071) Albacete, España.</textarea>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="00000000C@tsw.uclm.es" required>
+            </div>
+        </form>
+        
+        <h3>Detalle del Carrito</h3>
+        <div id="detalle" class="detalle carrito-detalle">
+            <!-- Tabla del carrito (estilos .carro existentes) -->
+            <div class="carro">
+                <table>
+                    <thead>
+                    <tr>
+                        <th class="item-cantidad">Cant.</th>
+                        <th class="item-detalle">Detalle</th>
+                        <th class="item-unidad">Unidad</th>
+                        <th class="item-total">Total</th>
+                    </tr>
+                    </thead>
+                    <tbody id="carritoItems">
+                    <!-- Filas generadas dinámicamente -->
+                    </tbody>
+                    <tfoot id="carritoTotales">
+                    <tr>
+                        <td colspan="2"></td>
+                        <td>Subtotal</td>
+                        <td id="subtotalCell">0,00</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <td>IVA (21%)</td>
+                        <td id="ivaCell" class="iva">0,00</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                        <td>Total</td>
+                        <td id="totalCell" class="total">0,00</td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <div class="carrito-actions">
+                <button id="btnPagar" class="button">Pagar</button>
+            </div>
+            <!-- <div id="carritoEmpty" class="info hidden">El carrito está vacío.</div> -->
+        </div>
+    </div>
+    <footer>
+      Prof. Dr. Ricardo Tesoriero Pszytula<br>
+      Tecnologías y Sistemas Web 24/25<br>
+      Universidad de Castilla-La Mancha<br>
+      <small>20 de septiembre de 2021</small>
+    </footer>
+  </div>
+</article>
