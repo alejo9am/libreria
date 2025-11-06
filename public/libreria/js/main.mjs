@@ -17,6 +17,7 @@ import { ClienteHomePresenter } from "./components/cliente-home/cliente-home-pre
 import { ClienteVerLibroPresenter } from "./components/cliente-ver-libro/cliente-ver-libro-presenter.mjs";
 import { ClienteCarritoPresenter } from "./components/cliente-carrito/cliente-carrito-presenter.mjs";
 import { ClienteComprarPresenter } from "./components/cliente-comprar/cliente-comprar-presenter.mjs";
+import { ClientePerfilPresenter } from "./components/cliente-perfil/cliente-perfil-presenter.mjs";
 
 import { seed } from "./model/seeder.mjs";
 
@@ -59,7 +60,7 @@ export function init() {
   router.register(/^\/libreria\/cliente-ver-libro.html/, new ClienteVerLibroPresenter(model, 'cliente-ver-libro'));
   router.register(/^\/libreria\/cliente-carrito.html/, new ClienteCarritoPresenter(model, 'cliente-carrito'));
   router.register(/^\/libreria\/cliente-comprar.html/, new ClienteComprarPresenter(model, 'cliente-comprar'));
-
+  router.register(/^\/libreria\/cliente-perfil.html$/, new ClientePerfilPresenter(model, 'cliente-perfil'));
 
   router.handleLocation();
 }
