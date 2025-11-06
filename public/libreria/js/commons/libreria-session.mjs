@@ -93,6 +93,10 @@ function _saveMessagesToStorage(msgs) {
     LocalStorage.set(MSGS_KEY, JSON.stringify(msgs || []));
 }
 
+function _deleteMessagesFromStorage() {
+    LocalStorage.remove(MSGS_KEY);
+}
+
 /** Carritos */
 function _readAllCarritos() {
     const raw = LocalStorage.get(CARRITOS_KEY);
@@ -356,7 +360,7 @@ export const LibreriaSession = {
     },
 
     clearMessages() {
-        _saveMessagesToStorage([]);
+        _deleteMessagesFromStorage();
     },
 
     onMessage(callback) {
