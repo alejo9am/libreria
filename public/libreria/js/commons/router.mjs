@@ -2,6 +2,8 @@ class Router {
   static _instance;
   routes;
   presenters;
+  _previousUrl = null; // Rastrear URL anterior
+  _currentUrl = null;
 
   static get instance() {
     if (!Router._instance)
@@ -12,18 +14,22 @@ class Router {
   constructor() {
     this.routers = [];
     this.presenters = [];
+    this._currentUrl = this.localLocation;
     this.init();
   }
+  
   init() {
     window.addEventListener('popstate', () => {
       this.handleLocation();
     });
     console.log('Router initialized!');
   }
+  
   register(router, presenter) {
     this.routers.push(router);
     this.presenters.push(presenter);
   }
+  
   unregister(router) {
     let index = this.routers.indexOf(router);
     this.routers.splice(index, 1);
@@ -31,13 +37,22 @@ class Router {
   }
 
   async route(event) {
-    event.preventDefault();
+    event.preventDefault(); // Previene navegación real
     this.navigate(event.target.href);
   }
 
   async navigate(url) {
+    // Guardar URL anterior
+    this._previousUrl = this._currentUrl;
+    this._currentUrl = url;
+    
+    // Solo cambia la URL en el historial, SIN recargar
     window.history.pushState({}, '', url);
     this.handleLocation();
+  }
+
+  get previousUrl() {
+    return this._previousUrl;
   }
 
   get localLocation() {
@@ -55,7 +70,6 @@ class Router {
   async handleLocation() {
     console.log('Refreshing presenter', this.localLocation);
     if (!this.presenter) {
-      // cambiar por recursivo
       let url = this.localLocation;
       console.error(`${url} not found`);
       url = '/not-found?url=' + encodeURIComponent(url);

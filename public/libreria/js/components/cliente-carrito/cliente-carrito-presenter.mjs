@@ -3,6 +3,7 @@ import { model } from "../../model/model.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { router } from "../../commons/router.mjs";
 import { CarritoStorage } from "../../commons/libreria-session.mjs";
+import { renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";
 
 export class ClienteCarritoPresenter extends Presenter {
   constructor(model, view) {
@@ -20,13 +21,8 @@ export class ClienteCarritoPresenter extends Presenter {
     const mensajesContainer = document.getElementById("mensajesContainer");
     // Mostrar el último mensaje persistido
     if (mensajesContainer) {
-      const mensajes = LibreriaSession.getMessages();
-      if (mensajes && mensajes.length > 0) {
-        const ultimo = mensajes[mensajes.length - 1];
-        mensajesContainer.innerHTML = `<div class="message ${ultimo.type}">${ultimo.text}</div>`;
-      } else {
-        mensajesContainer.innerHTML = "";
-      }
+      renderUltimoMensaje("#mensajesContainer");
+
     }
 
     const carritoItems = document.getElementById("carritoItems");
