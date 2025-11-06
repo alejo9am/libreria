@@ -319,6 +319,8 @@ export class Libreria {
     delete factura.cliente.carro;
     Object.assign(factura, cliente.carro);
     cliente.removeItems();
+
+    return factura;
   }
 
   removeFactura(id) {

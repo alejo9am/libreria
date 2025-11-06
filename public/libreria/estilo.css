@@ -231,6 +231,64 @@ form label {
   font-weight: bold;
 }
 
+/* Form group para distribución de campos */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Formulario de factura con layout específico */
+#formPago {
+  display: block;
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+#formPago h3 {
+  margin: 0 0 16px 0;
+}
+
+/* Contenedor invisible para mantener los campos en línea */
+#formPago::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Contenedor para los dos primeros campos (fecha y DNI) en una fila */
+#formPago .form-group:nth-of-type(1) {
+  display: inline-flex;
+  flex-direction: column;
+  width: calc(50% - 8px);
+  margin-right: 16px;
+  vertical-align: top;
+  float: left;
+}
+
+#formPago .form-group:nth-of-type(2) {
+  display: inline-flex;
+  flex-direction: column;
+  width: calc(50% - 8px);
+  vertical-align: top;
+  float: left;
+}
+
+/* Resto de campos ocupan todo el ancho */
+#formPago .form-group:nth-of-type(n+3) {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  clear: both;
+}
+
 /**
 * Mensajes
 */
@@ -258,6 +316,7 @@ div.mensajes {
 
 .error,
 .log,
+.warn,
 .message {
   border-radius: 5px;
   padding: 10px 35px 10px 10px; /* Espacio a la derecha para la X */
@@ -277,6 +336,12 @@ div.mensajes {
   border: 1px solid black;
   color: black;
   background-color: lightgray;
+}
+
+.warn {
+  border: 1px solid orange;
+  color: darkorange;
+  background-color: lightyellow;
 }
 
 .message {
