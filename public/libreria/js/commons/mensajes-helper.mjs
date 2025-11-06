@@ -9,7 +9,7 @@ export function renderMensajes(containerSelector = "#mensajesContainer") {
   if (!container) return;
 
   const mensajes = LibreriaSession.getMessages();
-  
+
   if (mensajes.length === 0) {
     container.innerHTML = "";
     return;
@@ -36,7 +36,7 @@ export function renderUltimoMensaje(containerSelector = "#mensajesContainer") {
   if (!container) return;
 
   const mensajes = LibreriaSession.getMessages();
-  
+
   if (mensajes.length === 0) {
     container.innerHTML = "";
     return;
@@ -44,7 +44,7 @@ export function renderUltimoMensaje(containerSelector = "#mensajesContainer") {
 
   const ultimo = mensajes[mensajes.length - 1];
   const typeClass = getTypeClass(ultimo.type);
-  
+
   container.innerHTML = `
     <div class="${typeClass}" data-message-id="${ultimo.id}">
       ${escapeHtml(ultimo.text)}
@@ -69,13 +69,10 @@ export function closeMensaje(messageId) {
       container.innerHTML = '';
     }
   }
-  
+
   // Eliminar del localStorage
-  const mensajes = LibreriaSession.getMessages().filter(msg => msg.id !== messageId);
   LibreriaSession.clearMessages();
-  mensajes.forEach(msg => {
-    LibreriaSession.addMessage(msg.type, msg.text, { persist: true });
-  });
+
 }
 
 /**
