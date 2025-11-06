@@ -793,14 +793,14 @@ describe("Tests del Modelo de Librería", function () {
             });
 
             it("debe calcular total del item (cantidad * precio)", function () {
-                // Arrange: añadimos 4 unidades del libro al carro del cliente
+                // añadimos 4 unidades del libro al carro del cliente
                 libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 4 });
 
-                // Act: obtenemos el carro y el item
+                // obtenemos el carro y el item
                 const carro = libreria.getCarroCliente(cliente._id);
                 const item = carro.items[0];
 
-                // Assert: total del ítem y coherencia con subtotal/IVA/total
+                // total del ítem y coherencia con subtotal/IVA/total
                 assert.equal(carro.items.length, 1);
                 assert.equal(item.cantidad, 4);
 
@@ -815,18 +815,18 @@ describe("Tests del Modelo de Librería", function () {
             });
 
             it("debe recalcular total al cambiar cantidad", function () {
-                // Arrange: añadimos 1 unidad del libro
+                // añadimos 1 unidad del libro
                 libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 1 });
                 let carro = libreria.getCarroCliente(cliente._id);
                 assert.equal(carro.items.length, 1);
                 assert.closeTo(carro.items[0].total, 1 * libro.precio, 1e-9);
 
-                // Act: cambiamos la cantidad a 5
+                // cambiamos la cantidad a 5
                 libreria.setClienteCarroItemCantidad(cliente._id, 0, 5);
                 carro = libreria.getCarroCliente(cliente._id);
                 const item = carro.items[0];
 
-                // Assert: item.total y totales del carro se recalculan
+                // item.total y totales del carro se recalculan
                 const subtotalEsperado = 5 * libro.precio;
                 const ivaEsperado = subtotalEsperado * 0.21;
                 const totalEsperado = subtotalEsperado + ivaEsperado;
@@ -839,21 +839,21 @@ describe("Tests del Modelo de Librería", function () {
             });
 
             it("debe recalcular total al cambiar precio del libro", function () {
-                // Arrange: añadimos 2 unidades del libro al carrito
+                //añadimos 2 unidades del libro al carrito
                 libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 2 });
                 let carro = libreria.getCarroCliente(cliente._id);
                 let item = carro.items[0];
 
-                // Comprobamos estado inicial
+                // Comprobamos estado 
                 assert.equal(item.cantidad, 2);
                 assert.closeTo(item.total, 2 * libro.precio, 1e-9);
 
-                // Act: cambiamos el precio del libro y forzamos recálculo
+                // cambiamos el precio del libro y forzamos recálculo
                 libro.precio = 30;
-                item.calcular();     // recalcula el total del item
+                item.calcular();     // recalcula el total 
                 carro.calcular();    // recalcula subtotal, iva y total del carro
 
-                // Assert: totales actualizados con el nuevo precio
+                // totales actualizados con el nuevo precio
                 const subtotalEsperado = 2 * 30;
                 const ivaEsperado = subtotalEsperado * 0.21;
                 const totalEsperado = subtotalEsperado + ivaEsperado;
