@@ -22,28 +22,35 @@ export class ClienteHomePresenter extends Presenter {
         const noMostrarMensaje = ['cliente-carrito.html'];
         const vieneDeNoMostrar = noMostrarMensaje.some(pagina => previousUrl.includes(pagina));
 
-        console.log('[CarritoPresenter] URL anterior:', previousUrl);
-        console.log('[CarritoPresenter] Viene de no mostrar:', vieneDeNoMostrar);
+    //   <div class="mensajes-container" id="mensajesContainer">
+    //       <div class="message" data-message-id="1762479274225">
+    //           Cantidad actualizada
+    //           <span class="x" onclick="window.closeMensaje(1762479274225)">✕</span>
+    //       </div>
+    //   </div>
 
-        if (mensajesContainer) {
-          //si viene de nomostrar o si el contenido del mensaje es cantidad de libros agregado al carrito, no mostrar el mensaje
-          if (vieneDeNoMostrar || mensajesContainer.innerHTML.includes("Cantidad")) {
-            // Limpiar mensajes si venimos de no mostrar
-            LibreriaSession.clearMessages();
-            mensajesContainer.innerHTML = "";
-          } else {
-            // Mostrar mensajes si venimos de otra acción (ej: añadir al carrito)
-            renderUltimoMensaje("#mensajesContainer");
-          }
+        // Renderizar primero el mensaje
+        renderUltimoMensaje("#mensajesContainer");
+        
+        // Obtener el div del mensaje que está dentro de #mensajesContainer
+        const textoMensaje = document.querySelector("#mensajesContainer > div");
+        
+        if (textoMensaje) {
+            
+            if (vieneDeNoMostrar || textoMensaje.innerHTML.includes("Cantidad") || textoMensaje.innerHTML.includes("No se puede procesar la compra")) {
+                // Limpiar mensajes si venimos de no mostrar
+                LibreriaSession.clearMessages();
+                textoMensaje.parentElement.innerHTML = "";
+            }
         }
     
     // Verificar si el usuario es cliente, sino redirigir al login
     const userSession = LibreriaSession.getUserSession();
     if (!userSession || userSession.rol !== "CLIENTE") {
-      LibreriaSession.addMessage("error", "Debe iniciar sesión como cliente");
-      console.log("ERROR, usuario no autorizado", userSession);
-      router.navigate("/libreria/invitado-ingreso.html");
-      return;
+        LibreriaSession.addMessage("error", "Debe iniciar sesión como cliente");
+        console.log("ERROR, usuario no autorizado", userSession);
+        router.navigate("/libreria/invitado-ingreso.html");
+        return;
     }
   
     let libros = this.model.getLibros();

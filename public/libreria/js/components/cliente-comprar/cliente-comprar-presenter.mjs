@@ -91,8 +91,10 @@ export class ClienteComprarPresenter extends Presenter {
       }
 
       const btnPagar = document.getElementById('btnPagar');
-      if (btnPagar) btnPagar.setAttribute('disabled', 'true');
-      btnPagar.style.cursor = 'not-allowed';
+      if (btnPagar) {
+        btnPagar.setAttribute('disabled', 'true');
+        btnPagar.style.cursor = 'not-allowed';
+      }
       return;
     }
     if (carritoEmpty) carritoEmpty.classList.add('hidden');
