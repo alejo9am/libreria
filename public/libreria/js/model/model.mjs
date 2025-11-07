@@ -300,6 +300,10 @@ export class Libreria {
 
   // ==================== FACTURAS ====================
 
+  getFacturasCliente(id) {
+    return this.facturas.filter((f) => f.cliente._id == id);
+  }
+
   getFacturas() {
     return this.facturas;
   }

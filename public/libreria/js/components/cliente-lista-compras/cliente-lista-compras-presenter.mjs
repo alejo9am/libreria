@@ -1,5 +1,6 @@
 import { Presenter } from "../../commons/presenter.mjs";
 import { ClienteFacturasPresenter } from "../cliente-facturas/cliente-facturas-presenter.mjs";
+import { LibreriaSession } from "../../commons/libreria-session.mjs";
 
 const euro = (n) => {
   const num = Number(n) || 0;
@@ -36,7 +37,7 @@ export class ClienteListaComprasPresenter extends Presenter {
     if (this.tbody) this.tbody.innerHTML = "";
     if (this.mensajes) this.mensajes.innerHTML = "";
 
-    const facturas = this.model.getFacturas() || [];
+    const facturas = this.model.getFacturasCliente(LibreriaSession.getUserId()) || [];
 
     if (facturas.length === 0) {
       if (this.mensajes) {
