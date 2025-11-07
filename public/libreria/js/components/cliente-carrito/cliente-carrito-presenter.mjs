@@ -24,7 +24,7 @@ export class ClienteCarritoPresenter extends Presenter {
     const previousUrl = router.previousUrl || '';
 
     // Páginas del navbar
-    const paginasNavbar = ['cliente-home.html', 'cliente-facturas.html', 'cliente-perfil.html'];
+    const paginasNavbar = ['cliente-facturas.html', 'cliente-perfil.html'];
     const vieneDeNavbar = paginasNavbar.some(pagina => previousUrl.includes(pagina));
 
     console.log('[CarritoPresenter] URL anterior:', previousUrl);
@@ -81,14 +81,14 @@ export class ClienteCarritoPresenter extends Presenter {
       if (ivaCell) ivaCell.textContent = this.formatCurrency(0);
       if (totalCell) totalCell.textContent = this.formatCurrency(0);
 
-      // Solo mostrar mensaje si NO venimos del navbar
-      if (!vieneDeNavbar) {
-        LibreriaSession.addMessage('warn', 'El carrito está vacío');
-        if (mensajesContainer) mensajesContainer.innerHTML = `<div class="warn">El carrito está vacío</div>`;
-      }
+      LibreriaSession.addMessage('warn', 'El carrito está vacío');
+      if (mensajesContainer) renderUltimoMensaje("#mensajesContainer");
 
       const btnPagar = document.getElementById('btnPagar');
-      if (btnPagar) btnPagar.setAttribute('disabled', 'true');
+        if (btnPagar) {
+            btnPagar.setAttribute('disabled', 'true');
+            btnPagar.style.cursor = 'not-allowed';
+        }
       return;
     }
 
@@ -150,6 +150,7 @@ export class ClienteCarritoPresenter extends Presenter {
       btnPagar.removeAttribute('disabled');
       btnPagar.onclick = (e) => {
         e.preventDefault();
+        LibreriaSession.clearMessages();
         router.navigate('/libreria/cliente-comprar.html');
       };
     }

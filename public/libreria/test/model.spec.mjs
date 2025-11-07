@@ -663,25 +663,145 @@ describe("Tests del Modelo de Librería", function () {
         });
 
         describe("Facturas - CRUD", function () {
+            
             it("debe crear factura a partir del carro", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                const cliente = libreria.addUsuario({
+                    dni: "F001",
+                    nombre: "Pepe",
+                    apellidos: "Prueba",
+                    email: "pepe@prueba.com",
+                    password: "F001",
+                    rol: ROL.CLIENTE
+                });
+
+                const libro = libreria.addLibro({
+                    isbn: "FACT001",
+                    titulo: "Libro de Facturación",
+                    precio: 50,
+                    stock: 20
+                });
+
+                // Añadir al carro del cliente
+                libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 2 });
+
+                // Obtener carro para verificar datos antes de facturar
+                const carro = libreria.getCarroCliente(cliente._id);
+                const subtotalEsperado = 2 * libro.precio; // 100
+                const ivaEsperado = subtotalEsperado * 0.21; // 21
+                const totalEsperado = subtotalEsperado + ivaEsperado; // 121
+
+                // Facturar
+                const factura = libreria.facturarCompraCliente({
+                    cliente: cliente._id,
+                    razonSocial: "Pepe Prueba",
+                    direccion: "Calle 123",
+                    email: "pepe@prueba.com",
+                    dni: "F001"
+                });
+
+                // Verificaciones
+                assert.isDefined(factura);
+                assert.isDefined(factura._id);
+                assert.isDefined(factura.numero);
+                assert.isTrue(factura.numero.startsWith('F-'));
+                assert.equal(factura.items.length, 1);
+                assert.equal(factura.items[0].cantidad, 2);
+                assert.equal(factura.razonSocial, "Pepe Prueba");
+                assert.equal(factura.dni, "F001");
+                assert.closeTo(factura.subtotal, subtotalEsperado, 1e-9);
+                assert.closeTo(factura.iva, ivaEsperado, 1e-9);
+                assert.closeTo(factura.total, totalEsperado, 1e-9);
             });
 
             it("debe vaciar carro después de facturar", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                // Crear cliente y libro
+                const cliente = libreria.addUsuario({
+                    dni: "F002",
+                    nombre: "Ana",
+                    apellidos: "Prueba",
+                    email: "ana@prueba.com",
+                    password: "F002",
+                    rol: ROL.CLIENTE
+                });
+
+                const libro = libreria.addLibro({
+                    isbn: "FACT002",
+                    titulo: "Libro de Facturación 2",
+                    precio: 25,
+                    stock: 10
+                });
+
+                // Añadir al carro y verificar que tiene contenido
+                libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 3 });
+                let carro = libreria.getCarroCliente(cliente._id);
+                assert.equal(carro.items.length, 1, "El carro debería tener 1 ítem antes de facturar");
+
+                // Facturar (esto debe vaciar el carro del cliente)
+                libreria.facturarCompraCliente({
+                    cliente: cliente._id,
+                    razonSocial: "Ana Prueba",
+                    direccion: "Calle 456",
+                    email: "ana@prueba.com",
+                    dni: "F002"
+                });
+
+                // Comprobaciones: carro vacío y totales a cero
+                carro = libreria.getCarroCliente(cliente._id);
+                assert.equal(carro.items.length, 0, "El carro debería quedar vacío tras facturar");
+                assert.strictEqual(carro.subtotal, 0, "Subtotal del carro debería ser 0 tras facturar");
+                assert.strictEqual(carro.iva, 0, "IVA del carro debería ser 0 tras facturar");
+                assert.strictEqual(carro.total, 0, "Total del carro debería ser 0 tras facturar");
             });
 
             it("debe eliminar una factura", function () {
-                // Por hacer asi que se pone como fallido
-                assert.throws(
-                    Error
-                );
+                // Crear cliente y libro
+                const cliente = libreria.addUsuario({
+                    dni: "F003",
+                    nombre: "Luis",
+                    apellidos: "Prueba",
+                    email: "luis@prueba.com",
+                    password: "F003",
+                    rol: ROL.CLIENTE
+                });
+
+                const libro = libreria.addLibro({
+                    isbn: "FACT003",
+                    titulo: "Libro de Facturación 3",
+                    precio: 30,
+                    stock: 5
+                });
+
+                // Añadir al carro y facturar
+                libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 1 });
+                const factura = libreria.facturarCompraCliente({
+                    cliente: cliente._id,
+                    razonSocial: "Luis Prueba",
+                    direccion: "Calle 789",
+                    email: "luis@prueba.com",
+                    dni: "F003"
+                });
+
+                // IMPORTANTE: el modelo NO guarda la factura automáticamente
+                libreria.facturas.push(factura);
+
+                const totalAntes = libreria.getFacturas().length;
+
+                // removeFactura devuelve el array de facturas encontradas (por diseño actual del modelo)
+                const eliminada = libreria.removeFactura(factura._id);
+
+                // Comprobaciones
+                const totalDespues = libreria.getFacturas().length;
+                assert.equal(totalDespues, totalAntes - 1, "Debe reducirse el número de facturas en 1");
+
+                // Verificar que ya no existe en el modelo
+                const buscar = libreria.getFacturaPorId(factura._id);
+                assert.isArray(buscar);
+                assert.equal(buscar.length, 0, "No debería encontrarse la factura eliminada");
+
+                // (Opcional) Verificar lo que devolvió removeFactura según implementación actual
+                assert.isArray(eliminada, "removeFactura devuelve el array de coincidencias antes de borrar");
+                assert.equal(eliminada.length, 1, "Debe haber encontrado exactamente una factura para eliminar");
+                assert.equal(eliminada[0]._id, factura._id, "La factura encontrada debe coincidir con la eliminada");
             });
         });
     });
@@ -992,72 +1112,232 @@ describe("Tests del Modelo de Librería", function () {
                 assert.equal(carro.total, 0);
             });
 
-            describe("Factura - Cálculos", function () {
-                it("debe heredar cálculos correctos del carro", function () {
-                    // Por hacer asi que se pone como fallido
-                    assert.throws(
-                        Error
-                    );
+        describe("Factura - Cálculos", function () {
+            it("debe heredar cálculos correctos del carro", function () {
+                const cliente = libreria.addUsuario({
+                    dni: "FAC-CALC-01",
+                    nombre: "Cliente",
+                    apellidos: "Factura",
+                    email: "fac1@test.com",
+                    password: "pass",
+                    rol: ROL.CLIENTE
                 });
 
-                it("debe calcular subtotal de factura correctamente", function () {
-                    // Por hacer asi que se pone como fallido
-                    assert.throws(
-                        Error
-                    );
+                const l1 = libreria.addLibro({ isbn: "F-C1", titulo: "L1", precio: 10, stock: 100 });
+                const l2 = libreria.addLibro({ isbn: "F-C2", titulo: "L2", precio: 25, stock: 50 });
+
+                // 2 x 10 + 1 x 25 = 45 → IVA 9.45 → total 54.45
+                libreria.addClienteCarroItem(cliente._id, { libro: l1._id, cantidad: 2 });
+                libreria.addClienteCarroItem(cliente._id, { libro: l2._id, cantidad: 1 });
+
+                const carroAntes = libreria.getCarroCliente(cliente._id);
+                const subEsperado = carroAntes.subtotal;
+                const ivaEsperado = carroAntes.iva;
+                const totalEsperado = carroAntes.total;
+
+                // Act
+                const factura = libreria.facturarCompraCliente({
+                    cliente: cliente._id,
+                    razonSocial: "Cliente Factura",
+                    direccion: "Calle 1",
+                    email: "fac1@test.com",
+                    dni: "FAC-CALC-01"
                 });
 
-                it("debe calcular IVA de factura correctamente", function () {
-                    // Por hacer asi que se pone como fallido
-                    assert.throws(
-                        Error
-                    );
-                });
-
-                it("debe calcular total de factura correctamente", function () {
-                    // Por hacer asi que se pone como fallido
-                    assert.throws(
-                        Error
-                    );
-                });
-
-                describe("Cálculos Integrados", function () {
-                    it("debe mantener consistencia entre Item, Carro y Factura", function () {
-                        // Por hacer asi que se pone como fallido
-                        assert.throws(
-                            Error
-                        );
-                    });
-
-                    it("debe calcular correctamente con múltiples items de diferentes precios", function () {
-                      
-                        const libro3 = libreria.addLibro({
-                            isbn: "CARRO-L3",
-                            titulo: "Libro 3",
-                            precio: 7.5,
-                            stock: 100
-                        });
-
-                        // Añadimos varias cantidades de cada uno
-                        libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 4 }); // 4 * 10 = 40
-                        libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 3 }); // 3 * 20 = 60
-                        libreria.addClienteCarroItem(cliente._id, { libro: libro3._id, cantidad: 5 }); // 5 * 7.5 = 37.5
-
-                        // Act
-                        const carro = libreria.getCarroCliente(cliente._id);
-
-                        // Assert
-                        const subtotalEsperado = (4 * libro1.precio) + (3 * libro2.precio) + (5 * libro3.precio); // 137.5
-                        const ivaEsperado = subtotalEsperado * 0.21;  // 28.875
-                        const totalEsperado = subtotalEsperado + ivaEsperado; // 166.375
-
-                        assert.closeTo(carro.subtotal, subtotalEsperado, 1e-9);
-                        assert.closeTo(carro.iva, ivaEsperado, 1e-9);
-                        assert.closeTo(carro.total, totalEsperado, 1e-9);
-                    });
-
-                });
+                // Assert: la factura hereda EXACTAMENTE los cálculos del carro
+                assert.equal(factura.items.length, 2);
+                assert.closeTo(factura.subtotal, subEsperado, 1e-9);
+                assert.closeTo(factura.iva, ivaEsperado, 1e-9);
+                assert.closeTo(factura.total, totalEsperado, 1e-9);
             });
+
+            it("debe calcular subtotal de factura correctamente", function () {
+                // Arrange
+                const cliente = libreria.addUsuario({
+                    dni: "FAC-CALC-02",
+                    nombre: "Cliente",
+                    apellidos: "Factura",
+                    email: "fac2@test.com",
+                    password: "pass",
+                    rol: ROL.CLIENTE
+                });
+
+                const l1 = libreria.addLibro({ isbn: "F-SUB1", titulo: "L1", precio: 40, stock: 100 });
+                const l2 = libreria.addLibro({ isbn: "F-SUB2", titulo: "L2", precio: 15, stock: 100 });
+
+                // 3 x 40 = 120; 2 x 15 = 30; subtotal esperado = 150
+                libreria.addClienteCarroItem(cliente._id, { libro: l1._id, cantidad: 3 });
+                libreria.addClienteCarroItem(cliente._id, { libro: l2._id, cantidad: 2 });
+
+                const subtotalEsperado = 3 * l1.precio + 2 * l2.precio; // 150
+
+                // Act
+                const factura = libreria.facturarCompraCliente({
+                    cliente: cliente._id,
+                    razonSocial: "Cliente Subtotal",
+                    direccion: "Calle 2",
+                    email: "fac2@test.com",
+                    dni: "FAC-CALC-02"
+                });
+
+                // Assert
+                assert.equal(factura.items.length, 2);
+                assert.closeTo(factura.subtotal, subtotalEsperado, 1e-9);
+            });
+
+
+            it("debe calcular IVA de factura correctamente", function () {
+                // Arrange
+                const cliente = libreria.addUsuario({
+                    dni: "FAC-CALC-03",
+                    nombre: "Cliente",
+                    apellidos: "Factura",
+                    email: "fac3@test.com",
+                    password: "pass",
+                    rol: ROL.CLIENTE
+                });
+
+                const l1 = libreria.addLibro({ isbn: "F-IVA1", titulo: "L1", precio: 12.5, stock: 100 });
+                const l2 = libreria.addLibro({ isbn: "F-IVA2", titulo: "L2", precio: 7.5, stock: 100 });
+
+                // 4 x 12.5 = 50; 5 x 7.5 = 37.5; subtotal = 87.5; IVA = 18.375
+                libreria.addClienteCarroItem(cliente._id, { libro: l1._id, cantidad: 4 });
+                libreria.addClienteCarroItem(cliente._id, { libro: l2._id, cantidad: 5 });
+
+                const subtotalEsperado = 4 * l1.precio + 5 * l2.precio; // 87.5
+                const ivaEsperado = subtotalEsperado * 0.21;            // 18.375
+
+                // Act
+                const factura = libreria.facturarCompraCliente({
+                    cliente: cliente._id,
+                    razonSocial: "Cliente IVA",
+                    direccion: "Calle 3",
+                    email: "fac3@test.com",
+                    dni: "FAC-CALC-03"
+                });
+
+                // Assert
+                assert.closeTo(factura.subtotal, subtotalEsperado, 1e-9);
+                assert.closeTo(factura.iva, ivaEsperado, 1e-9);
+            });
+
+
+
+            it("debe calcular total de factura correctamente", function () {
+                // Arrange
+                const cliente = libreria.addUsuario({
+                    dni: "FAC-CALC-04",
+                    nombre: "Cliente",
+                    apellidos: "Factura",
+                    email: "fac4@test.com",
+                    password: "pass",
+                    rol: ROL.CLIENTE
+                });
+
+                const l1 = libreria.addLibro({ isbn: "F-TOT1", titulo: "L1", precio: 18, stock: 100 });
+                const l2 = libreria.addLibro({ isbn: "F-TOT2", titulo: "L2", precio: 22, stock: 100 });
+
+                // 2 x 18 = 36; 3 x 22 = 66; subtotal = 102; IVA = 21.42; total = 123.42
+                libreria.addClienteCarroItem(cliente._id, { libro: l1._id, cantidad: 2 });
+                libreria.addClienteCarroItem(cliente._id, { libro: l2._id, cantidad: 3 });
+
+                const subtotalEsperado = 2 * l1.precio + 3 * l2.precio; // 102
+                const ivaEsperado = subtotalEsperado * 0.21;            // 21.42
+                const totalEsperado = subtotalEsperado + ivaEsperado;   // 123.42
+
+                // Act
+                const factura = libreria.facturarCompraCliente({
+                    cliente: cliente._id,
+                    razonSocial: "Cliente Total",
+                    direccion: "Calle 4",
+                    email: "fac4@test.com",
+                    dni: "FAC-CALC-04"
+                });
+
+                // Assert
+                assert.closeTo(factura.subtotal, subtotalEsperado, 1e-9);
+                assert.closeTo(factura.iva, ivaEsperado, 1e-9);
+                assert.closeTo(factura.total, totalEsperado, 1e-9);
+            });
+
+        describe("Cálculos Integrados", function () {
+            it("debe mantener consistencia entre Item, Carro y Factura", function () {
+                // Arrange: 2 x libro1 (10) + 3 x libro2 (20) = 2*10 + 3*20 = 70
+                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
+                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 3 });
+
+                const carroAntes = libreria.getCarroCliente(cliente._id);
+                assert.equal(carroAntes.items.length, 2, "El carro debe tener 2 ítems");
+
+                // Consistencia de cada Item (cantidad * precio)
+                const totalItem1 = 2 * libro1.precio; // 20
+                const totalItem2 = 3 * libro2.precio; // 60
+                assert.closeTo(carroAntes.items[0].total, totalItem1, 1e-9);
+                assert.closeTo(carroAntes.items[1].total, totalItem2, 1e-9);
+
+                // Consistencia del Carro (sumatorio de items)
+                const subtotalEsperado = totalItem1 + totalItem2;          // 80
+                const ivaEsperado = subtotalEsperado * 0.21;           // 16.8
+                const totalEsperado = subtotalEsperado + ivaEsperado;    // 96.8
+                assert.closeTo(carroAntes.subtotal, subtotalEsperado, 1e-9);
+                assert.closeTo(carroAntes.iva, ivaEsperado, 1e-9);
+                assert.closeTo(carroAntes.total, totalEsperado, 1e-9);
+
+                // Act: facturar (copia items y totales del carro y vacía el carro del cliente)
+                const factura = libreria.facturarCompraCliente({
+                    cliente: cliente._id,
+                    razonSocial: "Consistencia Global S.A.",
+                    direccion: "Calle Consistencia 123",
+                    email: "conta@test.com",
+                    dni: "CG0001"
+                });
+
+                // Assert: la factura mantiene exactamente la suma de los Item y del Carro
+                assert.equal(factura.items.length, 2, "La factura debe tener los 2 ítems del carro");
+                const sumaItemsFactura = factura.items.reduce((acc, it) => acc + it.total, 0);
+                assert.closeTo(sumaItemsFactura, subtotalEsperado, 1e-9, "Suma de items en factura = subtotal esperado");
+                assert.closeTo(factura.subtotal, subtotalEsperado, 1e-9);
+                assert.closeTo(factura.iva, ivaEsperado, 1e-9);
+                assert.closeTo(factura.total, totalEsperado, 1e-9);
+
+                // Y el carro del cliente debe quedar vacío
+                const carroDespues = libreria.getCarroCliente(cliente._id);
+                assert.equal(carroDespues.items.length, 0, "El carro debe quedar vacío tras facturar");
+                assert.strictEqual(carroDespues.subtotal, 0);
+                assert.strictEqual(carroDespues.iva, 0);
+                assert.strictEqual(carroDespues.total, 0);
+            });
+
+
+            it("debe calcular correctamente con múltiples items de diferentes precios", function () {
+                      
+                const libro3 = libreria.addLibro({
+                    isbn: "CARRO-L3",
+                    titulo: "Libro 3",
+                    precio: 7.5,
+                    stock: 100
+                });
+
+                // Añadimos varias cantidades de cada uno
+                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 4 }); // 4 * 10 = 40
+                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 3 }); // 3 * 20 = 60
+                libreria.addClienteCarroItem(cliente._id, { libro: libro3._id, cantidad: 5 }); // 5 * 7.5 = 37.5
+
+                // Act
+                const carro = libreria.getCarroCliente(cliente._id);
+
+                // Assert
+                const subtotalEsperado = (4 * libro1.precio) + (3 * libro2.precio) + (5 * libro3.precio); // 137.5
+                const ivaEsperado = subtotalEsperado * 0.21;  // 28.875
+                const totalEsperado = subtotalEsperado + ivaEsperado; // 166.375
+
+                assert.closeTo(carro.subtotal, subtotalEsperado, 1e-9);
+                assert.closeTo(carro.iva, ivaEsperado, 1e-9);
+                assert.closeTo(carro.total, totalEsperado, 1e-9);
+            });
+
+        });
+    });
 
             // ============================================================================
             // RESUMEN DE TESTS

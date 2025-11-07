@@ -325,6 +325,8 @@ export class Libreria {
     delete factura.cliente.carro;
     Object.assign(factura, cliente.carro);
     cliente.removeItems();
+    
+    LibreriaSession.deleteCarrito(obj.cliente);
 
     this.facturas.push(factura);
 
