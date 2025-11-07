@@ -13,14 +13,18 @@ export class ClientePerfilPresenter extends Presenter {
   async refresh() {
     await super.refresh();
 
-    // Verificar autenticación
+    // Verificar si el usuario es cliente, sino redirigir al login
     const userSession = LibreriaSession.getUserSession();
-    
     if (!userSession || userSession.rol !== "CLIENTE") {
         LibreriaSession.addMessage("error", "Debe iniciar sesión como cliente");
-        router.navigate("/libreria/invitado-ingreso.html");
-      return;
+        console.log("ERROR, usuario no autorizado", userSession);
+        //poner timeout antes de redirigir
+        setTimeout(() => {
+          router.navigate("/libreria/invitado-ingreso.html");
+        }, 2000);
+        return;
     }
+  
 
     // Buscar el usuario completo en el MODELO (no en localStorage)
     const cliente = this.model.getUsuarioPorId(userSession._id);

@@ -21,6 +21,18 @@ export class ClienteComprarPresenter extends Presenter {
     const mensajesContainer = document.getElementById("mensajesContainer");
     renderUltimoMensaje("#mensajesContainer");
 
+    // Verificar si el usuario es cliente, sino redirigir al login
+    const userSession = LibreriaSession.getUserSession();
+    if (!userSession || userSession.rol !== "CLIENTE") {
+        LibreriaSession.addMessage("error", "Debe iniciar sesión como cliente");
+        console.log("ERROR, usuario no autorizado", userSession);
+        //poner timeout antes de redirigir
+        setTimeout(() => {
+          router.navigate("/libreria/invitado-ingreso.html");
+        }, 2000);
+        return;
+    }
+
     const userId = LibreriaSession.getUserId();
     const clienteData = LibreriaSession.getUsuarioById(userId);
 

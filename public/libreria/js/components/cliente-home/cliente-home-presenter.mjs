@@ -15,6 +15,8 @@ export class ClienteHomePresenter extends Presenter {
   async refresh() {
     await super.refresh();
 
+    
+
     // Obtener la URL anterior del router (SIN usar document.referrer)
         const previousUrl = router.previousUrl || '';
     
@@ -49,7 +51,10 @@ export class ClienteHomePresenter extends Presenter {
     if (!userSession || userSession.rol !== "CLIENTE") {
         LibreriaSession.addMessage("error", "Debe iniciar sesión como cliente");
         console.log("ERROR, usuario no autorizado", userSession);
-        router.navigate("/libreria/invitado-ingreso.html");
+        //poner timeout antes de redirigir
+        setTimeout(() => {
+          router.navigate("/libreria/invitado-ingreso.html");
+        }, 2000);
         return;
     }
   
