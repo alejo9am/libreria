@@ -21,8 +21,11 @@ import { ClienteVerLibroPresenter } from "./components/cliente-ver-libro/cliente
 import { ClienteCarritoPresenter } from "./components/cliente-carrito/cliente-carrito-presenter.mjs";
 import { ClienteComprarPresenter } from "./components/cliente-comprar/cliente-comprar-presenter.mjs";
 import { ClientePerfilPresenter } from "./components/cliente-perfil/cliente-perfil-presenter.mjs";
-import { Error404Presenter } from "./components/error-404/error-404-presenter.mjs";
 import { ClienteListaComprasPresenter } from "./components/cliente-lista-compras/cliente-lista-compras-presenter.mjs";
+import { ClienteVerCompraPresenter } from "./components/cliente-ver-compra/cliente-ver-compra-presenter.mjs";
+
+import { Error404Presenter } from "./components/error-404/error-404-presenter.mjs";
+
 
 import { seed } from "./model/seeder.mjs";
 
@@ -67,6 +70,7 @@ export function init() {
   router.register(/^\/libreria\/cliente-comprar.html/, new ClienteComprarPresenter(model, 'cliente-comprar'));
   router.register(/^\/libreria\/cliente-perfil.html$/, new ClientePerfilPresenter(model, 'cliente-perfil'));
   router.register(/^\/libreria\/cliente-lista-compras.html$/, new ClienteListaComprasPresenter(model, 'cliente-lista-compras'));
+  router.register(/^\/libreria\/cliente-ver-compra.html/, new ClienteVerCompraPresenter(model, 'cliente-ver-compra'));
 
   // IMPORTANTE: Página de error 404 - debe ser la ÚLTIMA ruta registrada para actuar como catch-all
   router.register(/^\/libreria\/error-404.html/, new Error404Presenter(model, 'error-404'));

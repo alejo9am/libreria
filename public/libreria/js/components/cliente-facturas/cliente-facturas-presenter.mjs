@@ -31,7 +31,7 @@ export class ClienteFacturasPresenter extends Presenter {
 
     const verLinkNode = row.querySelector('#verFactura');
     if (verLinkNode) {
-      verLinkNode.setAttribute('href', `cliente-ver-factura.html?id=${this.model._id}`);
+      verLinkNode.setAttribute('href', `cliente-ver-compra.html?id=${this.model._id}`);
     }
 
     if (typeof this.attachAnchors === "function") this.attachAnchors();
