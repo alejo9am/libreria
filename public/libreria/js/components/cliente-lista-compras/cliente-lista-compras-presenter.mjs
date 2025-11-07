@@ -1,6 +1,7 @@
 import { Presenter } from "../../commons/presenter.mjs";
 import { ClienteFacturasPresenter } from "../cliente-facturas/cliente-facturas-presenter.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
+import { renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";
 
 const euro = (n) => {
   const num = Number(n) || 0;
@@ -41,7 +42,9 @@ export class ClienteListaComprasPresenter extends Presenter {
 
     if (facturas.length === 0) {
       if (this.mensajes) {
-        this.mensajes.innerHTML = `<div class="mensaje">No hay facturas todavía.</div>`;
+        // Añadir mensaje con LibreriaSession
+        LibreriaSession.addMessage("warn", "No se han encontrado compras realizadas.");
+        renderUltimoMensaje("#mensajesContainer");
       }
       this.#pintarTotal(0);
       return;
