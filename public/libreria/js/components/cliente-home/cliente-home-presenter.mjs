@@ -22,13 +22,6 @@ export class ClienteHomePresenter extends Presenter {
         const noMostrarMensaje = ['cliente-carrito.html'];
         const vieneDeNoMostrar = noMostrarMensaje.some(pagina => previousUrl.includes(pagina));
 
-    //   <div class="mensajes-container" id="mensajesContainer">
-    //       <div class="message" data-message-id="1762479274225">
-    //           Cantidad actualizada
-    //           <span class="x" onclick="window.closeMensaje(1762479274225)">✕</span>
-    //       </div>
-    //   </div>
-
         // Renderizar primero el mensaje
         renderUltimoMensaje("#mensajesContainer");
         
@@ -36,8 +29,8 @@ export class ClienteHomePresenter extends Presenter {
         const textoMensaje = document.querySelector("#mensajesContainer > div");
         
         if (textoMensaje) {
-            
-            if (vieneDeNoMostrar || textoMensaje.innerHTML.includes("Cantidad") || textoMensaje.innerHTML.includes("No se puede procesar la compra")) {
+
+            if (!textoMensaje.innerHTML.includes("Compra realizada correctamente") && !textoMensaje.innerHTML.includes("Bienvenido,")) {
                 // Limpiar mensajes si venimos de no mostrar
                 LibreriaSession.clearMessages();
                 textoMensaje.parentElement.innerHTML = "";
