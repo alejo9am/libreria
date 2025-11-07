@@ -152,11 +152,16 @@ export class ClienteComprarPresenter extends Presenter {
 
     // ==============BOTON PAGAR================
 
-    // Gestionar botón Pagar
+    // Gestionar formulario de pago
+    const formPago = document.getElementById('formPago');
     const btnPagar = document.getElementById('btnPagar');
+    
     if (btnPagar) {
       btnPagar.removeAttribute('disabled');
-      btnPagar.onclick = (e) => {
+    }
+    
+    if (formPago) {
+      formPago.onsubmit = (e) => {
         e.preventDefault();
         try {
           // Obtener carrito actual
@@ -169,7 +174,7 @@ export class ClienteComprarPresenter extends Presenter {
           const direccion = document.getElementById('direccion').value;
           const email = document.getElementById('email').value;
 
-          // Validar formulario
+          // Validar formulario (ya validado por HTML5, pero por si acaso)
           if (!fecha || !dni || !razonSocial || !direccion || !email) {
             LibreriaSession.addMessage('error', 'Por favor complete todos los campos del formulario');
             if (mensajesContainer) mensajesContainer.innerHTML = `<div class="error">Por favor complete todos los campos del formulario</div>`;

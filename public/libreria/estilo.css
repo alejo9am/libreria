@@ -563,6 +563,14 @@ div.mensajes {
   margin-top: 16px;
 }
 
+/* Botón de pago: se mantiene visualmente después del carrito aunque esté dentro del form */
+#formPago .carrito-actions {
+  width: 100%;
+  max-width: 1300px;
+  margin: 16px auto 0;
+  text-align: center;
+}
+
 .hidden {
   display: none !important;
 }

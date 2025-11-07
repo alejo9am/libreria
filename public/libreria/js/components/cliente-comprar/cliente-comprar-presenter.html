@@ -26,7 +26,7 @@
             </div>
             <div class="form-group">
                 <label for="dni">DNI</label>
-                <input type="text" id="dni" name="dni" value="00000000C" required pattern="[0-9]{8}[A-Z]" maxlength="9">
+                <input type="text" id="dni" name="dni" value="00000000C" required maxlength="9">
             </div>
             <div class="form-group">
                 <label for="razonSocial">Razón Social</label>
@@ -40,7 +40,6 @@
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" value="00000000C@tsw.uclm.es" required>
             </div>
-        </form>
         
         <h3>Detalle del Carrito</h3>
         <div id="detalle" class="detalle carrito-detalle">
@@ -77,11 +76,13 @@
                     </tfoot>
                 </table>
             </div>
-            <div class="carrito-actions">
-                <button id="btnPagar" class="button">Pagar</button>
-            </div>
             <!-- <div id="carritoEmpty" class="info hidden">El carrito está vacío.</div> -->
         </div>
+        
+        <div class="carrito-actions">
+            <button type="submit" id="btnPagar" class="button">Pagar</button>
+        </div>
+        </form>
     </div>
     <footer>
       Prof. Dr. Ricardo Tesoriero Pszytula<br>
