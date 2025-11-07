@@ -69,15 +69,36 @@ class Router {
 
   async handleLocation() {
     console.log('Refreshing presenter', this.localLocation);
-    if (!this.presenter) {
+    const presenter = this.presenter;
+    
+    if (!presenter) {
+      // Si no se encuentra ningún presenter, mostrar error 404
       let url = this.localLocation;
-      console.error(`${url} not found`);
-      url = '/not-found?url=' + encodeURIComponent(url);
-      window.history.replaceState({}, '', url);
-      let index = 0;
-      this.presenters[index].refresh();
+      console.error(`Error 404: ${url} not found`);
+      
+      // Redirigir a la página de error con la URL solicitada como parámetro
+      const errorUrl = '/libreria/error-404.html?url=' + encodeURIComponent(url);
+      window.history.replaceState({}, '', errorUrl);
+      
+      // Buscar el presenter de error 404 (debe ser el último o penúltimo registrado)
+      const error404Index = this.routers.findIndex((router) => 
+        router.test('/libreria/error-404.html')
+      );
+      
+      if (error404Index >= 0) {
+        await this.presenters[error404Index].refresh();
+      } else {
+        // Fallback: usar el último presenter registrado (catch-all)
+        const lastIndex = this.presenters.length - 1;
+        if (lastIndex >= 0) {
+          await this.presenters[lastIndex].refresh();
+        } else {
+          console.error('No se encontró ningún presenter para mostrar el error 404');
+        }
+      }
+    } else {
+      await presenter.refresh();
     }
-    else await this.presenter.refresh();
   }
 }
 
