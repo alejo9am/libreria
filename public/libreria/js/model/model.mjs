@@ -300,6 +300,10 @@ export class Libreria {
 
   // ==================== FACTURAS ====================
 
+  getFacturasCliente(id) {
+    return this.facturas.filter((f) => f.cliente._id == id);
+  }
+
   getFacturas() {
     return this.facturas;
   }
@@ -327,6 +331,8 @@ export class Libreria {
     cliente.removeItems();
     
     LibreriaSession.deleteCarrito(obj.cliente);
+
+    this.facturas.push(factura);
 
     return factura;
   }

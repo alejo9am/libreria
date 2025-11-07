@@ -2,23 +2,30 @@
 import { model } from "./model/model.mjs";
 import { router } from "./commons/router.mjs";
 import { LibreriaSession } from "./commons/libreria-session.mjs";
+
 import { InvitadoHomePresenter } from "./components/invitado-home/invitado-home-presenter.mjs";
 import { InvitadoCatalogoPresenter } from "./components/invitado-catalogo/invitado-catalogo-presenter.mjs";
 import { InvitadoVerLibroPresenter } from "./components/invitado-ver-libro/invitado-ver-libro-presenter.mjs";
 import { InvitadoRegistroPresenter } from "./components/invitado-registro/invitado-registro-presenter.mjs";
 import { InvitadoIngresoPresenter } from "./components/invitado-ingreso/invitado-ingreso-presenter.mjs";
+
 import { AdminHomePresenter } from "./components/admin-home/admin-home-presenter.mjs";
 import { AdminAgregarLibroPresenter } from "./components/admin-agregar-libro/admin-agregar-libro-presenter.mjs";
 import { AdminPerfilPresenter } from "./components/admin-perfil/admin-perfil-presenter.mjs";
 import { AdminCatalogoPresenter } from "./components/admin-catalogo/admin-catalogo-presenter.mjs";
 import { AdminVerLibroPresenter } from "./components/admin-ver-libro/admin-ver-libro-presenter.mjs";
 import { AdminModificarLibroPresenter } from "./components/admin-modificar-libro/admin-modificar-libro-presenter.mjs";
+
 import { ClienteHomePresenter } from "./components/cliente-home/cliente-home-presenter.mjs";
 import { ClienteVerLibroPresenter } from "./components/cliente-ver-libro/cliente-ver-libro-presenter.mjs";
 import { ClienteCarritoPresenter } from "./components/cliente-carrito/cliente-carrito-presenter.mjs";
 import { ClienteComprarPresenter } from "./components/cliente-comprar/cliente-comprar-presenter.mjs";
 import { ClientePerfilPresenter } from "./components/cliente-perfil/cliente-perfil-presenter.mjs";
+import { ClienteListaComprasPresenter } from "./components/cliente-lista-compras/cliente-lista-compras-presenter.mjs";
+import { ClienteVerCompraPresenter } from "./components/cliente-ver-compra/cliente-ver-compra-presenter.mjs";
+
 import { Error404Presenter } from "./components/error-404/error-404-presenter.mjs";
+
 
 import { seed } from "./model/seeder.mjs";
 
@@ -62,6 +69,8 @@ export function init() {
   router.register(/^\/libreria\/cliente-carrito.html/, new ClienteCarritoPresenter(model, 'cliente-carrito'));
   router.register(/^\/libreria\/cliente-comprar.html/, new ClienteComprarPresenter(model, 'cliente-comprar'));
   router.register(/^\/libreria\/cliente-perfil.html$/, new ClientePerfilPresenter(model, 'cliente-perfil'));
+  router.register(/^\/libreria\/cliente-lista-compras.html$/, new ClienteListaComprasPresenter(model, 'cliente-lista-compras'));
+  router.register(/^\/libreria\/cliente-ver-compra.html/, new ClienteVerCompraPresenter(model, 'cliente-ver-compra'));
 
   // IMPORTANTE: Página de error 404 - debe ser la ÚLTIMA ruta registrada para actuar como catch-all
   router.register(/^\/libreria\/error-404.html/, new Error404Presenter(model, 'error-404'));

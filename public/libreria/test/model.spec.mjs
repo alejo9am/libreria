@@ -781,9 +781,7 @@ describe("Tests del Modelo de Librería", function () {
                     dni: "F003"
                 });
 
-                // IMPORTANTE: el modelo NO guarda la factura automáticamente
-                libreria.facturas.push(factura);
-
+                // La factura ya está guardada en el modelo automáticamente
                 const totalAntes = libreria.getFacturas().length;
 
                 // removeFactura devuelve el array de facturas encontradas (por diseño actual del modelo)
