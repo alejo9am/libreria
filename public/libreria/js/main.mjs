@@ -66,6 +66,7 @@ export function init() {
   router.register(/^\/libreria\/cliente-carrito.html/, new ClienteCarritoPresenter(model, 'cliente-carrito'));
   router.register(/^\/libreria\/cliente-comprar.html/, new ClienteComprarPresenter(model, 'cliente-comprar'));
   router.register(/^\/libreria\/cliente-perfil.html$/, new ClientePerfilPresenter(model, 'cliente-perfil'));
+  router.register(/^\/libreria\/cliente-lista-compras.html$/, new ClienteListaComprasPresenter(model, 'cliente-lista-compras'));
 
   // IMPORTANTE: Página de error 404 - debe ser la ÚLTIMA ruta registrada para actuar como catch-all
   router.register(/^\/libreria\/error-404.html/, new Error404Presenter(model, 'error-404'));
