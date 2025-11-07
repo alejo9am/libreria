@@ -85,7 +85,10 @@ export class ClienteCarritoPresenter extends Presenter {
       if (mensajesContainer) renderUltimoMensaje("#mensajesContainer");
 
       const btnPagar = document.getElementById('btnPagar');
-      if (btnPagar) btnPagar.setAttribute('disabled', 'true');
+        if (btnPagar) {
+            btnPagar.setAttribute('disabled', 'true');
+            btnPagar.style.cursor = 'not-allowed';
+        }
       return;
     }
 
