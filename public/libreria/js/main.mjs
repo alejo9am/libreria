@@ -21,6 +21,7 @@ import { ClienteVerLibroPresenter } from "./components/cliente-ver-libro/cliente
 import { ClienteCarritoPresenter } from "./components/cliente-carrito/cliente-carrito-presenter.mjs";
 import { ClienteComprarPresenter } from "./components/cliente-comprar/cliente-comprar-presenter.mjs";
 import { ClientePerfilPresenter } from "./components/cliente-perfil/cliente-perfil-presenter.mjs";
+import { Error404Presenter } from "./components/error-404/error-404-presenter.mjs";
 import { ClienteListaComprasPresenter } from "./components/cliente-lista-compras/cliente-lista-compras-presenter.mjs";
 
 import { seed } from "./model/seeder.mjs";
@@ -28,10 +29,10 @@ import { seed } from "./model/seeder.mjs";
 export function init() {
   seed();
 
-   // 2️⃣ Cargar usuarios persistidos desde localStorage
+  // 2️⃣ Cargar usuarios persistidos desde localStorage
   // Esto sobrescribirá/añadirá usuarios que ya existan en localStorage
   model.loadUsuariosFromStorage();
-  
+
   console.log(`Estado inicial:
   - Libros: ${model.getLibros().length}
   - Usuarios: ${model.usuarios.length}
@@ -64,8 +65,12 @@ export function init() {
   router.register(/^\/libreria\/cliente-ver-libro.html/, new ClienteVerLibroPresenter(model, 'cliente-ver-libro'));
   router.register(/^\/libreria\/cliente-carrito.html/, new ClienteCarritoPresenter(model, 'cliente-carrito'));
   router.register(/^\/libreria\/cliente-comprar.html/, new ClienteComprarPresenter(model, 'cliente-comprar'));
-  router.register(/^\/libreria\/cliente-perfil.html$/, new ClientePerfilPresenter(model, 'cliente-perfil'));  router.register(/^\/libreria\/cliente-lista-compras.html/, new ClienteListaComprasPresenter(model, 'cliente-lista-compras'));
+  router.register(/^\/libreria\/cliente-perfil.html$/, new ClientePerfilPresenter(model, 'cliente-perfil'));
 
+  // IMPORTANTE: Página de error 404 - debe ser la ÚLTIMA ruta registrada para actuar como catch-all
+  router.register(/^\/libreria\/error-404.html/, new Error404Presenter(model, 'error-404'));
+  // También capturar cualquier ruta que no coincida con las anteriores
+  router.register(/.*/, new Error404Presenter(model, 'error-404'));
 
   router.handleLocation();
 }
