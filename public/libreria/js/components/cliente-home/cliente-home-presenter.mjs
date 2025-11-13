@@ -17,27 +17,29 @@ export class ClienteHomePresenter extends Presenter {
 
     
 
-    // Obtener la URL anterior del router (SIN usar document.referrer)
-        const previousUrl = router.previousUrl || '';
-    
-        // Páginas del navbar
-        const noMostrarMensaje = ['cliente-carrito.html'];
-        const vieneDeNoMostrar = noMostrarMensaje.some(pagina => previousUrl.includes(pagina));
+    // Obtener la URL anterior del router
+    const previousUrl = router.previousUrl || '';
 
-        // Renderizar primero el mensaje
-        renderUltimoMensaje("#mensajesContainer");
-        
-        // Obtener el div del mensaje que está dentro de #mensajesContainer
-        const textoMensaje = document.querySelector("#mensajesContainer > div");
-        
-        if (textoMensaje) {
+    // lista de paginas que muestran mensajes
+    const paginasConMensajes = ['invitado-ingreso.html', 'cliente-comprar.html'];
 
-            if (!textoMensaje.innerHTML.includes("Compra realizada correctamente") && !textoMensaje.innerHTML.includes("Bienvenido,")) {
-                // Limpiar mensajes si venimos de no mostrar
-                LibreriaSession.clearMessages();
-                textoMensaje.parentElement.innerHTML = "";
+    // Verificar si la URL anterior coincide con alguna de las páginas que muestran mensajes
+    const mostrarMensaje = paginasConMensajes.some(pagina => previousUrl.includes(pagina));
+
+    if (mostrarMensaje) {
+
+        //obtenemos el contenido del mensaje de la sesión
+        const mensajes = LibreriaSession.getMessages();
+        if (mensajes && mensajes.length > 0) {
+                
+            const textoMensaje = mensajes[mensajes.length - 1].text;
+
+            // Renderizar mensaje si contiene el texto esperado ("Bienvenido, ..." o "Compra relizada...")
+            if (textoMensaje.includes("Bienvenido") || textoMensaje.includes("Compra realizada")) {
+                renderUltimoMensaje("#mensajesContainer");
             }
         }
+    }
     
     // Verificar si el usuario es cliente, sino redirigir al login
     const userSession = LibreriaSession.getUserSession();
