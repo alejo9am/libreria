@@ -34,7 +34,7 @@ export class ClienteHomePresenter extends Presenter {
                 
             const textoMensaje = mensajes[mensajes.length - 1].text;
 
-            // Renderizar mensaje si contiene el texto esperado ("Bienvenido, ..." o "Compra relizada...")
+            // Renderizar mensaje si contiene el texto esperado ("Bienvenido, ..." o "Compra realizada...")
             if (textoMensaje.includes("Bienvenido") || textoMensaje.includes("Compra realizada")) {
                 renderUltimoMensaje("#mensajesContainer");
             }
