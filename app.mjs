@@ -217,7 +217,7 @@ app.post('/api/clientes', function (req, res, next) {
   console.log('[POST /api/clientes]', req.body);
   try {
     req.body.rol = 'CLIENTE'; // Forzar rol de cliente
-    let cliente = model.addUsuario(req.body);
+    let cliente = model.addCliente(req.body);
     console.log('[Cliente registrado]', cliente.email);
     // No devolver contraseña
     const { password, ...clienteSinPassword } = cliente;
@@ -252,7 +252,7 @@ app.put('/api/clientes/:id', function (req, res, next) {
       return res.status(400).json({ error: 'ID no definido' });
     }
     req.body._id = id;
-    let cliente = model.updateUsuario(req.body);
+    let cliente = model.updateCliente(req.body);
     // No devolver contraseña
     const { password, ...clienteSinPassword } = cliente;
     res.json(clienteSinPassword);
@@ -293,7 +293,7 @@ app.post('/api/clientes/autenticar', function (req, res, next) {
   console.log('[POST /api/clientes/autenticar]', req.body);
   try {
     req.body.rol = 'CLIENTE'; // Forzar autenticación como cliente
-    let cliente = model.autenticar(req.body);
+    let cliente = model.autenticarCliente(req.body);
     console.log('[Cliente autenticado]', cliente.email);
     // No devolver contraseña
     const { password, ...clienteSinPassword } = cliente;
@@ -312,8 +312,6 @@ app.post('/api/clientes/signin', function (req, res, next) {
     originalUrl: '/api/clientes/signin'
   }), res, next);
 });
-
-/* ==================== API REST - CARRITO (carro) ==================== */
 
 // GET /api/clientes/:id/carro - Obtener el carrito de un cliente
 app.get('/api/clientes/:id/carro', function (req, res, next) {
