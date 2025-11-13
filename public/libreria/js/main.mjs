@@ -32,7 +32,7 @@ import { seed } from "./model/seeder.mjs";
 export function init() {
   seed();
 
-  // 2️⃣ Cargar usuarios persistidos desde localStorage
+  // Cargar usuarios persistidos desde localStorage
   // Esto sobrescribirá/añadirá usuarios que ya existan en localStorage
   model.loadUsuariosFromStorage();
 
