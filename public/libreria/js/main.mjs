@@ -1,5 +1,5 @@
 
-import { model } from "./model/model.mjs";
+import { proxy } from "./model/proxy.mjs";
 import { router } from "./commons/router.mjs";
 import { LibreriaSession } from "./commons/libreria-session.mjs";
 
@@ -27,55 +27,48 @@ import { ClienteVerCompraPresenter } from "./components/cliente-ver-compra/clien
 import { Error404Presenter } from "./components/error-404/error-404-presenter.mjs";
 
 
-import { seed } from "./model/seeder.mjs";
 
 export function init() {
-  seed();
 
-  // 2️⃣ Cargar usuarios persistidos desde localStorage
+
+  // Cargar usuarios persistidos desde localStorage
   // Esto sobrescribirá/añadirá usuarios que ya existan en localStorage
-  model.loadUsuariosFromStorage();
 
-  console.log(`Estado inicial:
-  - Libros: ${model.getLibros().length}
-  - Usuarios: ${model.usuarios.length}
-    - Clientes: ${model.getClientes().length}
-    - Admins: ${model.getAdmins().length}`);
 
   // console.log(model)
   // Distintas maneras de entrar a la página principal
-  router.register(/^\/libreria\/index.html$/, new InvitadoHomePresenter(model, 'invitado-home'));
-  router.register(/^\/libreria\/invitado-home.html$/, new InvitadoHomePresenter(model, 'invitado-home'));
-  router.register(/^\/libreria\/$/, new InvitadoHomePresenter(model, 'invitado-home'));
+  router.register(/^\/libreria\/index.html$/, new InvitadoHomePresenter(proxy, 'invitado-home'));
+  router.register(/^\/libreria\/invitado-home.html$/, new InvitadoHomePresenter(proxy, 'invitado-home'));
+  router.register(/^\/libreria\/$/, new InvitadoHomePresenter(proxy, 'invitado-home'));
 
   // Otras páginas
-  router.register(/^\/libreria\/catalogo.html$/, new InvitadoCatalogoPresenter(model, 'invitado-catalogo'));
-  router.register(/^\/libreria\/invitado-ver-libro.html/, new InvitadoVerLibroPresenter(model, 'invitado-ver-libro'));
-  router.register(/^\/libreria\/invitado-registro.html$/, new InvitadoRegistroPresenter(model, 'invitado-registro'));
-  router.register(/^\/libreria\/invitado-ingreso.html$/, new InvitadoIngresoPresenter(model, 'invitado-ingreso'));
+  router.register(/^\/libreria\/catalogo.html$/, new InvitadoCatalogoPresenter(proxy, 'invitado-catalogo'));
+  router.register(/^\/libreria\/invitado-ver-libro.html/, new InvitadoVerLibroPresenter(proxy, 'invitado-ver-libro'));
+  router.register(/^\/libreria\/invitado-registro.html$/, new InvitadoRegistroPresenter(proxy, 'invitado-registro'));
+  router.register(/^\/libreria\/invitado-ingreso.html$/, new InvitadoIngresoPresenter(proxy, 'invitado-ingreso'));
 
   // Páginas de administrador
-  router.register(/^\/libreria\/admin-home.html$/, new AdminHomePresenter(model, 'admin-home'));
-  router.register(/^\/libreria\/admin-agregar-libro.html$/, new AdminAgregarLibroPresenter(model, 'admin-agregar-libro'));
-  router.register(/^\/libreria\/admin-perfil.html$/, new AdminPerfilPresenter(model, 'admin-perfil'));
-  router.register(/^\/libreria\/admin-catalogo.html$/, new AdminCatalogoPresenter(model, 'admin-catalogo'));
-  router.register(/^\/libreria\/admin-ver-libro.html/, new AdminVerLibroPresenter(model, 'admin-ver-libro'));
-  router.register(/^\/libreria\/admin-modificar-libro.html/, new AdminModificarLibroPresenter(model, 'admin-modificar-libro'));
+  router.register(/^\/libreria\/admin-home.html$/, new AdminHomePresenter(proxy, 'admin-home'));
+  router.register(/^\/libreria\/admin-agregar-libro.html$/, new AdminAgregarLibroPresenter(proxy, 'admin-agregar-libro'));
+  router.register(/^\/libreria\/admin-perfil.html$/, new AdminPerfilPresenter(proxy, 'admin-perfil'));
+  router.register(/^\/libreria\/admin-catalogo.html$/, new AdminCatalogoPresenter(proxy, 'admin-catalogo'));
+  router.register(/^\/libreria\/admin-ver-libro.html/, new AdminVerLibroPresenter(proxy, 'admin-ver-libro'));
+  router.register(/^\/libreria\/admin-modificar-libro.html/, new AdminModificarLibroPresenter(proxy, 'admin-modificar-libro'));
   // router.register(/^\/libreria\/home.html$/, new HomePresenter(model, 'home'));
 
   // Paginas de cliente
-  router.register(/^\/libreria\/cliente-home.html$/, new ClienteHomePresenter(model, 'cliente-home'));
-  router.register(/^\/libreria\/cliente-ver-libro.html/, new ClienteVerLibroPresenter(model, 'cliente-ver-libro'));
-  router.register(/^\/libreria\/cliente-carrito.html/, new ClienteCarritoPresenter(model, 'cliente-carrito'));
-  router.register(/^\/libreria\/cliente-comprar.html/, new ClienteComprarPresenter(model, 'cliente-comprar'));
-  router.register(/^\/libreria\/cliente-perfil.html$/, new ClientePerfilPresenter(model, 'cliente-perfil'));
-  router.register(/^\/libreria\/cliente-lista-compras.html$/, new ClienteListaComprasPresenter(model, 'cliente-lista-compras'));
-  router.register(/^\/libreria\/cliente-ver-compra.html/, new ClienteVerCompraPresenter(model, 'cliente-ver-compra'));
+  router.register(/^\/libreria\/cliente-home.html$/, new ClienteHomePresenter(proxy, 'cliente-home'));
+  router.register(/^\/libreria\/cliente-ver-libro.html/, new ClienteVerLibroPresenter(proxy, 'cliente-ver-libro'));
+  router.register(/^\/libreria\/cliente-carrito.html/, new ClienteCarritoPresenter(proxy, 'cliente-carrito'));
+  router.register(/^\/libreria\/cliente-comprar.html/, new ClienteComprarPresenter(proxy, 'cliente-comprar'));
+  router.register(/^\/libreria\/cliente-perfil.html$/, new ClientePerfilPresenter(proxy, 'cliente-perfil'));
+  router.register(/^\/libreria\/cliente-lista-compras.html$/, new ClienteListaComprasPresenter(proxy, 'cliente-lista-compras'));
+  router.register(/^\/libreria\/cliente-ver-compra.html/, new ClienteVerCompraPresenter(proxy, 'cliente-ver-compra'));
 
   // IMPORTANTE: Página de error 404 - debe ser la ÚLTIMA ruta registrada para actuar como catch-all
-  router.register(/^\/libreria\/error-404.html/, new Error404Presenter(model, 'error-404'));
+  router.register(/^\/libreria\/error-404.html/, new Error404Presenter(proxy, 'error-404'));
   // También capturar cualquier ruta que no coincida con las anteriores
-  router.register(/.*/, new Error404Presenter(model, 'error-404'));
+  router.register(/.*/, new Error404Presenter(proxy, 'error-404'));
 
   router.handleLocation();
 }
