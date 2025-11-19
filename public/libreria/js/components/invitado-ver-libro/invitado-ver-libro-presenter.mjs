@@ -1,9 +1,10 @@
 import { Presenter } from "../../commons/presenter.mjs";
+import { proxy } from "../../model/proxy.mjs";
 
 export class InvitadoVerLibroPresenter extends Presenter {
 
-  constructor(model, view) {
-    super(model, view);
+  constructor(proxy, view) {
+    super(proxy, view);
   }
 
   get catalogoElement() {
@@ -18,11 +19,11 @@ export class InvitadoVerLibroPresenter extends Presenter {
     return this.searchParams.get('id');
   }
 
-  getLibro() {
+  async getLibro() {
     return this.model.getLibroPorId(this.id);
   }
 
-  set libro(libro) {    
+  set libro(libro) {
     this.isbn = libro.isbn;
     this.titulo = libro.titulo;
     this.autores = libro.autores;
@@ -32,7 +33,6 @@ export class InvitadoVerLibroPresenter extends Presenter {
   }
 
   get isbnParagraph() {
-    console.log(document);
     return document.querySelector('#isbnParagraph');
   }
 
@@ -80,15 +80,19 @@ export class InvitadoVerLibroPresenter extends Presenter {
 
 
   async refresh() {
-    await super.refresh();
-    console.log(this.id);
-    let libro = this.getLibro();
-    if (libro) this.libro = libro;
-    else console.error(`Libro ${id} not found!`);
+    try {
+      await super.refresh();
+      const libro = await this.getLibro();
 
-    document.querySelector('#verLibroTitulo').textContent=`Titulo: ${libro.titulo}`
-
-
+      if (libro) {
+        this.libro = libro;
+        document.querySelector('#verLibroTitulo').textContent = `Titulo: ${libro.titulo}`;
+      } else {
+        console.error(`Libro ${this.id} not found!`);
+      }
+    } catch (error) {
+      console.error('Error al cargar el libro:', error);
+    }
   }
 
 }

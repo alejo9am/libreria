@@ -145,6 +145,7 @@ export class LibreriaProxy {
     return await response.json();
   }
 
+  // Método unificado de autenticación
   async autenticar(obj) {
     const ruta = obj.rol === ROL.ADMIN ? 'admins' : 'clientes';
     const response = await fetch(`${API_BASE_URL}/${ruta}/autenticar`, {
@@ -156,6 +157,7 @@ export class LibreriaProxy {
     return await response.json();
   }
 
+  // Método unificado de registro
   async registrar(obj) {
     const ruta = obj.rol === ROL.ADMIN ? 'admins' : 'clientes';
     const response = await fetch(`${API_BASE_URL}/${ruta}`, {
@@ -167,6 +169,8 @@ export class LibreriaProxy {
     return await response.json();
   }
 
+  /* ==================== CARRITO ==================== */
+  
   async getCarroCliente(clienteId) {
     const response = await fetch(`${API_BASE_URL}/clientes/${clienteId}/carro`);
     if (!response.ok) throw new Error((await response.json()).error);
@@ -194,6 +198,7 @@ export class LibreriaProxy {
   }
 
   /* ==================== ADMINISTRADORES ==================== */
+  
   async getAdmins() {
     const response = await fetch(`${API_BASE_URL}/admins`);
     if (!response.ok) throw new Error((await response.json()).error);
@@ -262,6 +267,7 @@ export class LibreriaProxy {
   }
 
   /* ==================== FACTURAS ==================== */
+  
   async getFacturas() {
     const response = await fetch(`${API_BASE_URL}/facturas`);
     if (!response.ok) throw new Error((await response.json()).error);
@@ -308,6 +314,12 @@ export class LibreriaProxy {
 
   async getFacturasCliente(clienteId) {
     const response = await fetch(`${API_BASE_URL}/facturas?cliente=${clienteId}`);
+    if (!response.ok) throw new Error((await response.json()).error);
+    return await response.json();
+  }
+
+  async removeFactura(id) {
+    const response = await fetch(`${API_BASE_URL}/facturas/${id}`, { method: 'DELETE' });
     if (!response.ok) throw new Error((await response.json()).error);
     return await response.json();
   }
