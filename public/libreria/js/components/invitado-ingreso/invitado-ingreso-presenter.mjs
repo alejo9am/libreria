@@ -1,7 +1,7 @@
 // js/components/invitado-ingreso/invitado-ingreso-presenter.mjs
 
 import { Presenter } from "../../commons/presenter.mjs";
-import { ROL } from "../../model/model.mjs";
+import { ROL } from "../../model/proxy.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { router } from "../../commons/router.mjs";
 import { renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";

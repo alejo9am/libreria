@@ -1,4 +1,4 @@
-// model/seeder-server.mjs
+// model/seeder.mjs
 import { model, ROL } from './model.mjs';
 
 function crearLibro(isbn) {

@@ -1,5 +1,5 @@
 import { Presenter } from "../../commons/presenter.mjs";
-import { ROL } from "../../model/model.mjs";
+import { ROL } from "../../model/proxy.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { clearMensajes, renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";
 

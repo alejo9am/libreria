@@ -1,6 +1,5 @@
 import { Presenter } from "../../commons/presenter.mjs";
 import { InvitadoCatalogoLibroPresenter } from "../invitado-catalogo-libro/invitado-catalogo-libro-presenter.mjs";
-import { renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";
 
 export class InvitadoHomePresenter extends Presenter {
   constructor(model, view, parentSelector) {
@@ -14,7 +13,7 @@ export class InvitadoHomePresenter extends Presenter {
     await super.refresh();
 
     /* renderUltimoMensaje("#mensajesContainer"); */
-    let libros = this.model.getLibros(); 
+    let libros = await this.model.getLibros(); 
 
     await Promise.all(
       libros.map(async (l) => {

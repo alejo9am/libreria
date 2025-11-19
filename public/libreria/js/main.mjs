@@ -29,13 +29,6 @@ import { Error404Presenter } from "./components/error-404/error-404-presenter.mj
 
 
 export function init() {
-
-
-  // Cargar usuarios persistidos desde localStorage
-  // Esto sobrescribirá/añadirá usuarios que ya existan en localStorage
-
-
-  // console.log(model)
   // Distintas maneras de entrar a la página principal
   router.register(/^\/libreria\/index.html$/, new InvitadoHomePresenter(proxy, 'invitado-home'));
   router.register(/^\/libreria\/invitado-home.html$/, new InvitadoHomePresenter(proxy, 'invitado-home'));
@@ -54,7 +47,6 @@ export function init() {
   router.register(/^\/libreria\/admin-catalogo.html$/, new AdminCatalogoPresenter(proxy, 'admin-catalogo'));
   router.register(/^\/libreria\/admin-ver-libro.html/, new AdminVerLibroPresenter(proxy, 'admin-ver-libro'));
   router.register(/^\/libreria\/admin-modificar-libro.html/, new AdminModificarLibroPresenter(proxy, 'admin-modificar-libro'));
-  // router.register(/^\/libreria\/home.html$/, new HomePresenter(model, 'home'));
 
   // Paginas de cliente
   router.register(/^\/libreria\/cliente-home.html$/, new ClienteHomePresenter(proxy, 'cliente-home'));

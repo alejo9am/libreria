@@ -2,7 +2,7 @@
 // Tests del modelo de la librería usando Mocha + Chai
 
 import * as chai from 'https://cdnjs.cloudflare.com/ajax/libs/chai/5.1.1/chai.js';
-import { Libreria, ROL } from '../js/model/model.mjs';
+import { Libreria, ROL } from '../model/model.mjs';
 
 const assert = chai.assert;
 
