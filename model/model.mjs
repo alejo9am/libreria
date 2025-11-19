@@ -121,7 +121,7 @@ export class Libreria {
   addCliente(obj) {
     let cliente = this.getClientePorEmail(obj.email);
     if (cliente) throw new Error('Ya existe un CLIENTE registrado con ese email');
-    
+
     cliente = new Cliente();
     Object.assign(cliente, obj);
     cliente.rol = ROL.CLIENTE; // Asegurar el rol
@@ -202,7 +202,7 @@ export class Libreria {
   addAdmin(obj) {
     let admin = this.getAdministradorPorEmail(obj.email);
     if (admin) throw new Error('Ya existe un ADMIN registrado con ese email');
-    
+
     admin = new Administrador();
     Object.assign(admin, obj);
     admin.rol = ROL.ADMIN; // Asegurar el rol
@@ -314,10 +314,13 @@ export class Libreria {
 
   facturarCompraCliente(obj) {
     if (!obj.cliente) throw new Error('Cliente no definido');
-    let cliente = this.getClientePorId(obj.cliente);
+    // Extraer el ID si viene como objeto
+    let clienteId = typeof obj.cliente === 'object' ? obj.cliente._id : obj.cliente;
+
+    let cliente = this.getClientePorId(clienteId);
     if (!cliente) throw new Error('Cliente no encontrado');
     if (cliente.getCarro().items.length < 1) throw new Error('No hay items en el carrito');
-    
+
     let factura = new Factura();
     Object.assign(factura, obj);
     factura.assignId();
@@ -337,7 +340,9 @@ export class Libreria {
   }
 
   getFacturaPorNumero(numero) {
-    return this.facturas.find((f) => f.numero == numero);
+    // Limpiar espacios y hacer comparación más robusta
+    const numeroLimpio = String(numero).trim();
+    return this.facturas.find((f) => String(f.numero).trim() === numeroLimpio);
   }
 
   getFacturasPorCliente(clienteId) {
@@ -362,7 +367,7 @@ class Libro extends Identificable {
   resumen;
   stock;
   precio;
-  
+
   constructor() {
     super();
   }
@@ -400,7 +405,7 @@ class Usuario extends Identificable {
 
 class Cliente extends Usuario {
   carro;
-  
+
   constructor() {
     super();
     this.rol = ROL.CLIENTE;
@@ -476,7 +481,7 @@ class Item {
   cantidad;
   libro;
   total;
-  
+
   constructor() {
     this.cantidad = 0;
   }
@@ -491,7 +496,7 @@ class Carro {
   subtotal;
   iva;
   total;
-  
+
   constructor() {
     this.items = [];
     this.subtotal = 0;

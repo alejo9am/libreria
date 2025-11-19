@@ -35,7 +35,7 @@ app.use((req, res, next) => {
 app.get('/api/libros', function (req, res, next) {
   try {
     const { isbn, titulo } = req.query;
-    
+
     // Filtrar por ISBN si se proporciona
     if (isbn) {
       const libro = model.getLibroPorIsbn(isbn);
@@ -44,7 +44,7 @@ app.get('/api/libros', function (req, res, next) {
       }
       return res.json(libro);
     }
-    
+
     // Filtrar por título si se proporciona
     if (titulo) {
       const libro = model.getLibroPorTitulo(titulo);
@@ -53,7 +53,7 @@ app.get('/api/libros', function (req, res, next) {
       }
       return res.json(libro);
     }
-    
+
     // Si no hay filtros, devolver todos
     res.json(model.getLibros());
   } catch (err) {
@@ -157,7 +157,7 @@ app.delete('/api/libros/:id', function (req, res, next) {
 app.get('/api/clientes', function (req, res, next) {
   try {
     const { email, dni } = req.query;
-    
+
     // Filtrar por email si se proporciona
     if (email) {
       const cliente = model.getClientePorEmail(email);
@@ -168,7 +168,7 @@ app.get('/api/clientes', function (req, res, next) {
       const { password, ...clienteSinPassword } = cliente;
       return res.json(clienteSinPassword);
     }
-    
+
     // Filtrar por DNI si se proporciona
     if (dni) {
       const cliente = model.getClientePorDni(dni);
@@ -179,7 +179,7 @@ app.get('/api/clientes', function (req, res, next) {
       const { password, ...clienteSinPassword } = cliente;
       return res.json(clienteSinPassword);
     }
-    
+
     // Si no hay filtros, devolver todos (sin contraseñas)
     const clientes = model.getClientes().map(c => {
       const { password, ...clienteSinPassword } = c;
@@ -307,7 +307,7 @@ app.post('/api/clientes/autenticar', function (req, res, next) {
 // Alias para signin
 app.post('/api/clientes/signin', function (req, res, next) {
   req.body.rol = 'CLIENTE';
-  return app._router.handle(Object.assign(req, { 
+  return app._router.handle(Object.assign(req, {
     url: '/api/clientes/autenticar',
     originalUrl: '/api/clientes/signin'
   }), res, next);
@@ -354,7 +354,7 @@ app.put('/api/clientes/:id/carro/items/:index', function (req, res, next) {
     let id = req.params.id;
     let index = parseInt(req.params.index);
     let cantidad = req.body.cantidad;
-    
+
     if (!id) {
       return res.status(400).json({ error: 'Id no definido' });
     }
@@ -364,7 +364,7 @@ app.put('/api/clientes/:id/carro/items/:index', function (req, res, next) {
     if (cantidad === undefined) {
       return res.status(400).json({ error: 'Cantidad no definida' });
     }
-    
+
     console.log('[PUT /api/clientes/:id/carro/items/:index]', id, index, cantidad);
     let carro = model.setClienteCarroItemCantidad(id, index, cantidad);
     res.json(carro);
@@ -380,7 +380,7 @@ app.put('/api/clientes/:id/carro/items/:index', function (req, res, next) {
 app.get('/api/admins', function (req, res, next) {
   try {
     const { email, dni } = req.query;
-    
+
     // Filtrar por email si se proporciona
     if (email) {
       const admin = model.getAdministradorPorEmail(email);
@@ -391,10 +391,10 @@ app.get('/api/admins', function (req, res, next) {
       const { password, ...adminSinPassword } = admin;
       return res.json(adminSinPassword);
     }
-    
+
     // Filtrar por DNI si se proporciona
     if (dni) {
-      const admin = model.getAdministradorPorDni(dni);
+      const admin = model.getAdminPorDni(dni);
       if (!admin) {
         return res.status(404).json({ error: 'Administrador no encontrado' });
       }
@@ -402,7 +402,7 @@ app.get('/api/admins', function (req, res, next) {
       const { password, ...adminSinPassword } = admin;
       return res.json(adminSinPassword);
     }
-    
+
     // Si no hay filtros, devolver todos (sin contraseñas)
     const admins = model.getAdmins().map(a => {
       const { password, ...adminSinPassword } = a;
@@ -422,7 +422,7 @@ app.get('/api/admins/:id', function (req, res, next) {
     if (!id) {
       return res.status(400).json({ error: 'Id no definido' });
     }
-    let admin = model.getAdministradorPorId(id);
+    let admin = model.getAdminPorId(id);
     if (!admin) {
       return res.status(404).json({ error: 'Administrador no encontrado' });
     }
@@ -440,7 +440,7 @@ app.post('/api/admins', function (req, res, next) {
   console.log('[POST /api/admins]', req.body);
   try {
     req.body.rol = 'ADMIN'; // Forzar rol de administrador
-    let admin = model.addUsuario(req.body);
+    let admin = model.addAdmin(req.body);
     console.log('[Administrador registrado]', admin.email);
     // No devolver contraseña
     const { password, ...adminSinPassword } = admin;
@@ -475,7 +475,7 @@ app.put('/api/admins/:id', function (req, res, next) {
       return res.status(400).json({ error: 'ID no definido' });
     }
     req.body._id = id;
-    let admin = model.updateUsuario(req.body);
+    let admin = model.updateAdmin(req.body);
     // No devolver contraseña
     const { password, ...adminSinPassword } = admin;
     res.json(adminSinPassword);
@@ -516,7 +516,7 @@ app.post('/api/admins/autenticar', function (req, res, next) {
   console.log('[POST /api/admins/autenticar]', req.body);
   try {
     req.body.rol = 'ADMIN'; // Forzar autenticación como administrador
-    let admin = model.autenticar(req.body);
+    let admin = model.autenticarAdmin(req.body);
     console.log('[Administrador autenticado]', admin.email);
     // No devolver contraseña
     const { password, ...adminSinPassword } = admin;
@@ -530,7 +530,7 @@ app.post('/api/admins/autenticar', function (req, res, next) {
 // Alias para signin
 app.post('/api/admins/signin', function (req, res, next) {
   req.body.rol = 'ADMIN';
-  return app._router.handle(Object.assign(req, { 
+  return app._router.handle(Object.assign(req, {
     url: '/api/admins/autenticar',
     originalUrl: '/api/admins/signin'
   }), res, next);
@@ -542,7 +542,7 @@ app.post('/api/admins/signin', function (req, res, next) {
 app.get('/api/facturas', function (req, res, next) {
   try {
     const { numero, cliente } = req.query;
-    
+
     // Filtrar por número si se proporciona
     if (numero) {
       const factura = model.getFacturaPorNumero(numero);
@@ -551,13 +551,13 @@ app.get('/api/facturas', function (req, res, next) {
       }
       return res.json(factura);
     }
-    
+
     // Filtrar por cliente si se proporciona
     if (cliente) {
-      const facturas = model.getFacturasCliente(cliente);
+      const facturas = model.getFacturasPorCliente(cliente);
       return res.json(facturas);
     }
-    
+
     // Si no hay filtros, devolver todas
     res.json(model.getFacturas());
   } catch (err) {
@@ -584,14 +584,43 @@ app.get('/api/facturas/:id', function (req, res, next) {
   }
 });
 
+
 // POST /api/facturas - Crear una nueva factura (facturar compra)
-app.post('/api/facturas', function (req, res, next) {
+app.post('/api/facturas', (req, res) => {
   try {
-    console.log('[POST /api/facturas]', req.body);
-    let factura = model.facturarCompraCliente(req.body);
-    res.status(201).json(factura);
+    // Extraer el ID del cliente
+    let clienteId = typeof req.body.cliente === 'object'
+      ? req.body.cliente._id
+      : req.body.cliente;
+
+    // Si vienen items en el body, agregarlos al carrito primero
+    if (req.body.items && req.body.items.length > 0) {
+      // Vaciar el carrito actual del cliente
+      model.vaciarCarroCliente(clienteId);
+
+      // Agregar cada item al carrito
+      req.body.items.forEach(item => {
+        model.addClienteCarroItem(clienteId, {
+          libro: typeof item.libro === 'object' ? item.libro._id : item.libro,
+          cantidad: item.cantidad
+        });
+      });
+    }
+
+    // Ahora sí, facturar la compra
+    let factura = model.facturarCompraCliente({
+      cliente: clienteId,
+      fecha: req.body.fecha || new Date().toISOString(),
+      razonSocial: req.body.razonSocial,
+      direccion: req.body.direccion,
+      email: req.body.email,
+      dni: req.body.dni
+    });
+
+    console.log('[POST /api/facturas] Factura creada:', factura);
+    res.json(factura);
   } catch (err) {
-    console.error(err);
+    console.error('[POST /api/facturas] Error:', err.message);
     res.status(400).json({ error: err.message });
   }
 });
@@ -619,6 +648,24 @@ app.delete('/api/facturas', function (req, res, next) {
   }
 });
 
+// DELETE /api/facturas/:id - Eliminar una factura
+app.delete('/api/facturas/:id', function (req, res, next) {
+  try {
+    let id = req.params.id;
+    if (!id) {
+      return res.status(400).json({ error: 'Id no definido' });
+    }
+    const removed = model.removeFactura(id);
+    if (!removed) {
+      return res.status(404).json({ error: 'Factura no encontrada' });
+    }
+    res.json({ ok: true, message: `Factura ${id} eliminada` });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: err.message });
+  }
+});
+
 /* ==================== RUTAS DEL CLIENTE (SPA) ==================== */
 
 // Redirección a index.html para rutas de la SPA
@@ -631,9 +678,9 @@ app.use('/libreria*', (req, res) => {
 // 404 para rutas no encontradas
 app.all('*', function (req, res, next) {
   console.error(`${req.originalUrl} not found!`);
-  res.status(404).json({ 
+  res.status(404).json({
     error: 'Ruta no encontrada',
-    path: req.originalUrl 
+    path: req.originalUrl
   });
 });
 
