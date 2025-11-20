@@ -1,5 +1,4 @@
 import { Presenter } from "../../commons/presenter.mjs";
-import { model } from "../../model/model.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { router } from "../../commons/router.mjs";
 
