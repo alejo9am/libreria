@@ -22,7 +22,7 @@ export class AdminPerfilPresenter extends Presenter {
     }
 
     // Buscar el usuario completo en el MODELO (no en localStorage)
-    const admin = this.model.getUsuarioPorId(userSession._id);
+    const admin = await this.model.getAdminPorId(userSession._id);
 
     if (!admin) {
       LibreriaSession.addMessage("error", "Administrador no encontrado");
