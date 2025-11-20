@@ -111,10 +111,7 @@ export class AdminVerLibroPresenter extends Presenter {
     mensajesContainer.innerHTML = "";
 
     if (this.modificarLink) {
-      this.modificarLink.addEventListener("click", (e) => {
-        e.preventDefault();
-        router.navigate(`admin-modificar-libro.html?id=${this.id}`);
-      });
+      this.modificarLink.href = `admin-modificar-libro.html?id=${this.id}`;
     }
 
     if (this.borrarLibroElement) {
