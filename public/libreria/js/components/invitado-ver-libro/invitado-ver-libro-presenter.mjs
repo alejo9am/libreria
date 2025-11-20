@@ -1,5 +1,4 @@
 import { Presenter } from "../../commons/presenter.mjs";
-import { proxy } from "../../model/proxy.mjs";
 
 export class InvitadoVerLibroPresenter extends Presenter {
 
@@ -20,7 +19,7 @@ export class InvitadoVerLibroPresenter extends Presenter {
   }
 
   async getLibro() {
-    return this.model.getLibroPorId(this.id);
+    return await this.model.getLibroPorId(this.id);
   }
 
   set libro(libro) {
@@ -76,8 +75,6 @@ export class InvitadoVerLibroPresenter extends Presenter {
   set stock(stock) {
     this.stockParagraph.textContent = stock;
   }
-
-
 
   async refresh() {
     try {

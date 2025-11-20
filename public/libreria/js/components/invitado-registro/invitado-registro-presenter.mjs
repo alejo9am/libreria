@@ -15,7 +15,7 @@ export class InvitadoRegistroPresenter extends Presenter {
         const mensajesContainer = document.getElementById("mensajesContainer");
         const btnUsuarios = document.getElementById("mostrarUsuariosBtn");
 
-        form.onsubmit = (e) => {
+        form.onsubmit = async (e) => {
             e.preventDefault();
             clearMensajes("#mensajesContainer");
 
@@ -45,9 +45,13 @@ export class InvitadoRegistroPresenter extends Presenter {
 
                 // Insertamos en el modelo (esto también lo guarda en localStorage automáticamente)
                 // El modelo ya valida que no exista otro usuario con el mismo email Y rol
-                const usuario = this.model.addUsuario(nuevoUsuario);
+                if (nuevoUsuario.rol === ROL.ADMIN) {
+                    const admins = await this.model.addAdmin(nuevoUsuario);
+                } else {
+                    const clientes = await this.model.addCliente(nuevoUsuario);
+                }
 
-                LibreriaSession.addMessage("success", `Usuario registrado: ${usuario.email} (${usuario.rol})`);
+                LibreriaSession.addMessage("success", `Usuario registrado: ${nuevoUsuario.email} (${nuevoUsuario.rol})`);
                 renderUltimoMensaje("#mensajesContainer");
 
                 form.reset();
@@ -61,9 +65,11 @@ export class InvitadoRegistroPresenter extends Presenter {
 
         // Botón de depuración
         if (btnUsuarios) {
-            btnUsuarios.onclick = () => {
+            btnUsuarios.onclick = async () => {
                 // Mostrar usuarios del MODELO (fuente de verdad)
-                const usuarios = this.model.usuarios;
+                const clientes = await this.model.getClientes();
+                const admins = await this.model.getAdmins();
+                const usuarios = clientes.concat(admins);
 
                 if (usuarios.length === 0) {
                     mensajesContainer.innerHTML = `<div class="log">No hay usuarios en el modelo.</div>`;

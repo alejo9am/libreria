@@ -20,7 +20,7 @@ export class InvitadoIngresoPresenter extends Presenter {
 
     if (!form) return;
 
-    form.onsubmit = (e) => {
+    form.onsubmit = async (e) => {
       e.preventDefault();
       mensajesContainer.innerHTML = "";
 
@@ -39,7 +39,7 @@ export class InvitadoIngresoPresenter extends Presenter {
         console.log(`Intentando login: ${email} como ${rolEsperado}`);
 
         // Buscar usuario en el MODELO (ya tiene los usuarios de localStorage cargados)
-        const usuario = this.model.autenticar({
+        const usuario = await this.model.autenticar({
           email: email,
           password: password,
           rol: rolEsperado
@@ -71,8 +71,11 @@ export class InvitadoIngresoPresenter extends Presenter {
 
     // Botón para depurar usuarios
     if (btnUsuarios) {
-      btnUsuarios.onclick = () => {
-        const usuarios = this.model.usuarios;
+      btnUsuarios.onclick = async () => {
+        // Mostrar usuarios del MODELO
+        const clientes = await this.model.getClientes();
+        const admins = await this.model.getAdmins();
+        const usuarios = clientes.concat(admins);
 
         if (usuarios.length === 0) {
           mensajesContainer.innerHTML = `<div class="log">No hay usuarios registrados.</div>`;
