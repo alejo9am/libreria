@@ -1,5 +1,6 @@
 import { Presenter } from "../../commons/presenter.mjs";
 import { proxy } from "../../model/proxy.mjs";
+import { proxy } from "../../model/proxy.mjs";
 
 export class InvitadoVerLibroPresenter extends Presenter {
 
