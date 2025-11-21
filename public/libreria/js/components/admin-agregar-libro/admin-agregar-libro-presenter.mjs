@@ -24,7 +24,7 @@ export class AdminAgregarLibroPresenter extends Presenter {
       router.navigate("/libreria/invitado-ingreso.html");
       return;
     }
-    form.onsubmit = (e) => {
+    form.onsubmit = async (e) => {
       e.preventDefault();
       clearMensajes("#mensajesContainer");
       
@@ -48,7 +48,7 @@ export class AdminAgregarLibroPresenter extends Presenter {
           throw new Error("El stock debe ser un número válido.");
 
         // Guardar libro en el modelo
-        const libro = this.model.addLibro(nuevoLibro);
+        const libro =  await this.model.addLibro(nuevoLibro);
         console.log("Libro agregado:", libro);
 
         // Mensaje de éxito
