@@ -74,7 +74,7 @@ export class ClienteComprarPresenter extends Presenter {
       return;
     }
 
-    const carro = model.getCarroCliente(userId);
+    const carro = await this.model.getCarroCliente(userId);
     // console.log('[ComprarPresenter] carro:', carro);
     
     if (!carro) {
@@ -123,10 +123,10 @@ export class ClienteComprarPresenter extends Presenter {
         input.value = item.cantidad;
         input.dataset.index = idx;
         input.className = 'qty-input';
-        input.onchange = (e) => {
+        input.onchange = async (e) => {
           const v = Number(e.target.value);
           try {
-            model.setClienteCarroItemCantidad(userId, idx, v);
+            await this.model.setClienteCarroItemCantidad(userId, idx, v);
             console.log('[ComprarPresenter] Cantidad actualizada para item index', idx, 'a', v);
             LibreriaSession.addMessage('success', 'Cantidad actualizada');
             this.refresh();
@@ -172,11 +172,11 @@ export class ClienteComprarPresenter extends Presenter {
     }
     
     if (formPago) {
-      formPago.onsubmit = (e) => {
+      formPago.onsubmit = async (e) => {
         e.preventDefault();
         try {
           // Obtener carrito actual
-          const current = model.getCarroCliente(userId);
+          const current = await model.getCarroCliente(userId);
 
           // Obtener datos del formulario
           const fecha = document.getElementById('fecha').value;
@@ -211,7 +211,7 @@ export class ClienteComprarPresenter extends Presenter {
             cliente: userId
           };
 
-          factura = model.facturarCompraCliente(factura);
+          factura = await model.facturarCompraCliente(factura);
 
           console.log('[ComprarPresenter] Factura generada:', factura);
 
@@ -219,7 +219,7 @@ export class ClienteComprarPresenter extends Presenter {
           LibreriaSession.saveFactura(factura);
 
           // Vaciar carrito del cliente en el modelo
-          const cliente = model.getClientePorId(userId);
+          const cliente = await model.getClientePorId(userId);
           if (cliente) {
             cliente.removeItems();
           }

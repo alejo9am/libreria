@@ -20,8 +20,8 @@ export class ClienteVerLibroPresenter extends Presenter {
     return this.searchParams.get('id');
   }
 
-  getLibro() {
-    return this.model.getLibroPorId(this.id);
+  async getLibro() {
+    return await this.model.getLibroPorId(this.id);
   }
 
   set libro(libro) {    
@@ -83,11 +83,7 @@ export class ClienteVerLibroPresenter extends Presenter {
 
   async refresh() {
     await super.refresh();
-    console.log(this.id);
-    let libro = this.getLibro();
-    if (libro) this.libro = libro;
-    else console.error(`Libro ${id} not found!`);
-
+    
     // Verificar si el usuario es cliente, sino redirigir al login
     const userSession = LibreriaSession.getUserSession();
     if (!userSession || userSession.rol !== "CLIENTE") {
@@ -100,6 +96,11 @@ export class ClienteVerLibroPresenter extends Presenter {
         return;
     }
 
+    console.log(this.id);
+    let libro = await this.getLibro();
+    if (libro) this.libro = libro;
+    else console.error(`Libro ${id} not found!`);
+
     document.querySelector('#verLibroTitulo').textContent=`Titulo: ${libro.titulo}`
     const mensajesContainer = document.getElementById("mensajesContainer");
     const agregarCarritoBtn = document.getElementById("agregarCarritoBtn");
@@ -109,7 +110,7 @@ export class ClienteVerLibroPresenter extends Presenter {
     if (agregarCarritoBtn) {
       console.log('[ClienteVerLibroPresenter] Asignando addEventListener al botón');
       // Usar addEventListener en lugar de onclick para que tenga prioridad
-      agregarCarritoBtn.addEventListener('click', (e) => {
+      agregarCarritoBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();
         console.log('[ClienteVerLibroPresenter] Click detectado en agregarCarritoBtn');
@@ -122,12 +123,13 @@ export class ClienteVerLibroPresenter extends Presenter {
 
           console.log('[ClienteVerLibroPresenter] libro._id:', libro._id);
           // Añadir 1 unidad del libro al carrito del cliente
-          model.addClienteCarroItem(userId, { libro: libro._id, cantidad: 1 });
+          await this.model.addClienteCarroItem(userId, { libro: libro._id, cantidad: 1 });
 
           // Mensaje de éxito persistido (se mostrará en la página del carrito)
           LibreriaSession.addMessage("success", `Libro agregado a carrito: ${libro.titulo}`);
           // Navegar inmediatamente al carrito, donde se mostrará el mensaje
           router.navigate('/libreria/cliente-carrito.html');
+          return; // Detener ejecución después de navegar
 
         } catch (err) {
           console.error('[ClienteVerLibroPresenter] Error:', err);
