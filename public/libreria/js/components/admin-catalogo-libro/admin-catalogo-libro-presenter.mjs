@@ -2,53 +2,35 @@ import { Presenter } from "../../commons/presenter.mjs";
 
 export class AdminCatalogoLibroPresenter extends Presenter {
   constructor(model, view, parentSelector) {
-    super(model, view, parentSelector);
+    super (model, view, parentSelector);
+  }
+
+  setLibroField(name, value) {
+    let node = this.parentElement.querySelector(`#${name}`);
+    node.setAttribute('id', `${name}_${this.model._id}`);
+    node.innerHTML = value;
+  }
+
+  setLibroFields() {
+    this.setLibroField('titulo', this.model.titulo);
+    this.setLibroField('autores', this.model.autores);
+    this.setLibroField('isbn', this.model.isbn);
+    this.setLibroField('precio', `€ ${this.model.precio}`);
+  }
+
+  setVerButton() {
+    let node = this.parentElement.querySelector(`#verButton`);
+    node.setAttribute('id', `ver_${this.model._id}`);
+    node.setAttribute('href', `admin-ver-libro.html?id=${this.model._id}`);
   }
 
   async refresh() {
-    const html = await this.getHTML();
-    this.parentElement.insertAdjacentHTML('beforeend', html);
-
-    // obtenemos el último <article> insertado
-    const libroElement = this.parentElement.lastElementChild;
-    if (!libroElement) return;
-
-    // Título
-    const tituloNode = libroElement.querySelector('#titulo');
-    if (tituloNode) {
-      tituloNode.setAttribute('id', `titulo_${this.model._id}`);
-      tituloNode.textContent = this.model.titulo || '';
-    }
-
-    // Autores
-    const autoresNode = libroElement.querySelector('.autores');
-    if (autoresNode) {
-      if (Array.isArray(this.model.autores))
-        autoresNode.textContent = this.model.autores.join('; ');
-      else autoresNode.textContent = this.model.autores || '';
-    }
-
-    // ISBN
-    const isbnNode = libroElement.querySelector('.isbn');
-    if (isbnNode) isbnNode.textContent = this.model.isbn || '';
-
-    // Precio
-    const precioNode = libroElement.querySelector('.precio');
-    if (precioNode) {
-        precioNode.textContent = `€ ${this.model.precio || ''}`;
-    }
-
-    // Portada
-    const portadaNode = libroElement.querySelector('img.portada');
-    if (portadaNode && this.model.portada)
-      portadaNode.src = this.model.portada;
-
-    // Enlace "Ver"
-    const verLinkNode = libroElement.querySelector('#verLink');
-    if (verLinkNode) {
-      verLinkNode.setAttribute('href', `admin-ver-libro.html?id=${this.model._id}`);
-    }
-
-    if (typeof this.attachAnchors === 'function') this.attachAnchors();
+    try {
+      let html = await this.getHTML();
+      this.parentElement.insertAdjacentHTML('beforeend', html);
+      this.setLibroFields();
+      this.setVerButton();
+      this.attachAnchors();
+    } catch (err) { console.error(err); };
   }
 }

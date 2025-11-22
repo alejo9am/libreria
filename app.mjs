@@ -474,7 +474,6 @@ app.put('/api/admins/:id', function (req, res, next) {
     if (!id) {
       return res.status(400).json({ error: 'ID no definido' });
     }
-    req.body._id = id;
     let admin = model.updateAdmin(req.body);
     // No devolver contraseña
     const { password, ...adminSinPassword } = admin;

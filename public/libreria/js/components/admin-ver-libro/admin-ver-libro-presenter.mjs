@@ -19,8 +19,8 @@ export class AdminVerLibroPresenter extends Presenter {
     return this.searchParams.get("id");
   }
 
-  getLibro() {
-    return this.model.getLibroPorId(this.id);
+  async getLibro() {
+    return await this.model.getLibroPorId(this.id);
   }
 
   get borrarLibroElement() {
@@ -92,6 +92,7 @@ export class AdminVerLibroPresenter extends Presenter {
 
     // Verificar si el usuario es administrador, sino redirigir al login
     const userSession = LibreriaSession.getUserSession();
+    console.log("User session:", userSession);
     if (!userSession || userSession.rol !== "ADMIN") {
         LibreriaSession.addMessage("error", "Debe iniciar sesión como administrador");
         console.log("ERROR, usuario no autorizado", userSession);
@@ -99,7 +100,7 @@ export class AdminVerLibroPresenter extends Presenter {
         return;
     }
 
-    let libro = this.getLibro();
+    let libro = await this.getLibro();
     if (libro) this.libro = libro;
     else console.error(`Libro ${id} not found!`);
 
@@ -110,16 +111,13 @@ export class AdminVerLibroPresenter extends Presenter {
     mensajesContainer.innerHTML = "";
 
     if (this.modificarLink) {
-      this.modificarLink.addEventListener("click", (e) => {
-        e.preventDefault();
-        router.navigate(`admin-modificar-libro.html?id=${this.id}`);
-      });
+      this.modificarLink.href = `admin-modificar-libro.html?id=${this.id}`;
     }
 
     if (this.borrarLibroElement) {
-      this.borrarLibroElement.addEventListener("click", () => {
+      this.borrarLibroElement.addEventListener("click", async () => {
         try {
-          this.model.removeLibro(this.id);
+          await this.model.removeLibro(this.id);
         LibreriaSession.addMessage("success", `Libro borrado correctamente: ${libro.titulo}`);
         router.navigate("admin-home.html");
       } catch (err) {
