@@ -38,10 +38,11 @@ export class ClienteCatalogoLibroPresenter extends Presenter {
         precioNode.textContent = `€ ${this.model.precio || ''}`;
     }
 
+    // Desactivado porque ruta a la imagen no esta implementada
     // Portada
-    const portadaNode = libroElement.querySelector('img.portada');
-    if (portadaNode && this.model.portada)
-      portadaNode.src = this.model.portada;
+    // const portadaNode = libroElement.querySelector('img.portada');
+    // if (portadaNode && this.model.portada)
+    //   portadaNode.src = this.model.portada;
 
     // Enlace "Ver"
     const verLinkNode = libroElement.querySelector('#verLink');

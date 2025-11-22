@@ -6,6 +6,7 @@ export class ClienteVerLibroPresenter extends Presenter {
 
   constructor(model, view) {
     super(model, view);
+    this._isNavigating = false;
   }
 
   get catalogoElement() {
@@ -20,11 +21,12 @@ export class ClienteVerLibroPresenter extends Presenter {
     return this.searchParams.get('id');
   }
 
-  getLibro() {
-    return this.model.getLibroPorId(this.id);
+  async getLibro() {
+    return await this.model.getLibroPorId(this.id);
   }
 
-  set libro(libro) {    
+  set libro(libro) {
+    if (this._isNavigating) return;
     this.isbn = libro.isbn;
     this.titulo = libro.titulo;
     this.autores = libro.autores;
@@ -34,26 +36,28 @@ export class ClienteVerLibroPresenter extends Presenter {
   }
 
   get isbnParagraph() {
-    console.log(document);
     return document.querySelector('#isbnParagraph');
   }
 
   set isbn(isbn) {
-    this.isbnParagraph.textContent = isbn;
+    const elem = this.isbnParagraph;
+    if (elem) elem.textContent = isbn;
   }
   get tituloParagraph() {
     return document.querySelector('#tituloParagraph');
   }
 
   set titulo(titulo) {
-    this.tituloParagraph.textContent = titulo;
+    const elem = this.tituloParagraph;
+    if (elem) elem.textContent = titulo;
   }
   get autoresParagraph() {
     return document.querySelector('#autoresParagraph');
   }
 
   set autores(autores) {
-    this.autoresParagraph.textContent = autores;
+    const elem = this.autoresParagraph;
+    if (elem) elem.textContent = autores;
   }
 
   get resumenParagraph() {
@@ -61,14 +65,16 @@ export class ClienteVerLibroPresenter extends Presenter {
   }
 
   set resumen(resumen) {
-    this.resumenParagraph.textContent = resumen;
+    const elem = this.resumenParagraph;
+    if (elem) elem.textContent = resumen;
   }
   get precioParagraph() {
     return document.querySelector('#precioParagraph');
   }
 
   set precio(precio) {
-    this.precioParagraph.textContent = precio;
+    const elem = this.precioParagraph;
+    if (elem) elem.textContent = precio;
   }
 
   get stockParagraph() {
@@ -76,18 +82,16 @@ export class ClienteVerLibroPresenter extends Presenter {
   }
 
   set stock(stock) {
-    this.stockParagraph.textContent = stock;
+    const elem = this.stockParagraph;
+    if (elem) elem.textContent = stock;
   }
 
 
 
   async refresh() {
+    this._isNavigating = false;
     await super.refresh();
-    console.log(this.id);
-    let libro = this.getLibro();
-    if (libro) this.libro = libro;
-    else console.error(`Libro ${id} not found!`);
-
+    
     // Verificar si el usuario es cliente, sino redirigir al login
     const userSession = LibreriaSession.getUserSession();
     if (!userSession || userSession.rol !== "CLIENTE") {
@@ -100,7 +104,14 @@ export class ClienteVerLibroPresenter extends Presenter {
         return;
     }
 
-    document.querySelector('#verLibroTitulo').textContent=`Titulo: ${libro.titulo}`
+    console.log(this.id);
+    let libro = await this.getLibro();
+    if (libro) this.libro = libro;
+    else console.error(`Libro ${id} not found!`);
+
+    const tituloElem = document.querySelector('#verLibroTitulo');
+    if (tituloElem && libro) tituloElem.textContent = `Titulo: ${libro.titulo}`;
+    
     const mensajesContainer = document.getElementById("mensajesContainer");
     const agregarCarritoBtn = document.getElementById("agregarCarritoBtn");
 
@@ -108,8 +119,8 @@ export class ClienteVerLibroPresenter extends Presenter {
 
     if (agregarCarritoBtn) {
       console.log('[ClienteVerLibroPresenter] Asignando addEventListener al botón');
-      // Usar addEventListener en lugar de onclick para que tenga prioridad
-      agregarCarritoBtn.addEventListener('click', (e) => {
+      // Reemplazar onclick para evitar conflicto con router.route
+      agregarCarritoBtn.onclick = async (e) => {
         e.preventDefault();
         e.stopPropagation();
         console.log('[ClienteVerLibroPresenter] Click detectado en agregarCarritoBtn');
@@ -122,10 +133,12 @@ export class ClienteVerLibroPresenter extends Presenter {
 
           console.log('[ClienteVerLibroPresenter] libro._id:', libro._id);
           // Añadir 1 unidad del libro al carrito del cliente
-          model.addClienteCarroItem(userId, { libro: libro._id, cantidad: 1 });
+          await this.model.addClienteCarroItem(userId, { libro: libro._id, cantidad: 1 });
 
           // Mensaje de éxito persistido (se mostrará en la página del carrito)
           LibreriaSession.addMessage("success", `Libro agregado a carrito: ${libro.titulo}`);
+          // Marcar que estamos navegando para prevenir actualizaciones del DOM
+          this._isNavigating = true;
           // Navegar inmediatamente al carrito, donde se mostrará el mensaje
           router.navigate('/libreria/cliente-carrito.html');
 
@@ -138,7 +151,7 @@ export class ClienteVerLibroPresenter extends Presenter {
             setTimeout(() => router.navigate('/libreria/invitado-ingreso.html'), 1000);
           }
         }
-      });
+      };
     }
 
   }

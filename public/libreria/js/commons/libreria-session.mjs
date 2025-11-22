@@ -4,9 +4,7 @@
 const SESSION_KEY = 'libreria_session';
 const MSGS_KEY = 'libreria_messages';
 const USERS_KEY = 'libreria_usuarios';
-const CARRITOS_KEY = 'libreria_carritos';
 const LIBROS_KEY = 'libreria_libros_session';
-const FACTURAS_KEY = 'libreria_facturas';
 
 /**
  * Helpers para localStorage
@@ -432,16 +430,6 @@ export const LibreriaSession = {
         _writeAllCarritos(all);
     },
 
-    // ==================== PERSISTENCIA DE FACTURAS (localStorage) ====================
-    
-    //INFO que debe guardar la factura> *id*, *fecha*, *totalFactura*, razonSocial, dni, direccion, email, items (cantidad, detalle, precioUnitario, totalItem)
-
-    saveFactura(factura) {
-        const all = _readAllFacturas()
-        all.push(factura);
-        _writeAllFacturas(all);
-    },
-
     // ==================== PERSISTENCIA DE LIBROS (sessionStorage) ====================
 
     getAllLibros() {
@@ -471,18 +459,4 @@ export const LibreriaSession = {
     clearAllLibros() {
         SessionStorage.remove(LIBROS_KEY);
     }
-};
-
-// Exports de compatibilidad con versiones anteriores en las que habia un archivo para el carrito-storage y otro para libros-storage
-export const CarritoStorage = {
-    save: (userId, carro) => LibreriaSession.saveCarrito(userId, carro),
-    getAll: () => LibreriaSession.getAllCarritos(),
-    getByUser: (userId) => LibreriaSession.getCarritoByUser(userId),
-    clearAll: () => LibreriaSession.clearAllCarritos()
-};
-
-export const LibrosStorage = {
-    getAll: () => LibreriaSession.getAllLibros(),
-    saveAll: (libros) => LibreriaSession.saveAllLibros(libros),
-    clear: () => LibreriaSession.clearAllLibros()
 };

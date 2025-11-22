@@ -1,7 +1,6 @@
 import { Presenter } from "../../commons/presenter.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { router } from "../../commons/router.mjs";
-import { CarritoStorage } from "../../commons/libreria-session.mjs";
 import { renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";
 
 export class ClienteCarritoPresenter extends Presenter {
@@ -70,7 +69,7 @@ export class ClienteCarritoPresenter extends Presenter {
       return;
     }
 
-    const carro = model.getCarroCliente(userId);
+    const carro = await this.model.getCarroCliente(userId);
     console.log('[CarritoPresenter] carro:', carro);
 
     if (!carro) {
@@ -115,13 +114,19 @@ export class ClienteCarritoPresenter extends Presenter {
       const input = document.createElement('input');
       input.type = 'number';
       input.min = '0';
+      // input.max = item.libro.stock;
       input.value = item.cantidad;
       input.dataset.index = idx;
       input.className = 'qty-input';
-      input.onchange = (e) => {
+      input.onchange = async (e) => {
         const v = Number(e.target.value);
         try {
-          model.setClienteCarroItemCantidad(userId, idx, v);
+          // if (input.value >= item.libro.stock) {
+          //   LibreriaSession.addMessage('warn', 'La cantidad solicitada supera el stock disponible');
+          //   this.refresh();
+          //   renderUltimoMensaje("#mensajesContainer");
+          // }
+          await this.model.setClienteCarroItemCantidad(userId, idx, v);
           LibreriaSession.addMessage('success', 'Cantidad actualizada');
           this.refresh();
           renderUltimoMensaje("#mensajesContainer");
