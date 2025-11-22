@@ -53,7 +53,9 @@ export class ClienteHomePresenter extends Presenter {
         return;
     }
   
-    let libros = this.model.getLibros();
+    let libros = await this.model.getLibros();
+
+    console.log("[ALEJO] Libros en el catálogo:", libros);
 
     await Promise.all(
       libros.map(async (l) => {

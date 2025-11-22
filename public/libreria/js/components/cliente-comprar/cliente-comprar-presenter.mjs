@@ -1,7 +1,6 @@
 import { Presenter } from "../../commons/presenter.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { router } from "../../commons/router.mjs";
-import { CarritoStorage } from "../../commons/libreria-session.mjs";
 import { renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";
 
 export class ClienteComprarPresenter extends Presenter {
@@ -74,7 +73,7 @@ export class ClienteComprarPresenter extends Presenter {
       return;
     }
 
-    const carro = model.getCarroCliente(userId);
+    const carro = await this.model.getCarroCliente(userId);
     // console.log('[ComprarPresenter] carro:', carro);
     
     if (!carro) {
@@ -123,10 +122,10 @@ export class ClienteComprarPresenter extends Presenter {
         input.value = item.cantidad;
         input.dataset.index = idx;
         input.className = 'qty-input';
-        input.onchange = (e) => {
+        input.onchange = async (e) => {
           const v = Number(e.target.value);
           try {
-            model.setClienteCarroItemCantidad(userId, idx, v);
+            await this.model.setClienteCarroItemCantidad(userId, idx, v);
             console.log('[ComprarPresenter] Cantidad actualizada para item index', idx, 'a', v);
             LibreriaSession.addMessage('success', 'Cantidad actualizada');
             this.refresh();
@@ -172,11 +171,11 @@ export class ClienteComprarPresenter extends Presenter {
     }
     
     if (formPago) {
-      formPago.onsubmit = (e) => {
+      formPago.onsubmit = async (e) => {
         e.preventDefault();
         try {
           // Obtener carrito actual
-          const current = model.getCarroCliente(userId);
+          const current = await this.model.getCarroCliente(userId);
 
           // Obtener datos del formulario
           const fecha = document.getElementById('fecha').value;
@@ -192,40 +191,20 @@ export class ClienteComprarPresenter extends Presenter {
             return;
           }
 
-          // Crear objeto de factura con los datos del formulario y del carrito
+          // Crear objeto de factura con los datos del formulario
+          // El servidor tomará los items del carrito del cliente automáticamente
           let factura = {
             fecha: fecha,
             razonSocial: razonSocial,
             direccion: direccion,
             email: email,
             dni: dni,
-            items: current.items.map(item => ({
-              cantidad: item.cantidad,
-              detalle: `${item.libro.titulo} ${item.libro.isbn ? '[' + item.libro.isbn + ']' : ''}`,
-              precioUnitario: item.libro.precio,
-              totalItem: item.total
-            })),
-            subtotal: current.subtotal,
-            iva: current.iva,
-            totalFactura: current.total,
             cliente: userId
           };
 
-          factura = model.facturarCompraCliente(factura);
+          factura = await this.model.facturarCompraCliente(factura);
 
           console.log('[ComprarPresenter] Factura generada:', factura);
-
-          // Guardar factura en localStorage
-          LibreriaSession.saveFactura(factura);
-
-          // Vaciar carrito del cliente en el modelo
-          const cliente = model.getClientePorId(userId);
-          if (cliente) {
-            cliente.removeItems();
-          }
-
-          // Persistir carrito vacío en localStorage
-          CarritoStorage.save(userId, { items: [], subtotal: 0, iva: 0, total: 0 });
 
           // Mensaje de éxito
           LibreriaSession.addMessage('success', 'Compra realizada correctamente. Factura generada.');
