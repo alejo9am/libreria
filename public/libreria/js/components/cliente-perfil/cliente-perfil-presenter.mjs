@@ -25,9 +25,8 @@ export class ClientePerfilPresenter extends Presenter {
         return;
     }
   
-
     // Buscar el usuario completo en el MODELO (no en localStorage)
-    const cliente = this.model.getUsuarioPorId(userSession._id);
+    const cliente = await this.model.getClientePorId(userSession._id);
 
     if (!cliente) {
         LibreriaSession.addMessage("error", "Cliente no encontrado");
@@ -63,7 +62,7 @@ export class ClientePerfilPresenter extends Presenter {
     const form = document.querySelector("#perfilForm");
     const mensajesContainer = document.querySelector("#mensajesContainer");
 
-    form.addEventListener("submit", (ev) => {
+    form.addEventListener("submit", async (ev) => {
       ev.preventDefault();
       mensajesContainer.innerHTML = "";
 
@@ -99,8 +98,14 @@ export class ClientePerfilPresenter extends Presenter {
 
         console.log("Actualizando perfil:", datosActualizados);
 
-        // Actualizar en el modelo (esto también actualiza en localStorage automáticamente)
-        this.model.updateUsuario(datosActualizados);
+        // Actualizar en el modelo (servidor)
+        const clienteActualizado = await this.model.updateCliente(datosActualizados);
+
+        // Actualizar en localStorage para mantener sincronizado
+        LibreriaSession.saveUsuario(clienteActualizado);
+
+        // Actualizar la referencia local
+        this.cliente = clienteActualizado;
 
         LibreriaSession.addMessage("success", "Perfil actualizado correctamente");
         renderUltimoMensaje("#mensajesContainer");

@@ -116,7 +116,7 @@ app.put('/api/libros/:id', function (req, res, next) {
     if (!libro) {
       return res.status(404).json({ error: 'Libro no encontrado' });
     }
-    req.body._id = id;
+    req.body._id = Number(id);
     model.updateLibro(req.body);
     res.json(model.getLibroPorId(id));
   } catch (err) {
@@ -251,7 +251,7 @@ app.put('/api/clientes/:id', function (req, res, next) {
     if (!id) {
       return res.status(400).json({ error: 'ID no definido' });
     }
-    req.body._id = id;
+    req.body._id = Number(id);
     let cliente = model.updateCliente(req.body);
     // No devolver contraseña
     const { password, ...clienteSinPassword } = cliente;
@@ -474,7 +474,7 @@ app.put('/api/admins/:id', function (req, res, next) {
     if (!id) {
       return res.status(400).json({ error: 'ID no definido' });
     }
-    req.body._id = id;
+    req.body._id = Number(id);
     let admin = model.updateAdmin(req.body);
     // No devolver contraseña
     const { password, ...adminSinPassword } = admin;
