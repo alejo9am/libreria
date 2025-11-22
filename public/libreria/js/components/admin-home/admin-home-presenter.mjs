@@ -28,7 +28,7 @@ export class AdminHomePresenter extends Presenter {
       return;
     }
 
-    let libros = this.model.getLibros();
+    let libros = await this.model.getLibros();
 
     await Promise.all(
       libros.map(async (l) => {

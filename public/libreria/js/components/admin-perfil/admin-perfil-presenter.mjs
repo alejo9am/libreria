@@ -22,7 +22,7 @@ export class AdminPerfilPresenter extends Presenter {
     }
 
     // Buscar el usuario completo en el MODELO (no en localStorage)
-    const admin = this.model.getUsuarioPorId(userSession._id);
+    const admin = await this.model.getAdminPorId(userSession._id);
 
     if (!admin) {
       LibreriaSession.addMessage("error", "Administrador no encontrado");
@@ -95,8 +95,9 @@ export class AdminPerfilPresenter extends Presenter {
         console.log("Actualizando perfil:", datosActualizados);
 
         // Actualizar en el modelo (esto también actualiza en localStorage automáticamente)
-        this.model.updateUsuario(datosActualizados);
-
+        this.model.updateAdmin(datosActualizados);
+        // Actualizar sesión
+        LibreriaSession.setUser(datosActualizados);
         LibreriaSession.addMessage("success", "Perfil actualizado correctamente");
         renderUltimoMensaje("#mensajesContainer");
 
