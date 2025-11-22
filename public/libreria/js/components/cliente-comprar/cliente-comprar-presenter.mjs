@@ -1,7 +1,6 @@
 import { Presenter } from "../../commons/presenter.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { router } from "../../commons/router.mjs";
-import { CarritoStorage } from "../../commons/libreria-session.mjs";
 import { renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";
 
 export class ClienteComprarPresenter extends Presenter {
@@ -206,12 +205,6 @@ export class ClienteComprarPresenter extends Presenter {
           factura = await this.model.facturarCompraCliente(factura);
 
           console.log('[ComprarPresenter] Factura generada:', factura);
-
-          // Guardar factura en localStorage
-          LibreriaSession.saveFactura(factura);
-
-          // El servidor ya vació el carrito, solo actualizar localStorage
-          CarritoStorage.save(userId, { items: [], subtotal: 0, iva: 0, total: 0 });
 
           // Mensaje de éxito
           LibreriaSession.addMessage('success', 'Compra realizada correctamente. Factura generada.');

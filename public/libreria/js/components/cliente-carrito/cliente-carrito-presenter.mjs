@@ -1,7 +1,6 @@
 import { Presenter } from "../../commons/presenter.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { router } from "../../commons/router.mjs";
-import { CarritoStorage } from "../../commons/libreria-session.mjs";
 import { renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";
 
 export class ClienteCarritoPresenter extends Presenter {
