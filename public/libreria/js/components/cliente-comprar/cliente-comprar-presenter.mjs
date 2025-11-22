@@ -176,7 +176,7 @@ export class ClienteComprarPresenter extends Presenter {
         e.preventDefault();
         try {
           // Obtener carrito actual
-          const current = await model.getCarroCliente(userId);
+          const current = await this.model.getCarroCliente(userId);
 
           // Obtener datos del formulario
           const fecha = document.getElementById('fecha').value;
@@ -192,39 +192,25 @@ export class ClienteComprarPresenter extends Presenter {
             return;
           }
 
-          // Crear objeto de factura con los datos del formulario y del carrito
+          // Crear objeto de factura con los datos del formulario
+          // El servidor tomará los items del carrito del cliente automáticamente
           let factura = {
             fecha: fecha,
             razonSocial: razonSocial,
             direccion: direccion,
             email: email,
             dni: dni,
-            items: current.items.map(item => ({
-              cantidad: item.cantidad,
-              detalle: `${item.libro.titulo} ${item.libro.isbn ? '[' + item.libro.isbn + ']' : ''}`,
-              precioUnitario: item.libro.precio,
-              totalItem: item.total
-            })),
-            subtotal: current.subtotal,
-            iva: current.iva,
-            totalFactura: current.total,
             cliente: userId
           };
 
-          factura = await model.facturarCompraCliente(factura);
+          factura = await this.model.facturarCompraCliente(factura);
 
           console.log('[ComprarPresenter] Factura generada:', factura);
 
           // Guardar factura en localStorage
           LibreriaSession.saveFactura(factura);
 
-          // Vaciar carrito del cliente en el modelo
-          const cliente = await model.getClientePorId(userId);
-          if (cliente) {
-            cliente.removeItems();
-          }
-
-          // Persistir carrito vacío en localStorage
+          // El servidor ya vació el carrito, solo actualizar localStorage
           CarritoStorage.save(userId, { items: [], subtotal: 0, iva: 0, total: 0 });
 
           // Mensaje de éxito

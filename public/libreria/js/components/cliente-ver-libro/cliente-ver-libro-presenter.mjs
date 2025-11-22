@@ -6,6 +6,7 @@ export class ClienteVerLibroPresenter extends Presenter {
 
   constructor(model, view) {
     super(model, view);
+    this._isNavigating = false;
   }
 
   get catalogoElement() {
@@ -24,7 +25,8 @@ export class ClienteVerLibroPresenter extends Presenter {
     return await this.model.getLibroPorId(this.id);
   }
 
-  set libro(libro) {    
+  set libro(libro) {
+    if (this._isNavigating) return;
     this.isbn = libro.isbn;
     this.titulo = libro.titulo;
     this.autores = libro.autores;
@@ -34,26 +36,28 @@ export class ClienteVerLibroPresenter extends Presenter {
   }
 
   get isbnParagraph() {
-    console.log(document);
     return document.querySelector('#isbnParagraph');
   }
 
   set isbn(isbn) {
-    this.isbnParagraph.textContent = isbn;
+    const elem = this.isbnParagraph;
+    if (elem) elem.textContent = isbn;
   }
   get tituloParagraph() {
     return document.querySelector('#tituloParagraph');
   }
 
   set titulo(titulo) {
-    this.tituloParagraph.textContent = titulo;
+    const elem = this.tituloParagraph;
+    if (elem) elem.textContent = titulo;
   }
   get autoresParagraph() {
     return document.querySelector('#autoresParagraph');
   }
 
   set autores(autores) {
-    this.autoresParagraph.textContent = autores;
+    const elem = this.autoresParagraph;
+    if (elem) elem.textContent = autores;
   }
 
   get resumenParagraph() {
@@ -61,14 +65,16 @@ export class ClienteVerLibroPresenter extends Presenter {
   }
 
   set resumen(resumen) {
-    this.resumenParagraph.textContent = resumen;
+    const elem = this.resumenParagraph;
+    if (elem) elem.textContent = resumen;
   }
   get precioParagraph() {
     return document.querySelector('#precioParagraph');
   }
 
   set precio(precio) {
-    this.precioParagraph.textContent = precio;
+    const elem = this.precioParagraph;
+    if (elem) elem.textContent = precio;
   }
 
   get stockParagraph() {
@@ -76,12 +82,14 @@ export class ClienteVerLibroPresenter extends Presenter {
   }
 
   set stock(stock) {
-    this.stockParagraph.textContent = stock;
+    const elem = this.stockParagraph;
+    if (elem) elem.textContent = stock;
   }
 
 
 
   async refresh() {
+    this._isNavigating = false;
     await super.refresh();
     
     // Verificar si el usuario es cliente, sino redirigir al login
@@ -101,7 +109,9 @@ export class ClienteVerLibroPresenter extends Presenter {
     if (libro) this.libro = libro;
     else console.error(`Libro ${id} not found!`);
 
-    document.querySelector('#verLibroTitulo').textContent=`Titulo: ${libro.titulo}`
+    const tituloElem = document.querySelector('#verLibroTitulo');
+    if (tituloElem && libro) tituloElem.textContent = `Titulo: ${libro.titulo}`;
+    
     const mensajesContainer = document.getElementById("mensajesContainer");
     const agregarCarritoBtn = document.getElementById("agregarCarritoBtn");
 
@@ -109,8 +119,8 @@ export class ClienteVerLibroPresenter extends Presenter {
 
     if (agregarCarritoBtn) {
       console.log('[ClienteVerLibroPresenter] Asignando addEventListener al botón');
-      // Usar addEventListener en lugar de onclick para que tenga prioridad
-      agregarCarritoBtn.addEventListener('click', async (e) => {
+      // Reemplazar onclick para evitar conflicto con router.route
+      agregarCarritoBtn.onclick = async (e) => {
         e.preventDefault();
         e.stopPropagation();
         console.log('[ClienteVerLibroPresenter] Click detectado en agregarCarritoBtn');
@@ -127,9 +137,10 @@ export class ClienteVerLibroPresenter extends Presenter {
 
           // Mensaje de éxito persistido (se mostrará en la página del carrito)
           LibreriaSession.addMessage("success", `Libro agregado a carrito: ${libro.titulo}`);
+          // Marcar que estamos navegando para prevenir actualizaciones del DOM
+          this._isNavigating = true;
           // Navegar inmediatamente al carrito, donde se mostrará el mensaje
           router.navigate('/libreria/cliente-carrito.html');
-          return; // Detener ejecución después de navegar
 
         } catch (err) {
           console.error('[ClienteVerLibroPresenter] Error:', err);
@@ -140,7 +151,7 @@ export class ClienteVerLibroPresenter extends Presenter {
             setTimeout(() => router.navigate('/libreria/invitado-ingreso.html'), 1000);
           }
         }
-      });
+      };
     }
 
   }
