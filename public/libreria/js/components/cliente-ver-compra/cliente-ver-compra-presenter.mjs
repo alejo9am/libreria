@@ -21,8 +21,8 @@ export class ClienteVerCompraPresenter extends Presenter {
     return this.searchParams.get('id');
   }
 
-  getFactura() {
-    return this.model.getFacturaPorId(this.id);
+  async getFactura() {
+    return await this.model.getFacturaPorId(this.id);
   }
 
   set factura(factura) {    
@@ -86,11 +86,16 @@ export class ClienteVerCompraPresenter extends Presenter {
   async refresh() {
     await super.refresh();
 
-    let factura = this.getFactura()[0];
-    if (factura) this.factura = factura;
-    else console.error(`Factura ${this.id} not found!`);
+    let factura = await this.getFactura();
+    if (!factura) {
+      console.error(`Factura ${this.id} not found!`);
+      return;
+    }
+    
+    this.factura = factura;
 
     const carritoItems = document.getElementById("carritoItems");
+    if (!carritoItems) return;
 
     factura.items.forEach((item, idx) => {
       const tr = document.createElement('tr');

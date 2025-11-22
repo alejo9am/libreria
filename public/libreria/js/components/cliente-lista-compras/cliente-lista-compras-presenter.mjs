@@ -33,12 +33,12 @@ export class ClienteListaComprasPresenter extends Presenter {
   async refresh() {
     await super.refresh();
 
-    console.log(this.model.getFacturas())
+    // console.log(this.model.getFacturas())
 
     if (this.tbody) this.tbody.innerHTML = "";
     if (this.mensajes) this.mensajes.innerHTML = "";
 
-    const facturas = this.model.getFacturasCliente(LibreriaSession.getUserId()) || [];
+    const facturas = await this.model.getFacturasCliente(LibreriaSession.getUserId()) || [];
 
     if (facturas.length === 0) {
       if (this.mensajes) {
