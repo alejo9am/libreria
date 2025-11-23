@@ -4,7 +4,7 @@
   "main": "app.mjs",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test-rest": ".\\node_modules\\.bin\\mocha .\\test\\rest.spec.mjs --reporter spec --exit",
     "start": "node ."
   },
   "keywords": [],
@@ -13,6 +13,9 @@
   "description": "",
   "dependencies": {
     "express": "^4.21.1",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "mocha": "^10.2.0",
+    "chai": "^4.3.7",
+    "chai-http": "^4.3.0"
   }
 }

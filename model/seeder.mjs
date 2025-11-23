@@ -1,7 +1,7 @@
 // model/seeder.mjs
 import { model, ROL } from './model.mjs';
 
-function crearLibro(isbn) {
+export function crearLibro(isbn) {
   return {
     isbn: `${isbn}`,
     titulo: `TITULO_${isbn}`,
@@ -14,7 +14,7 @@ function crearLibro(isbn) {
   };
 }
 
-function crearPersona(dni) {
+export function crearPersona(dni) {
   return {
     dni: `${dni}`,
     nombre: `Nombre ${dni}`,
@@ -25,13 +25,13 @@ function crearPersona(dni) {
   };
 }
 
-function crearCliente(dni) {
+export function crearCliente(dni) {
   let cliente = crearPersona(dni);
   cliente.rol = ROL.CLIENTE;
   return cliente;
 }
 
-function crearAdmin(dni) {
+export function crearAdmin(dni) {
   let admin = crearPersona(dni);
   admin.rol = ROL.ADMIN;
   return admin;
@@ -115,7 +115,7 @@ export function seed() {
       console.log('[Seeder Server] Factura 1 creada para cliente', cliente1._id);
 
       // Vaciar el carrito después de facturar
-      model.vaciarClienteCarro(cliente1._id);
+      model.vaciarCarroCliente(cliente1._id);
     } catch (err) {
       console.warn('[Seeder Server] Error al crear factura 1:', err.message);
     }
@@ -142,7 +142,7 @@ export function seed() {
       console.log('[Seeder Server] Factura 2 creada para cliente', cliente2._id);
 
       // Vaciar el carrito después de facturar
-      model.vaciarClienteCarro(cliente2._id);
+      model.vaciarCarroCliente(cliente2._id);
     } catch (err) {
       console.warn('[Seeder Server] Error al crear factura 2:', err.message);
     }
@@ -165,7 +165,7 @@ export function seed() {
       console.log('[Seeder Server] Factura 3 creada para cliente', cliente3._id);
 
       // Vaciar el carrito después de facturar
-      model.vaciarClienteCarro(cliente3._id);
+      model.vaciarCarroCliente(cliente3._id);
     } catch (err) {
       console.warn('[Seeder Server] Error al crear factura 3:', err.message);
     }
@@ -196,7 +196,7 @@ export function seed() {
       console.log('[Seeder Server] Factura 4 creada para cliente', cliente4._id);
 
       // Vaciar el carrito después de facturar
-      model.vaciarClienteCarro(cliente4._id);
+      model.vaciarCarroCliente(cliente4._id);
     } catch (err) {
       console.warn('[Seeder Server] Error al crear factura 4:', err.message);
     }
@@ -220,7 +220,7 @@ export function seed() {
       });
       console.log('[Seeder Server] Factura 5 creada para cliente', cliente5._id);
       // Vaciar el carrito después de facturar
-      model.vaciarClienteCarro(cliente5._id);
+      model.vaciarCarroCliente(cliente5._id);
     } catch (err) {
       console.warn('[Seeder Server] Error al crear factura 5:', err.message);
     }

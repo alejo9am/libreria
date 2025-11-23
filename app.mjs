@@ -84,7 +84,7 @@ app.get('/api/libros/:id', function (req, res, next) {
 app.post('/api/libros', function (req, res, next) {
   try {
     let obj = req.body;
-    console.log('[POST /api/libros]', obj);
+    // console.log('[POST /api/libros]', obj);
     let libro = model.addLibro(obj);
     res.status(201).json(libro);
   } catch (err) {
@@ -96,7 +96,7 @@ app.post('/api/libros', function (req, res, next) {
 // PUT /api/libros - Reemplazar todos los libros (setLibros)
 app.put('/api/libros', function (req, res, next) {
   try {
-    console.log('[PUT /api/libros]', req.body);
+    // console.log('[PUT /api/libros]', req.body);
     model.setLibros(req.body);
     res.json(model.getLibros());
   } catch (err) {
@@ -214,7 +214,7 @@ app.get('/api/clientes/:id', function (req, res, next) {
 
 // POST /api/clientes - Registrar un nuevo cliente
 app.post('/api/clientes', function (req, res, next) {
-  console.log('[POST /api/clientes]', req.body);
+  // console.log('[POST /api/clientes]', req.body);
   try {
     req.body.rol = 'CLIENTE'; // Forzar rol de cliente
     let cliente = model.addCliente(req.body);
@@ -231,7 +231,7 @@ app.post('/api/clientes', function (req, res, next) {
 // PUT /api/clientes - Reemplazar todos los clientes (setClientes)
 app.put('/api/clientes', function (req, res, next) {
   try {
-    console.log('[PUT /api/clientes]', req.body);
+    // console.log('[PUT /api/clientes]', req.body);
     model.setClientes(req.body);
     const clientes = model.getClientes().map(c => {
       const { password, ...clienteSinPassword } = c;
@@ -292,14 +292,13 @@ app.delete('/api/clientes/:id', function (req, res, next) {
 app.post('/api/clientes/autenticar', function (req, res, next) {
   console.log('[POST /api/clientes/autenticar]', req.body);
   try {
-    req.body.rol = 'CLIENTE'; // Forzar autenticación como cliente
+    req.body.rol = 'CLIENTE';
     let cliente = model.autenticarCliente(req.body);
     console.log('[Cliente autenticado]', cliente.email);
-    // No devolver contraseña
     const { password, ...clienteSinPassword } = cliente;
     res.json(clienteSinPassword);
   } catch (err) {
-    console.error(err);
+    // NO imprimir el error en consola - es un error esperado
     res.status(401).json({ error: err.message });
   }
 });
@@ -339,7 +338,7 @@ app.post('/api/clientes/:id/carro/items', function (req, res, next) {
       return res.status(400).json({ error: 'Id no definido' });
     }
     let item = req.body;
-    console.log('[POST /api/clientes/:id/carro/items]', id, item);
+    // console.log('[POST /api/clientes/:id/carro/items]', id, item);
     let carro = model.addClienteCarroItem(id, item);
     res.json(carro);
   } catch (err) {
@@ -365,7 +364,7 @@ app.put('/api/clientes/:id/carro/items/:index', function (req, res, next) {
       return res.status(400).json({ error: 'Cantidad no definida' });
     }
 
-    console.log('[PUT /api/clientes/:id/carro/items/:index]', id, index, cantidad);
+    // console.log('[PUT /api/clientes/:id/carro/items/:index]', id, index, cantidad);
     let carro = model.setClienteCarroItemCantidad(id, index, cantidad);
     res.json(carro);
   } catch (err) {
@@ -437,11 +436,11 @@ app.get('/api/admins/:id', function (req, res, next) {
 
 // POST /api/admins - Registrar un nuevo administrador
 app.post('/api/admins', function (req, res, next) {
-  console.log('[POST /api/admins]', req.body);
+  // console.log('[POST /api/admins]', req.body);
   try {
     req.body.rol = 'ADMIN'; // Forzar rol de administrador
     let admin = model.addAdmin(req.body);
-    console.log('[Administrador registrado]', admin.email);
+    // console.log('[Administrador registrado]', admin.email);
     // No devolver contraseña
     const { password, ...adminSinPassword } = admin;
     res.status(201).json(adminSinPassword);
@@ -454,7 +453,7 @@ app.post('/api/admins', function (req, res, next) {
 // PUT /api/admins - Reemplazar todos los administradores (setAdmins)
 app.put('/api/admins', function (req, res, next) {
   try {
-    console.log('[PUT /api/admins]', req.body);
+    // console.log('[PUT /api/admins]', req.body);
     model.setAdmins(req.body);
     const admins = model.getAdmins().map(a => {
       const { password, ...adminSinPassword } = a;
@@ -515,14 +514,13 @@ app.delete('/api/admins/:id', function (req, res, next) {
 app.post('/api/admins/autenticar', function (req, res, next) {
   console.log('[POST /api/admins/autenticar]', req.body);
   try {
-    req.body.rol = 'ADMIN'; // Forzar autenticación como administrador
+    req.body.rol = 'ADMIN';
     let admin = model.autenticarAdmin(req.body);
     console.log('[Administrador autenticado]', admin.email);
-    // No devolver contraseña
     const { password, ...adminSinPassword } = admin;
     res.json(adminSinPassword);
   } catch (err) {
-    console.error(err);
+    // NO imprimir el error en consola - es un error esperado
     res.status(401).json({ error: err.message });
   }
 });
@@ -617,7 +615,7 @@ app.post('/api/facturas', (req, res) => {
       dni: req.body.dni
     });
 
-    console.log('[POST /api/facturas] Factura creada:', factura);
+    // console.log('[POST /api/facturas] Factura creada:', factura);
     res.json(factura);
   } catch (err) {
     console.error('[POST /api/facturas] Error:', err.message);
@@ -628,7 +626,7 @@ app.post('/api/facturas', (req, res) => {
 // PUT /api/facturas - Reemplazar todas las facturas (setFacturas)
 app.put('/api/facturas', function (req, res, next) {
   try {
-    console.log('[PUT /api/facturas]', req.body);
+    // console.log('[PUT /api/facturas]', req.body);
     model.setFacturas(req.body);
     res.json(model.getFacturas());
   } catch (err) {
