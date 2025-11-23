@@ -101,9 +101,6 @@ export class ClientePerfilPresenter extends Presenter {
         // Actualizar en el modelo (servidor)
         const clienteActualizado = await this.model.updateCliente(datosActualizados);
 
-        // Actualizar en localStorage para mantener sincronizado
-        LibreriaSession.saveUsuario(clienteActualizado);
-
         // Actualizar la referencia local
         this.cliente = clienteActualizado;
 
