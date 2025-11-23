@@ -1,103 +1,385 @@
-# Librería WebApp
+# 📚 Librería WebApp - Sistema de Gestión de Libros
 
-Aplicación **SPA (Single Page Application)** desarrollada como práctica de la asignatura **Tecnologías y Sistemas Web (curso 24/25)** de la **Universidad de Castilla-La Mancha**.  
-El objetivo es implementar el **front-end** de una aplicación para la **venta de libros**, con distintos roles de usuario y persistencia de sesión en el navegador.
+Aplicación **full-stack** desarrollada como práctica de la asignatura **Tecnologías y Sistemas Web (curso 24/25)** de la **Universidad de Castilla-La Mancha**.
+
+La aplicación implementa un sistema completo de gestión de librería con arquitectura cliente-servidor, incluyendo una **SPA (Single Page Application)** en el frontend y una **API REST** en el backend.
 
 ---
 
 ## 🎯 Objetivo
-Desarrollar la interfaz de usuario y la lógica de presentación de una aplicación Web para la compra y gestión de libros, incluyendo la navegación, feedback al usuario y pruebas.
+
+Desarrollar un sistema completo de gestión de librería que permita:
+
+- Navegación fluida sin recarga de página (SPA)
+- Gestión de usuarios con diferentes roles y permisos
+- Operaciones CRUD sobre libros, clientes y administradores
+- Sistema de carrito de compras y facturación
+- Persistencia de datos con sincronización cliente-servidor
+
+---
+
+## 🏗️ Arquitectura del Sistema
+
+El proyecto implementa una arquitectura **cliente-servidor** con separación clara de responsabilidades:
+
+### Backend (Servidor Node.js + Express)
+
+```
+├── app.mjs                 # Servidor Express con API REST
+├── model/
+│   ├── model.mjs          # Lógica de negocio y dominio
+│   └── seeder.mjs         # Datos iniciales de prueba
+└── test/
+    └── rest.spec.mjs      # Tests de la API REST
+```
+
+### Frontend (SPA con JavaScript ES6+)
+
+```
+public/libreria/
+├── index.html             # Punto de entrada
+├── estilo.css            # Estilos globales
+└── js/
+    ├── main.mjs          # Inicialización de la SPA
+    ├── model/
+    │   └── proxy.mjs     # Cliente de la API REST
+    ├── commons/
+    │   ├── router.mjs            # Sistema de enrutamiento SPA
+    │   ├── libreria-session.mjs  # Gestión de sesión
+    │   ├── presenter.mjs         # Clase base para componentes
+    │   └── mensajes-helper.mjs   # Sistema de notificaciones
+    └── components/               # Componentes de UI por rol
+        ├── invitado-*/          # Componentes para usuarios no autenticados
+        ├── cliente-*/           # Componentes para clientes
+        ├── admin-*/             # Componentes para administradores
+        └── error-404/           # Página de error
+```
+
+---
+
+## 🔌 API REST
+
+El backend expone una API REST completa con los siguientes endpoints:
+
+### 📖 Libros
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/libros` | Obtener todos los libros |
+| `GET` | `/api/libros?isbn=xxx` | Buscar libro por ISBN |
+| `GET` | `/api/libros?titulo=xxx` | Buscar libro por título |
+| `GET` | `/api/libros/:id` | Obtener libro por ID |
+| `POST` | `/api/libros` | Crear nuevo libro |
+| `PUT` | `/api/libros` | Reemplazar todos los libros |
+| `PUT` | `/api/libros/:id` | Actualizar libro existente |
+| `DELETE` | `/api/libros` | Eliminar todos los libros |
+| `DELETE` | `/api/libros/:id` | Eliminar libro por ID |
+
+### 👤 Clientes
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/clientes` | Obtener todos los clientes |
+| `GET` | `/api/clientes?email=xxx` | Buscar cliente por email |
+| `GET` | `/api/clientes?nombre=xxx` | Buscar cliente por nombre |
+| `GET` | `/api/clientes/:id` | Obtener cliente por ID |
+| `POST` | `/api/clientes` | Crear nuevo cliente |
+| `POST` | `/api/clientes/signin` | Registrar nuevo cliente |
+| `POST` | `/api/clientes/autenticar` | Autenticar cliente |
+| `PUT` | `/api/clientes` | Reemplazar todos los clientes |
+| `PUT` | `/api/clientes/:id` | Actualizar cliente existente |
+| `DELETE` | `/api/clientes` | Eliminar todos los clientes |
+| `DELETE` | `/api/clientes/:id` | Eliminar cliente por ID |
+
+### 🛒 Carrito de Compras
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/clientes/:id/carro` | Obtener carrito del cliente |
+| `POST` | `/api/clientes/:id/carro/items` | Agregar item al carrito |
+| `PUT` | `/api/clientes/:id/carro/items/:index` | Actualizar cantidad de item |
+
+### 👨‍💼 Administradores
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/admins` | Obtener todos los administradores |
+| `GET` | `/api/admins?email=xxx` | Buscar admin por email |
+| `GET` | `/api/admins?nombre=xxx` | Buscar admin por nombre |
+| `GET` | `/api/admins/:id` | Obtener admin por ID |
+| `POST` | `/api/admins` | Crear nuevo admin |
+| `POST` | `/api/admins/signin` | Registrar nuevo admin |
+| `POST` | `/api/admins/autenticar` | Autenticar admin |
+| `PUT` | `/api/admins` | Reemplazar todos los admins |
+| `PUT` | `/api/admins/:id` | Actualizar admin existente |
+| `DELETE` | `/api/admins` | Eliminar todos los admins |
+| `DELETE` | `/api/admins/:id` | Eliminar admin por ID |
+
+### 🧾 Facturas
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/facturas` | Obtener todas las facturas |
+| `GET` | `/api/facturas?clienteId=xxx` | Buscar facturas por cliente |
+| `GET` | `/api/facturas/:id` | Obtener factura por ID |
+| `POST` | `/api/facturas` | Crear nueva factura |
+| `PUT` | `/api/facturas` | Reemplazar todas las facturas |
+| `DELETE` | `/api/facturas` | Eliminar todas las facturas |
+| `DELETE` | `/api/facturas/:id` | Eliminar factura por ID |
 
 ---
 
 ## 👥 Roles y Funcionalidades
 
-### Invitado
-- Ver catálogo de libros.
-- Ver detalle de un libro.
-- Ingresar al sistema.
-- Registrarse.
+### 🌐 Invitado (No autenticado)
 
-### Cliente
-- Ver catálogo y detalle de libros.
-- Agregar libros al carrito.
-- Ver carrito y realizar compras.
-- Pagar.
-- Consultar historial de compras y detalles.
-- Modificar perfil de cliente.
+- ✅ Ver catálogo de libros con paginación
+- ✅ Ver detalle completo de cada libro
+- ✅ Buscar libros por título o ISBN
+- ✅ Iniciar sesión como cliente o administrador
+- ✅ Registrarse como nuevo cliente
 
-### Administrador
-- Ver catálogo y detalle de libros.
-- Agregar, modificar o eliminar libros.
-- Editar perfil de administrador.
+### 🛍️ Cliente (Usuario registrado)
 
----
+- ✅ Todas las funcionalidades de invitado
+- ✅ Agregar libros al carrito de compras
+- ✅ Ver y modificar carrito
+- ✅ Realizar compras y generar facturas
+- ✅ Consultar historial de compras
+- ✅ Ver detalles de facturas anteriores
+- ✅ Modificar perfil personal
 
-## ⚙️ Requisitos no funcionales
-- **Node.js + Express.js**.
-- Gestión de **sesión en navegador** (usuario y rol).
-- **Mensajes de feedback** (operaciones exitosas, información y errores).
-- **Páginas de error** donde aplique.
-- Pruebas con **Mocha + Chai**.
+### 👨‍💼 Administrador
 
----
-
-## 🏗️ Arquitectura del Proyecto
-El proyecto está dividido en 4 módulos principales:
-
-- **main** → Punto de entrada, inicializa navegación y componentes.
-- **model** → Contiene las clases de dominio y lógica de datos (mock del backend).
-- **commons** → Componentes comunes:
-  - `Router` → Control de navegación.
-  - `LibreriaSession` → Gestión de sesión y mensajes.
-  - `Presenter` → Renderizado y control de componentes UI.
-- **components** → Subclases de `Presenter` que representan páginas y componentes anidados.
+- ✅ Ver catálogo completo de libros
+- ✅ Ver detalle de cada libro
+- ✅ Agregar nuevos libros al sistema
+- ✅ Modificar información de libros existentes
+- ✅ Eliminar libros del catálogo
+- ✅ Editar perfil de administrador
 
 ---
 
-## 🧪 Pruebas
-Se han definido pruebas en navegador usando **Mocha + Chai**, que validan:
-- Getters y Setters.
-- Manejo de excepciones.
-- Agregar, modificar y eliminar elementos.
-- Cálculos internos del modelo.
+## ⚙️ Características Técnicas
+
+### Frontend
+
+- **SPA (Single Page Application)** con JavaScript vanilla ES6+
+- **Sistema de enrutamiento personalizado** sin recarga de página
+- **Patrón Presenter-View** para componentes UI
+- **Gestión de sesión** en sessionStorage
+- **Sistema de notificaciones** para feedback de operaciones
+- **Validación de formularios** en cliente
+- **Manejo de errores** con página 404 personalizada
+
+### Backend
+
+- **Node.js** con **Express.js**
+- **API REST** completa con todas las operaciones CRUD
+- **Middleware CORS** para desarrollo
+- **Validación de datos** en servidor
+- **Manejo de errores** centralizado
+- **Arquitectura MVC** con separación de capas
+- **Persistencia en memoria** con modelo de dominio
+
+### Testing
+
+- **Mocha + Chai** para tests unitarios
+- **Chai-HTTP** para tests de integración de la API
+- Tests automatizados para:
+  - Endpoints de la API REST
+  - Validaciones de negocio
+  - Manejo de errores
+  - Operaciones CRUD
 
 ---
 
 ## 🚀 Instalación y Uso
 
-1. Clonar el repositorio:
+### Prerrequisitos
+
+- Node.js (versión 14 o superior)
+- npm (incluido con Node.js)
+
+### Instalación
+
+1. **Clonar el repositorio:**
+
    ```bash
-   git clone https://github.com/alejo9am/libreria.git
+   git clone <url-del-repositorio>
    cd libreria
    ```
 
-2. Instalar dependencias:
+2. **Instalar dependencias:**
+
    ```bash
    npm install
    ```
 
-3. Ejecutar el servidor de desarrollo:
-   ```bash
-   npm run start
-   ```
+### Ejecución
 
-4. Abrir en el navegador:
-   ```
-   http://localhost:3000/libreria
-   ```
+**Iniciar el servidor:**
+
+```bash
+npm start
+```
+
+El servidor se iniciará en `http://localhost:3000`
+
+**Acceder a la aplicación:**
+
+```bash
+http://localhost:3000/libreria
+```
+
+### Testing
+
+**Ejecutar tests de la API REST:**
+
+```bash
+npm run test-rest
+```
 
 ---
 
-## 📂 Estructura de Carpetas
-```
-libreria/
-│── main/              # Punto de entrada
-│── model/             # Clases de dominio (Libro, Usuario, Compra, etc.)
-│── commons/           # Router, Session, Presenter
-│── components/        # Componentes de UI
-│── public/            # Recursos estáticos (HTML, CSS, imágenes)
-│── test/              # Pruebas con Mocha + Chai
-│── package.json
+## 📦 Dependencias
+
+```json
+{
+  "express": "^4.21.1",     // Framework web
+  "path": "^0.12.7",        // Utilidades de rutas
+  "mocha": "^10.2.0",       // Framework de testing
+  "chai": "^4.3.7",         // Librería de aserciones
+  "chai-http": "^4.3.0"     // Plugin HTTP para Chai
+}
 ```
 
+---
+
+## 📂 Estructura Detallada del Proyecto
+
+```
+libreria/
+│
+├── 📄 app.mjs                    # Servidor Express + API REST
+├── 📄 package.json               # Configuración del proyecto
+├── 📄 package-lock.json          # Lock de dependencias
+├── 📄 README.md                  # Este archivo
+│
+├── 📁 model/                     # Capa de modelo (Backend)
+│   ├── model.mjs                # Lógica de negocio y dominio
+│   └── seeder.mjs               # Datos de inicialización
+│
+├── 📁 test/                      # Tests del backend
+│   └── rest.spec.mjs            # Tests de la API REST
+│
+└── 📁 public/                    # Archivos públicos
+    └── 📁 libreria/             # Aplicación SPA
+        ├── index.html           # Punto de entrada HTML
+        ├── estilo.css           # Estilos globales
+        │
+        ├── 📁 js/              
+        │   ├── main.mjs         # Inicialización de la SPA
+        │   │
+        │   ├── 📁 model/
+        │   │   └── proxy.mjs    # Cliente HTTP de la API
+        │   │
+        │   ├── 📁 commons/      # Utilidades compartidas
+        │   │   ├── router.mjs           # Enrutamiento SPA
+        │   │   ├── libreria-session.mjs # Gestión de sesión
+        │   │   ├── presenter.mjs        # Clase base de componentes
+        │   │   └── mensajes-helper.mjs  # Sistema de mensajes
+        │   │
+        │   └── 📁 components/   # Componentes de UI
+        │       │
+        │       ├── 📁 invitado-*        # Invitado (6 componentes)
+        │       │   ├── invitado-home/
+        │       │   ├── invitado-catalogo/
+        │       │   ├── invitado-catalogo-libro/
+        │       │   ├── invitado-ver-libro/
+        │       │   ├── invitado-ingreso/
+        │       │   └── invitado-registro/
+        │       │
+        │       ├── 📁 cliente-*         # Cliente (9 componentes)
+        │       │   ├── cliente-home/
+        │       │   ├── cliente-catalogo-libro/
+        │       │   ├── cliente-ver-libro/
+        │       │   ├── cliente-carrito/
+        │       │   ├── cliente-comprar/
+        │       │   ├── cliente-lista-compras/
+        │       │   ├── cliente-ver-compra/
+        │       │   ├── cliente-facturas/
+        │       │   └── cliente-perfil/
+        │       │
+        │       ├── 📁 admin-*           # Admin (7 componentes)
+        │       │   ├── admin-home/
+        │       │   ├── admin-catalogo/
+        │       │   ├── admin-catalogo-libro/
+        │       │   ├── admin-ver-libro/
+        │       │   ├── admin-agregar-libro/
+        │       │   ├── admin-modificar-libro/
+        │       │   └── admin-perfil/
+        │       │
+        │       └── 📁 error-404/        # Página de error
+        │
+        └── 📁 test/                     # Tests del frontend
+            └── model.spec.mjs           # Tests del modelo cliente
+```
+
+**Total:** 23 componentes de UI + infraestructura completa
+
+---
+
+## 🚦 Estados de la Aplicación
+
+La aplicación maneja diferentes estados de manera clara:
+
+### Mensajes de Usuario
+
+- **✅ Éxito:** Operaciones completadas correctamente
+- **ℹ️ Información:** Notificaciones y avisos
+- **⚠️ Advertencia:** Situaciones que requieren atención
+- **❌ Error:** Fallos en operaciones
+
+---
+
+## 📝 Convenciones de Código
+
+### Estructura de Componentes
+
+Cada componente tiene:
+
+- **`.mjs`** - Lógica del presenter (JavaScript)
+- **`.html`** - Template del componente (HTML)
+
+### API REST
+
+- Rutas con prefijo `/api`
+- Uso semántico de verbos HTTP
+- Respuestas JSON consistentes
+- Códigos de estado HTTP apropiados
+
+---
+
+## 🔄 Flujo de Datos
+
+```
+┌─────────────┐        ┌──────────────┐        ┌─────────────┐
+│   Browser   │◄──────►│  Presenter   │◄──────►│    Proxy    │
+│   (View)    │  DOM   │  (Controller)│  API   │   (Client)  │
+└─────────────┘        └──────────────┘        └─────────────┘
+                                                       │
+                                                       │ HTTP
+                                                       ▼
+                                                ┌─────────────┐
+                                                │   Express   │
+                                                │  API REST   │
+                                                └─────────────┘
+                                                       │
+                                                       │ Calls
+                                                       ▼
+                                                ┌─────────────┐
+                                                │    Model    │
+                                                │  (Business) │
+                                                └─────────────┘
+```
