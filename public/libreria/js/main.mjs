@@ -23,6 +23,8 @@ import { ClienteComprarPresenter } from "./components/cliente-comprar/cliente-co
 import { ClientePerfilPresenter } from "./components/cliente-perfil/cliente-perfil-presenter.mjs";
 import { ClienteListaComprasPresenter } from "./components/cliente-lista-compras/cliente-lista-compras-presenter.mjs";
 import { ClienteVerCompraPresenter } from "./components/cliente-ver-compra/cliente-ver-compra-presenter.mjs";
+import { ClienteCatalogoPresenter } from "./components/cliente-catalogo/cliente-catalogo-presenter.mjs";
+
 
 import { Error404Presenter } from "./components/error-404/error-404-presenter.mjs";
 
@@ -56,6 +58,7 @@ export function init() {
   router.register(/^\/libreria\/cliente-perfil.html$/, new ClientePerfilPresenter(proxy, 'cliente-perfil'));
   router.register(/^\/libreria\/cliente-lista-compras.html$/, new ClienteListaComprasPresenter(proxy, 'cliente-lista-compras'));
   router.register(/^\/libreria\/cliente-ver-compra.html/, new ClienteVerCompraPresenter(proxy, 'cliente-ver-compra'));
+  router.register(/^\/libreria\/cliente-catalogo.html$/, new ClienteCatalogoPresenter(proxy, 'cliente-catalogo'));
 
   // IMPORTANTE: Página de error 404 - debe ser la ÚLTIMA ruta registrada para actuar como catch-all
   router.register(/^\/libreria\/error-404.html/, new Error404Presenter(proxy, 'error-404'));
