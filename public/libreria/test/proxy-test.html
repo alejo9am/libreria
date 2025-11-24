@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <!-- incluir css para mocha, para mostrar los resultados -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mocha/10.7.3/mocha.css">
+  <!-- incluir el código del framework mocha -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/10.7.3/mocha.js"></script>
+  <script>
+    mocha.setup('bdd'); // configuración mínima
+  </script>
+  <!-- incluir chai -->
+  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/chai/5.1.1/chai.js" type="module"></script> -->
+  <!-- <script type="module"> // chai tiene extensiones, hacemos assert global
+import * as chai from 'https://cdnjs.cloudflare.com/ajax/libs/chai/5.1.1/chai.js';
+console.log(chai)
+let assert = chai.assert; 
+</script> -->
+  <script type="module" src="../js/model/proxy.mjs"></script>
+</head>
+
+<body>
+  <script></script>
+  <!-- el script con los tests (describe, it...) -->
+  <script type="module" src="../js/test/proxy.spec.mjs"></script> <!-- el elemento con id="mocha" que contiene
+los resultados de los tests -->
+  <div id="mocha"></div> <!-- ¡ejectuar los tests! -->
+  <script type="module">
+    // console.log(mocha)
+    mocha.run(); 
+  </script>
+</body>
+
+</html>
