@@ -64,74 +64,74 @@ export class InvitadoRegistroPresenter extends Presenter {
         };
 
         // Botón de depuración
-        if (btnUsuarios) {
-            btnUsuarios.onclick = async () => {
-                // Mostrar usuarios del MODELO (fuente de verdad)
-                const clientes = await this.model.getClientes();
-                const admins = await this.model.getAdmins();
-                const usuarios = clientes.concat(admins);
+        // if (btnUsuarios) {
+        //     btnUsuarios.onclick = async () => {
+        //         // Mostrar usuarios del MODELO (fuente de verdad)
+        //         const clientes = await this.model.getClientes();
+        //         const admins = await this.model.getAdmins();
+        //         const usuarios = clientes.concat(admins);
 
-                if (usuarios.length === 0) {
-                    mensajesContainer.innerHTML = `<div class="log">No hay usuarios en el modelo.</div>`;
-                    return;
-                }
+        //         if (usuarios.length === 0) {
+        //             mensajesContainer.innerHTML = `<div class="log">No hay usuarios en el modelo.</div>`;
+        //             return;
+        //         }
 
-                // Agrupar usuarios por email para mostrar los que comparten email
-                const usuariosPorEmail = {};
-                usuarios.forEach(u => {
-                    if (!usuariosPorEmail[u.email]) {
-                        usuariosPorEmail[u.email] = [];
-                    }
-                    usuariosPorEmail[u.email].push(u);
-                });
+        //         // Agrupar usuarios por email para mostrar los que comparten email
+        //         const usuariosPorEmail = {};
+        //         usuarios.forEach(u => {
+        //             if (!usuariosPorEmail[u.email]) {
+        //                 usuariosPorEmail[u.email] = [];
+        //             }
+        //             usuariosPorEmail[u.email].push(u);
+        //         });
 
-                // Identificar emails con múltiples roles
-                const emailsMultiples = Object.keys(usuariosPorEmail).filter(
-                    email => usuariosPorEmail[email].length > 1
-                );
+        //         // Identificar emails con múltiples roles
+        //         const emailsMultiples = Object.keys(usuariosPorEmail).filter(
+        //             email => usuariosPorEmail[email].length > 1
+        //         );
 
-                mensajesContainer.innerHTML = `
-                    <h3>Usuarios en el MODELO (${usuarios.length})</h3>
-                    ${emailsMultiples.length > 0 ? `
-                        <div style="background: #ffffcc; padding: 10px; border: 2px solid #ff9800; margin-bottom: 10px;">
-                            <strong>Emails con múltiples roles (${emailsMultiples.length}):</strong>
-                            <ul>
-                                ${emailsMultiples.map(email => `
-                                    <li><strong>${email}</strong>: ${usuariosPorEmail[email].map(u => u.rol).join(', ')}</li>
-                                `).join('')}
-                            </ul>
-                        </div>
-                    ` : ''}
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="background: #f0f0f0; border-bottom: 2px solid #333;">
-                                <th style="padding: 8px; text-align: left;">ID</th>
-                                <th style="padding: 8px; text-align: left;">Email</th>
-                                <th style="padding: 8px; text-align: left;">Rol</th>
-                                <th style="padding: 8px; text-align: left;">Nombre</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${usuarios.map(u => {
-                    const tieneMultiplesRoles = usuariosPorEmail[u.email].length > 1;
-                    const style = tieneMultiplesRoles ?
-                        'background: #fff9c4; border-left: 4px solid #ff9800;' : '';
-                    return `
-                                    <tr style="${style}">
-                                        <td style="padding: 8px;">${u._id}</td>
-                                        <td style="padding: 8px;">${u.email}</td>
-                                        <td style="padding: 8px;"><strong>${u.rol}</strong></td>
-                                        <td style="padding: 8px;">${u.nombre} ${u.apellidos}</td>
-                                    </tr>
-                                `;
-                }).join("")}
-                        </tbody>
-                    </table>
-                    <p style="margin-top: 15px;"><em>
-                        Los usuarios con fondo amarillo comparten el mismo email pero tienen diferentes roles.
-                    </em></p>
-                `;
-            };
-        }
+        //         mensajesContainer.innerHTML = `
+        //             <h3>Usuarios en el MODELO (${usuarios.length})</h3>
+        //             ${emailsMultiples.length > 0 ? `
+        //                 <div style="background: #ffffcc; padding: 10px; border: 2px solid #ff9800; margin-bottom: 10px;">
+        //                     <strong>Emails con múltiples roles (${emailsMultiples.length}):</strong>
+        //                     <ul>
+        //                         ${emailsMultiples.map(email => `
+        //                             <li><strong>${email}</strong>: ${usuariosPorEmail[email].map(u => u.rol).join(', ')}</li>
+        //                         `).join('')}
+        //                     </ul>
+        //                 </div>
+        //             ` : ''}
+        //             <table style="width: 100%; border-collapse: collapse;">
+        //                 <thead>
+        //                     <tr style="background: #f0f0f0; border-bottom: 2px solid #333;">
+        //                         <th style="padding: 8px; text-align: left;">ID</th>
+        //                         <th style="padding: 8px; text-align: left;">Email</th>
+        //                         <th style="padding: 8px; text-align: left;">Rol</th>
+        //                         <th style="padding: 8px; text-align: left;">Nombre</th>
+        //                     </tr>
+        //                 </thead>
+        //                 <tbody>
+        //                     ${usuarios.map(u => {
+        //             const tieneMultiplesRoles = usuariosPorEmail[u.email].length > 1;
+        //             const style = tieneMultiplesRoles ?
+        //                 'background: #fff9c4; border-left: 4px solid #ff9800;' : '';
+        //             return `
+        //                             <tr style="${style}">
+        //                                 <td style="padding: 8px;">${u._id}</td>
+        //                                 <td style="padding: 8px;">${u.email}</td>
+        //                                 <td style="padding: 8px;"><strong>${u.rol}</strong></td>
+        //                                 <td style="padding: 8px;">${u.nombre} ${u.apellidos}</td>
+        //                             </tr>
+        //                         `;
+        //         }).join("")}
+        //                 </tbody>
+        //             </table>
+        //             <p style="margin-top: 15px;"><em>
+        //                 Los usuarios con fondo amarillo comparten el mismo email pero tienen diferentes roles.
+        //             </em></p>
+        //         `;
+        //     };
+        // }
     }
 }
