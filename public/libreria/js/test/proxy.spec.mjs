@@ -396,7 +396,16 @@ describe("Tests del Modelo de Librería", function () {
 
     describe("Factura - Excepciones", function () {
       it("debe lanzar error al pagar sin cliente", function () {
-        // Error // Test incompleto en original
+        return libreria.facturarCompraCliente({
+          razonSocial: "Acme S.A.",
+          direccion: "Calle Falsa 123",
+          email: "fact@acme.com",
+          dni: "A0000000Z"
+        }).then(() => {
+          assert.fail("Debería haber lanzado error");
+        }).catch(err => {
+          assert.include(err.message, "Cliente no definido");
+        });
       });
 
       it("debe lanzar error al pagar carro vacío", async function () {
