@@ -652,6 +652,7 @@ div.mensajes {
   border-radius: 16px;
   box-shadow: var(--sombra-suave);
   width: 100%;
+  margin-bottom: 1.5rem;
 }
 
 .detalle label {
@@ -682,10 +683,10 @@ div.mensajes {
   width: 100%;
   max-width: 1300px;
   margin: 0 auto;
-  background: var(--color-blanco);
-  border-radius: 16px;
-  padding: 1rem;
-  box-shadow: var(--sombra-suave);
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
 }
 
 .carro table {
@@ -693,6 +694,10 @@ div.mensajes {
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
+  background: var(--color-blanco);
+  border-radius: 16px;
+  box-shadow: var(--sombra-media);
+  overflow: hidden;
 }
 
 .carro thead {
@@ -701,7 +706,7 @@ div.mensajes {
 }
 
 .carro thead th {
-  padding: 0.75rem;
+  padding: 1rem 0.75rem;
   text-align: left;
   font-weight: 600;
   font-size: 0.95rem;
@@ -709,28 +714,37 @@ div.mensajes {
 }
 
 .carro thead th:first-child {
-  border-top-left-radius: 12px;
+  border-top-left-radius: 16px;
+  padding-left: 1.5rem;
 }
 
 .carro thead th:last-child {
-  border-top-right-radius: 12px;
+  border-top-right-radius: 16px;
+  padding-right: 1.5rem;
 }
 
 .carro tbody tr {
   transition: var(--transicion);
   border-bottom: 1px solid #f0f0f0;
+  background: var(--color-blanco);
 }
 
-/* .carro tbody tr:hover {
+.carro tbody tr:hover {
   background: linear-gradient(135deg, #fff5ed 0%, #fff 100%);
-  transform: scale(1.01);
-  box-shadow: var(--sombra-suave);
-} */
+}
 
 .carro tbody td {
-  padding: 0.75rem;
+  padding: 1rem 0.75rem;
   vertical-align: middle;
   font-size: 0.95rem;
+}
+
+.carro tbody td:first-child {
+  padding-left: 1.5rem;
+}
+
+.carro tbody td:last-child {
+  padding-right: 1.5rem;
 }
 
 .carro .item-cantidad { width: 90px; text-align: center; }
@@ -760,11 +774,19 @@ div.mensajes {
 }
 
 .carro tfoot td {
-  padding: 0.75rem;
+  padding: 1rem 0.75rem;
   text-align: right;
   border-top: 3px solid var(--color-naranja);
   color: var(--color-marron);
   font-size: 1rem;
+}
+
+.carro tfoot td:first-child {
+  padding-left: 1.5rem;
+}
+
+.carro tfoot td:last-child {
+  padding-right: 1.5rem;
 }
 
 .carro tfoot tr.total-row {
@@ -775,6 +797,14 @@ div.mensajes {
   font-size: 1.2rem;
   color: var(--color-marron);
   border-top: 4px double var(--color-marron);
+}
+
+.carro tfoot tr:last-child td:first-child {
+  border-bottom-left-radius: 16px;
+}
+
+.carro tfoot tr:last-child td:last-child {
+  border-bottom-right-radius: 16px;
 }
 
 .borrado {
@@ -1092,6 +1122,142 @@ div.mensajes {
   .factura-item-acciones {
     justify-content: center;
   }
+}
+
+/* ==============================================
+   TABLA DE FACTURAS (Lista de Compras)
+   ============================================== */
+.facturas-tabla-wrapper {
+  width: 100%;
+  max-width: 900px;
+  margin: 1rem auto 0;
+  background: transparent;
+}
+
+.facturas-tabla-wrapper table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--color-blanco);
+  border-radius: 12px;
+  box-shadow: var(--sombra-suave);
+  overflow: hidden;
+}
+
+.facturas-tabla-wrapper thead {
+  background: var(--color-marron);
+  color: white;
+}
+
+.facturas-tabla-wrapper thead th {
+  padding: 0.875rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-bottom: 2px solid var(--color-naranja);
+}
+
+.facturas-tabla-wrapper thead th:first-child {
+  border-top-left-radius: 12px;
+  padding-left: 1.5rem;
+}
+
+.facturas-tabla-wrapper thead th:last-child {
+  border-top-right-radius: 12px;
+  padding-right: 1.5rem;
+}
+
+.facturas-tabla-wrapper thead th.col-numero {
+  width: 100px;
+}
+
+.facturas-tabla-wrapper thead th.col-fecha {
+  width: 150px;
+}
+
+.facturas-tabla-wrapper thead th.col-total {
+  width: 120px;
+  text-align: right;
+}
+
+.facturas-tabla-wrapper thead th.col-acciones {
+  width: 100px;
+  text-align: center;
+}
+
+.facturas-tabla-wrapper tbody tr {
+  transition: var(--transicion);
+  border-bottom: 1px solid #f0f0f0;
+  background: var(--color-blanco);
+}
+
+.facturas-tabla-wrapper tbody tr:hover {
+  background: #fafafa;
+}
+
+.facturas-tabla-wrapper tbody td {
+  padding: 0.875rem 1rem;
+  vertical-align: middle;
+  font-size: 0.9rem;
+  color: var(--color-gris);
+}
+
+.facturas-tabla-wrapper tbody td:first-child {
+  padding-left: 1.5rem;
+  font-weight: 600;
+  color: var(--color-marron);
+}
+
+.facturas-tabla-wrapper tbody td:last-child {
+  padding-right: 1.5rem;
+  text-align: center;
+}
+
+.facturas-tabla-wrapper tbody td.numero {
+  font-weight: 600;
+  color: var(--color-marron);
+  font-size: 0.9rem;
+}
+
+.facturas-tabla-wrapper tbody td.fecha {
+  color: var(--color-gris);
+}
+
+.facturas-tabla-wrapper tbody td.total {
+  text-align: right;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-negro);
+}
+
+.facturas-tabla-wrapper tfoot {
+  background: #f5f5f5;
+  border-top: 2px solid var(--color-naranja);
+}
+
+.facturas-tabla-wrapper tfoot th {
+  padding: 1rem;
+  text-align: right;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-marron);
+}
+
+.facturas-tabla-wrapper tfoot td {
+  padding: 1rem 1.5rem 1rem 1rem;
+  text-align: right;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-marron);
+}
+
+.facturas-tabla-wrapper tfoot tr:last-child th:first-child {
+  border-bottom-left-radius: 12px;
+}
+
+.facturas-tabla-wrapper tfoot tr:last-child td:last-child,
+.facturas-tabla-wrapper tfoot tr:last-child th:last-child {
+  border-bottom-right-radius: 12px;
 }
 
 /* ==============================================

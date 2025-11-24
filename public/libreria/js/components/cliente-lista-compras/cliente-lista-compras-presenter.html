@@ -15,26 +15,28 @@
   </nav>
 
   <div class="contenido">
-    <div class="mensajes-container" id="mensajesContainer"></div>
+    <div class="info">
+      <div class="mensajes-container" id="mensajesContainer"></div>
 
-    <div>
-      <table style="width: 100%;">
-        <thead>
-          <tr>
-            <th>Número.</th>
-            <th>Fecha</th>
-            <th>Total</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="tabla-facturas"></tbody>
+      <div class="facturas-tabla-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-numero">Número</th>
+              <th class="col-fecha">Fecha</th>
+              <th class="col-total">Total</th>
+              <th class="col-acciones"></th>
+            </tr>
+          </thead>
+          <tbody id="tabla-facturas"></tbody>
 
-        <tfoot>
-          <tr>
-            <th colspan="3" id="total-factura">Total €</th>
-          </tr>
-        </tfoot>
-      </table>
+          <tfoot>
+            <tr>
+              <th colspan="3" id="total-factura">Total</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
     </div>
 
     <footer>

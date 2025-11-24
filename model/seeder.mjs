@@ -89,6 +89,35 @@ export function seed() {
     }
   });
 
+  //CREACION DE USUARIO PARA PRUEBAS (CON ROL DE CLIENTE Y ADMIN)
+  try {
+    model.addAdmin({
+      dni: '99999999A',
+      nombre: 'pruebas',
+      apellidos: 'pruebas',
+      direccion: 'Calle Pruebas 123',
+      email: 'p@gmail.com',
+      password: '1',
+      rol: ROL.ADMIN
+    });
+  } catch (err) {
+    console.warn(`[Seeder Server] Error al agregar admin de pruebas:`, err.message);
+  }
+
+  try {
+    model.addCliente({
+      dni: '99999999A',
+      nombre: 'pruebas',
+      apellidos: 'pruebas',
+      direccion: 'Calle Pruebas 123',
+      email: 'p@gmail.com',
+      password: '1',
+      rol: ROL.CLIENTE
+    });
+  } catch (err) {
+    console.warn(`[Seeder Server] Error al agregar cliente de pruebas:`, err.message);
+  }
+
   const clientesExistentes = model.getClientes();
   const librosExistentes = model.getLibros();
 
