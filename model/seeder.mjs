@@ -96,7 +96,7 @@ export function seed() {
       nombre: 'pruebas',
       apellidos: 'pruebas',
       direccion: 'Calle Pruebas 123',
-      email: 'p@gmail.com',
+      email: 'p@p.com',
       password: '1',
       rol: ROL.ADMIN
     });
@@ -110,7 +110,7 @@ export function seed() {
       nombre: 'pruebas',
       apellidos: 'pruebas',
       direccion: 'Calle Pruebas 123',
-      email: 'p@gmail.com',
+      email: 'p@p.com',
       password: '1',
       rol: ROL.CLIENTE
     });
