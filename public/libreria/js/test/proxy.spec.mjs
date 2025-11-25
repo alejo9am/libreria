@@ -7,102 +7,46 @@ const ROL = {
   CLIENTE: "CLIENTE",
 };
 
-// describe("Libreria model test suite", function () {
-//   const ISBNS = [
-//     "978-3-16-148410-0",
-//     "978-3-16-148410-1",
-//     "978-3-16-148410-2",
-//     "978-3-16-148410-3",
-//     "978-3-16-148410-4",
-//   ];
-//   function crearLibro(isbn) {
-//     return {
-//       isbn: `${isbn}`,
-//       titulo: `TITULO_${isbn}`,
-//       autores: `AUTOR_A${isbn}; AUTOR_B${isbn}`,
-//       resumen: `Lorem ipsum ... metus._[${isbn}]`,
-//       portada: `http://google.com/${isbn}`,
-//       stock: 5,
-//       precio: (Math.random() * 100).toFixed(2),
-//     };
-//   }
-//   beforeEach("Model.Libreria.beforeEach()", async function () {
-//     await libreria.setLibros([]);
-//   });
-
-//   describe("Model.Libreria.Libro", function () {
-//     it("Model.Libreria.Libro.setLibros()", async function () {
-//       let libros_esperados = ISBNS.map((isbn) => crearLibro(isbn));
-//       libros_esperados.forEach((l, i) => (l._id = i + 1));
-//       let libros = await libreria.setLibros(libros_esperados);
-//       assert.equal(libros.length, libros_esperados.length);
-//       libros_esperados.forEach((esperado) => {
-//         let actual = libros.find((l) => l.isbn == esperado.isbn);
-//         assert.equal(actual.isbn, esperado.isbn, "El isbn no coincide");
-//         assert.equal(actual.titulo, esperado.titulo, "El titulo no coincide");
-//         assert.equal(actual.resumen, esperado.resumen, "El resumen no coincide");
-//         assert.equal(actual.autores, esperado.autores, "Los autores no coinciden");
-//         assert.equal(actual.portada, esperado.portada, "La portada no coincide");
-//         assert.equal(actual.stock, esperado.stock, "El stock no coincide");
-//         assert.equal(actual.precio, esperado.precio, "El precio no coincide");
-//         assert.isDefined(actual._id, "El _id no esta definido");
-//       });
-//     });
-//     it("Model.Libreria.Libro.getLibros()", async function () {
-//       let libros = await libreria.getLibros();
-//       assert.equal(0, libros.length);
-//       let libros_esperados = ISBNS.map((isbn) => crearLibro(isbn));
-//       await libreria.setLibros(libros_esperados);
-//       libros = await libreria.getLibros();
-//       assert.equal(libros.length, libros_esperados.length);
-//       libros_esperados.forEach((esperado) => {
-//         let actual = libros.find((l) => l.isbn == esperado.isbn);
-//         assert.equal(actual.isbn, esperado.isbn, "El isbn no coincide");
-//         assert.equal(actual.titulo, esperado.titulo, "El titulo no coincide");
-//         assert.equal(actual.resumen, esperado.resumen, "El resumen no coincide");
-//         assert.equal(actual.autores, esperado.autores, "Los autores no coinciden");
-//         assert.equal(actual.portada, esperado.portada, "La portada no coincide");
-//         assert.equal(actual.stock, esperado.stock, "El stock no coincide");
-//         assert.equal(actual.precio, esperado.precio, "El precio no coincide");
-//         assert.isDefined(actual._id, "El _id no esta definido");
-//       });
-//     });
-//     it("Model.Libreria.Libro.getLibroPorId(id)", async function () {
-//       let libros = await libreria.getLibros();
-//       assert.equal(libros.length, 0);
-//       let libros_esperados = ISBNS.map((isbn) => crearLibro(isbn));
-//       libros = await libreria.setLibros(libros_esperados);
-//       libros.forEach(async (esperado) => {
-//         let actual = await libreria.getLibroPorId(esperado._id);
-//         assert.equal(actual.isbn, esperado.isbn, "El isbn no coincide");
-//         assert.equal(actual.titulo, esperado.titulo, "El titulo no coincide");
-//         assert.equal(actual.resumen, esperado.resumen, "El resumen no coincide");
-//         assert.equal(actual.autores, esperado.autores, "Los autores no coinciden");
-//         assert.equal(actual.portada, esperado.portada, "La portada no coincide");
-//         assert.equal(actual.stock, esperado.stock, "El stock no coincide");
-//         assert.equal(actual.precio, esperado.precio, "El precio no coincide");
-//         assert.equal(actual._id, esperado._id, "El _id no coincide");
-//       });
-//     });
-//     it("Model.Libreria.Libro.addLibro(libro)", async function () {
-//       let libros = await libreria.getLibros();
-//       assert.equal(libros.length, 0);
-//       let isbn = "978-3-16-148410-5";
-//       let esperado = crearLibro(isbn);
-//       let actual = await libreria.addLibro(esperado);
-//       assert.equal(actual.isbn, esperado.isbn, "El isbn no coincide");
-//       assert.equal(actual.titulo, esperado.titulo, "El titulo no coincide");
-//       assert.equal(actual.resumen, esperado.resumen, "El resumen no coincide");
-//       assert.equal(actual.autores, esperado.autores, "Los autores no coinciden");
-//       assert.equal(actual.portada, esperado.portada, "La portada no coincide");
-//       assert.equal(actual.stock, esperado.stock, "El stock no coincide");
-//       assert.equal(actual.precio, esperado.precio, "El precio no coincide");
-//       assert.exists(actual._id, "El _id no existe");
-//     });
-//   });
-// });
-
 describe("Tests del Modelo de Librería", function () {
+  // Variables para backup
+  let backupLibros, backupClientes, backupAdmins, backupFacturas;
+
+  // Backup antes de todos los tests
+  before(async function () {
+    this.timeout(10000);
+    try {
+      console.log("Realizando backup del estado del servidor...");
+      backupLibros = await libreria.getLibros();
+      backupClientes = await libreria.getClientes();
+      backupAdmins = await libreria.getAdmins();
+      backupFacturas = await libreria.getFacturas();
+      console.log("Backup completado.");
+    } catch (e) {
+      console.error("Error al realizar backup:", e);
+      throw e;
+    }
+  });
+
+  // Restauración después de todos los tests
+  after(async function () {
+    this.timeout(10000);
+    try {
+      console.log("Restaurando estado del servidor...");
+      // Limpiamos primero para evitar conflictos de IDs duplicados si el set no reemplaza completamente
+      // Aunque set* en el proxy usa PUT y reemplaza, es más seguro limpiar.
+      // Sin embargo, set* en el proxy hace un PUT a la colección, lo cual debería reemplazar todo.
+      // Vamos a confiar en set*.
+
+      if (backupLibros) await libreria.setLibros(backupLibros);
+      if (backupClientes) await libreria.setClientes(backupClientes);
+      if (backupAdmins) await libreria.setAdmins(backupAdmins);
+      if (backupFacturas) await libreria.setFacturas(backupFacturas);
+      console.log("Restauración completada.");
+    } catch (e) {
+      console.error("Error al restaurar backup:", e);
+      throw e;
+    }
+  });
 
   // let libreria; // Usamos la instancia importada
 
