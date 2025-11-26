@@ -103,7 +103,8 @@ export class ClientePerfilPresenter extends Presenter {
 
         // Actualizar la referencia local
         this.cliente = clienteActualizado;
-
+        // Actualizar sesión
+        LibreriaSession.setUser(this.cliente);
         LibreriaSession.addMessage("success", "Perfil actualizado correctamente");
         renderUltimoMensaje("#mensajesContainer");
 
