@@ -94,6 +94,16 @@ export class ClienteVerCompraPresenter extends Presenter {
     
     this.factura = factura;
 
+    // Cerrar sesion
+    const salirLink = document.getElementById("salirLink");
+    if (salirLink) {
+      salirLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        LibreriaSession.clearUserSession();
+        LibreriaSession.addMessage("success", "Sesión cerrada correctamente");
+      });
+    }
+
     const carritoItems = document.getElementById("carritoItems");
     if (!carritoItems) return;
 

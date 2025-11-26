@@ -104,6 +104,16 @@ export class ClienteVerLibroPresenter extends Presenter {
         return;
     }
 
+    // Cerrar sesion
+    const salirLink = document.getElementById("salirLink");
+    if (salirLink) {
+      salirLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        LibreriaSession.clearUserSession();
+        LibreriaSession.addMessage("success", "Sesión cerrada correctamente");
+      });
+    }
+
     console.log(this.id);
     let libro = await this.getLibro();
     if (libro) this.libro = libro;

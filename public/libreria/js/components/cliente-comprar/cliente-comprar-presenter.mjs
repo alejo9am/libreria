@@ -34,6 +34,16 @@ export class ClienteComprarPresenter extends Presenter {
     const userId = LibreriaSession.getUserId();
     const clienteData = LibreriaSession.getUsuarioById(userId);
 
+    // Cerrar sesion
+    const salirLink = document.getElementById("salirLink");
+    if (salirLink) {
+      salirLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        LibreriaSession.clearUserSession();
+        LibreriaSession.addMessage("success", "Sesión cerrada correctamente");
+      });
+    }
+
     // =============ESTABLECER DATOS DEL FORMULARIO================
 
     // Establecer fecha actual por defecto
