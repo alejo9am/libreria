@@ -676,10 +676,18 @@ app.use('/libreria*', (req, res) => {
 // 404 para rutas no encontradas
 app.all('*', function (req, res, next) {
   console.error(`${req.originalUrl} not found!`);
-  res.status(404).json({
-    error: 'Ruta no encontrada',
-    path: req.originalUrl
-  });
+
+  // Si es una petición a la API, devolver JSON
+  if (req.originalUrl.startsWith('/api/')) {
+    return res.status(404).json({
+      error: 'Ruta API no encontrada',
+      path: req.originalUrl
+    });
+  }
+
+  // Para cualquier otra ruta, devolver página HTML de error 404
+  const urlSolicitada = encodeURIComponent(req.originalUrl);
+  res.redirect(`/libreria/error-404.html?url=${urlSolicitada}`);
 });
 
 /* ==================== INICIAR SERVIDOR ==================== */
