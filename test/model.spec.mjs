@@ -642,7 +642,7 @@ describe("Tests del Modelo de Librería", function () {
         });
 
         describe("Facturas - CRUD", function () {
-            
+
             it("debe crear factura a partir del carro", function () {
                 const cliente = libreria.addCliente({
                     dni: "F001",
@@ -906,7 +906,7 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(item.total, subtotalEsperado, 1e-9);
                 assert.closeTo(carro.subtotal, subtotalEsperado, 1e-9);
                 assert.closeTo(carro.iva, ivaEsperado, 1e-9);
-                assert.closeTo(carro.total, totalEsperado, 1e-9);   
+                assert.closeTo(carro.total, totalEsperado, 1e-9);
             });
 
             it("debe recalcular total al cambiar cantidad", function () {
@@ -1325,23 +1325,5 @@ describe("Tests del Modelo de Librería", function () {
                 assert.strictEqual(carroDespues.total, 0);
             });
         });
-    });
-
-    // ============================================================================
-    // RESUMEN DE TESTS
-    // ============================================================================
-
-    after(function () {
-        console.log("\n" + "=".repeat(60));
-        console.log("TODOS LOS TESTS COMPLETADOS");
-        console.log("=".repeat(60));
-        console.log("Distribución de puntos:");
-        console.log("  1. Getters y Setters:  1 punto");
-        console.log("  2. Excepciones:        4 puntos");
-        console.log("  3. CRUD:              10 puntos");
-        console.log("  4. Cálculos:          10 puntos");
-        console.log("  " + "-".repeat(35));
-        console.log("  TOTAL:                25 puntos");
-        console.log("=".repeat(60) + "\n");
     });
 });
