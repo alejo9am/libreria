@@ -1,7 +1,8 @@
 // public/libreria/test/model.spec.mjs
 // Tests del modelo de la librería usando Mocha + Chai
+// Adaptado para el nuevo modelo con API REST
 
-import * as chai from 'https://cdnjs.cloudflare.com/ajax/libs/chai/5.1.1/chai.js';
+import chai from 'chai';
 import { Libreria, ROL } from '../model/model.mjs';
 
 const assert = chai.assert;
@@ -46,14 +47,13 @@ describe("Tests del Modelo de Librería", function () {
 
         describe("Usuario Cliente", function () {
             it("Añadir cliente", function () {
-                const cliente = libreria.addUsuario({
+                const cliente = libreria.addCliente({
                     dni: "12345678A",
                     nombre: "Juan",
                     apellidos: "Pérez García",
                     direccion: "Calle Test 123",
                     email: "juan@test.com",
-                    password: "12345678A",
-                    rol: ROL.CLIENTE
+                    password: "12345678A"
                 });
 
                 assert.equal(cliente.dni, "12345678A");
@@ -69,14 +69,13 @@ describe("Tests del Modelo de Librería", function () {
 
         describe("Usuario Administrador", function () {
             it("Añadir administrador", function () {
-                const admin = libreria.addUsuario({
+                const admin = libreria.addAdmin({
                     dni: "87654321B",
                     nombre: "Admin",
                     apellidos: "Test User",
                     direccion: "Admin Street 1",
                     email: "admin@test.com",
-                    password: "87654321B",
-                    rol: ROL.ADMIN
+                    password: "87654321B"
                 });
 
                 assert.equal(admin.dni, "87654321B");
@@ -124,23 +123,21 @@ describe("Tests del Modelo de Librería", function () {
 
         describe("Usuarios - Excepciones", function () {
             it("debe lanzar error al registrar email duplicado con mismo rol (CLIENTE)", function () {
-                libreria.addUsuario({
+                libreria.addCliente({
                     dni: "11111111A",
                     nombre: "User1",
                     apellidos: "Test",
                     email: "duplicate@test.com",
-                    password: "pass1",
-                    rol: ROL.CLIENTE
+                    password: "pass1"
                 });
 
                 assert.throws(
-                    () => libreria.addUsuario({
+                    () => libreria.addCliente({
                         dni: "22222222B",
                         nombre: "User2",
                         apellidos: "Test",
                         email: "duplicate@test.com",
-                        password: "pass2",
-                        rol: ROL.CLIENTE
+                        password: "pass2"
                     }),
                     Error,
                     "Ya existe un CLIENTE registrado con ese email"
@@ -148,23 +145,21 @@ describe("Tests del Modelo de Librería", function () {
             });
 
             it("debe lanzar error al registrar email duplicado con mismo rol (ADMIN)", function () {
-                libreria.addUsuario({
+                libreria.addAdmin({
                     dni: "33333333C",
                     nombre: "Admin1",
                     apellidos: "Test",
                     email: "admin@test.com",
-                    password: "pass1",
-                    rol: ROL.ADMIN
+                    password: "pass1"
                 });
 
                 assert.throws(
-                    () => libreria.addUsuario({
+                    () => libreria.addAdmin({
                         dni: "44444444D",
                         nombre: "Admin2",
                         apellidos: "Test",
                         email: "admin@test.com",
-                        password: "pass2",
-                        rol: ROL.ADMIN
+                        password: "pass2"
                     }),
                     Error,
                     "Ya existe un ADMIN registrado con ese email"
@@ -172,87 +167,76 @@ describe("Tests del Modelo de Librería", function () {
             });
 
             it("debe permitir mismo email con diferentes roles", function () {
-                const cliente = libreria.addUsuario({
+                const cliente = libreria.addCliente({
                     dni: "55555555E",
                     nombre: "User",
                     apellidos: "Dual",
                     email: "dual@test.com",
-                    password: "pass",
-                    rol: ROL.CLIENTE
+                    password: "pass"
                 });
 
-                const admin = libreria.addUsuario({
+                const admin = libreria.addAdmin({
                     dni: "66666666F",
                     nombre: "Admin",
                     apellidos: "Dual",
                     email: "dual@test.com",
-                    password: "pass",
-                    rol: ROL.ADMIN
+                    password: "pass"
                 });
 
                 assert.equal(cliente.email, admin.email);
                 assert.notEqual(cliente.rol, admin.rol);
             });
 
-            it("debe lanzar error en autenticación con usuario inexistente", function () {
+            it("debe lanzar error en autenticación con cliente inexistente", function () {
                 assert.throws(
-                    () => libreria.autenticar({
+                    () => libreria.autenticarCliente({
                         email: "noexiste@test.com",
-                        password: "anypass",
-                        rol: ROL.CLIENTE
+                        password: "anypass"
                     }),
                     Error,
-                    "Usuario no encontrado"
+                    "Cliente no encontrado"
                 );
             });
 
             it("debe lanzar error en autenticación con contraseña incorrecta", function () {
-                libreria.addUsuario({
+                libreria.addCliente({
                     dni: "77777777G",
                     nombre: "Test",
                     apellidos: "User",
                     email: "test@test.com",
-                    password: "correctpass",
-                    rol: ROL.CLIENTE
+                    password: "correctpass"
                 });
 
                 assert.throws(
-                    () => libreria.autenticar({
+                    () => libreria.autenticarCliente({
                         email: "test@test.com",
-                        password: "wrongpass",
-                        rol: ROL.CLIENTE
+                        password: "wrongpass"
                     }),
                     Error,
                     "Error en la contraseña"
                 );
             });
 
-            it("debe lanzar error con rol desconocido", function () {
+            it("debe lanzar error en autenticación con administrador inexistente", function () {
                 assert.throws(
-                    () => libreria.addUsuario({
-                        dni: "88888888H",
-                        nombre: "Test",
-                        apellidos: "User",
-                        email: "test@test.com",
-                        password: "pass",
-                        rol: "INVALID_ROLE"
+                    () => libreria.autenticarAdmin({
+                        email: "noadmin@test.com",
+                        password: "anypass"
                     }),
                     Error,
-                    "Rol desconocido"
+                    "Administrador no encontrado"
                 );
             });
         });
 
         describe("Carro - Excepciones", function () {
             it("debe lanzar error al establecer cantidad negativa", function () {
-                // Por hacer asi que se pone como fallido
-                const cliente = libreria.addUsuario({
+                const cliente = libreria.addCliente({
                     dni: "CNEG001",
                     nombre: "Negativo",
                     apellidos: "Test",
                     email: "neg@test.com",
-                    password: "pass",
-                    rol: ROL.CLIENTE
+                    password: "pass"
                 });
 
                 const libro = libreria.addLibro({
@@ -262,7 +246,7 @@ describe("Tests del Modelo de Librería", function () {
                     stock: 5
                 });
 
-                // Añade 1 unidad y luego intenta poner cantidad negativa.
+                // Añade 1 unidad y luego intenta poner cantidad negativa
                 libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 1 });
 
                 assert.throws(
@@ -275,17 +259,25 @@ describe("Tests del Modelo de Librería", function () {
 
         describe("Factura - Excepciones", function () {
             it("debe lanzar error al pagar sin cliente", function () {
-                Error
+                assert.throws(
+                    () => libreria.facturarCompraCliente({
+                        razonSocial: "Test S.A.",
+                        direccion: "Calle Test",
+                        email: "test@test.com",
+                        dni: "00000000X"
+                    }),
+                    Error,
+                    "Cliente no definido"
+                );
             });
 
             it("debe lanzar error al pagar carro vacío", function () {
-                const cliente = libreria.addUsuario({
+                const cliente = libreria.addCliente({
                     dni: "CVOID001",
                     nombre: "Vacio",
                     apellidos: "Test",
                     email: "void@test.com",
-                    password: "pass",
-                    rol: ROL.CLIENTE
+                    password: "pass"
                 });
 
                 // No hay items en el carro -> debe fallar
@@ -298,7 +290,7 @@ describe("Tests del Modelo de Librería", function () {
                         dni: "A0000000Z"
                     }),
                     Error,
-                    "No hay que comprar"
+                    "No hay items en el carrito"
                 );
             });
         });
@@ -409,14 +401,13 @@ describe("Tests del Modelo de Librería", function () {
 
         describe("Usuarios - Clientes CRUD", function () {
             it("debe agregar un cliente correctamente", function () {
-                const cliente = libreria.addUsuario({
+                const cliente = libreria.addCliente({
                     dni: "12345678X",
                     nombre: "María",
                     apellidos: "González López",
                     direccion: "Calle Principal 1",
                     email: "maria@test.com",
-                    password: "12345678X",
-                    rol: ROL.CLIENTE
+                    password: "12345678X"
                 });
 
                 assert.isDefined(cliente._id);
@@ -426,13 +417,12 @@ describe("Tests del Modelo de Librería", function () {
             });
 
             it("debe obtener cliente por email", function () {
-                libreria.addUsuario({
+                libreria.addCliente({
                     dni: "11111111X",
                     nombre: "Test",
                     apellidos: "User",
                     email: "findme@test.com",
-                    password: "pass",
-                    rol: ROL.CLIENTE
+                    password: "pass"
                 });
 
                 const cliente = libreria.getClientePorEmail("findme@test.com");
@@ -442,13 +432,12 @@ describe("Tests del Modelo de Librería", function () {
             });
 
             it("debe obtener cliente por ID", function () {
-                const cliente = libreria.addUsuario({
+                const cliente = libreria.addCliente({
                     dni: "22222222Y",
                     nombre: "Test",
                     apellidos: "User",
                     email: "test@test.com",
-                    password: "pass",
-                    rol: ROL.CLIENTE
+                    password: "pass"
                 });
 
                 const found = libreria.getClientePorId(cliente._id);
@@ -457,28 +446,26 @@ describe("Tests del Modelo de Librería", function () {
             });
 
             it("debe modificar datos del cliente", function () {
-                const cliente = libreria.addUsuario({
+                const cliente = libreria.addCliente({
                     dni: "33333333Z",
                     nombre: "Original",
                     apellidos: "Name",
                     direccion: "Old Address",
                     email: "original@test.com",
-                    password: "oldpass",
-                    rol: ROL.CLIENTE
+                    password: "oldpass"
                 });
 
-                libreria.updateUsuario({
+                libreria.updateCliente({
                     _id: cliente._id,
                     dni: "33333333Z",
                     nombre: "Updated",
                     apellidos: "Name",
                     direccion: "New Address",
                     email: "original@test.com",
-                    password: "newpass",
-                    rol: ROL.CLIENTE
+                    password: "newpass"
                 });
 
-                const updated = libreria.getUsuarioPorId(cliente._id);
+                const updated = libreria.getClientePorId(cliente._id);
                 assert.equal(updated.nombre, "Updated");
                 assert.equal(updated.direccion, "New Address");
                 assert.equal(updated.password, "newpass");
@@ -487,14 +474,13 @@ describe("Tests del Modelo de Librería", function () {
 
         describe("Usuarios - Administradores CRUD", function () {
             it("debe agregar un administrador correctamente", function () {
-                const admin = libreria.addUsuario({
+                const admin = libreria.addAdmin({
                     dni: "99999999A",
                     nombre: "Admin",
                     apellidos: "System",
                     direccion: "Admin HQ",
                     email: "admin@system.com",
-                    password: "adminpass",
-                    rol: ROL.ADMIN
+                    password: "adminpass"
                 });
 
                 assert.isDefined(admin._id);
@@ -504,13 +490,12 @@ describe("Tests del Modelo de Librería", function () {
             });
 
             it("debe obtener administrador por email", function () {
-                libreria.addUsuario({
+                libreria.addAdmin({
                     dni: "88888888B",
                     nombre: "Admin",
                     apellidos: "Test",
                     email: "admintest@test.com",
-                    password: "pass",
-                    rol: ROL.ADMIN
+                    password: "pass"
                 });
 
                 const admin = libreria.getAdministradorPorEmail("admintest@test.com");
@@ -520,44 +505,40 @@ describe("Tests del Modelo de Librería", function () {
             });
 
             it("debe modificar datos del administrador", function () {
-                const admin = libreria.addUsuario({
+                const admin = libreria.addAdmin({
                     dni: "77777777C",
                     nombre: "OldAdmin",
                     apellidos: "Name",
                     email: "oldadmin@test.com",
-                    password: "oldpass",
-                    rol: ROL.ADMIN
+                    password: "oldpass"
                 });
 
-                libreria.updateUsuario({
+                libreria.updateAdmin({
                     _id: admin._id,
                     dni: "77777777C",
                     nombre: "NewAdmin",
                     apellidos: "Name",
                     email: "oldadmin@test.com",
-                    password: "newpass",
-                    rol: ROL.ADMIN
+                    password: "newpass"
                 });
 
-                const updated = libreria.getUsuarioPorId(admin._id);
+                const updated = libreria.getAdminPorId(admin._id);
                 assert.equal(updated.nombre, "NewAdmin");
                 assert.equal(updated.password, "newpass");
             });
 
             it("debe autenticar administrador correctamente", function () {
-                libreria.addUsuario({
+                libreria.addAdmin({
                     dni: "66666666D",
                     nombre: "Auth",
                     apellidos: "Admin",
                     email: "auth@admin.com",
-                    password: "correctpass",
-                    rol: ROL.ADMIN
+                    password: "correctpass"
                 });
 
-                const authenticated = libreria.autenticar({
+                const authenticated = libreria.autenticarAdmin({
                     email: "auth@admin.com",
-                    password: "correctpass",
-                    rol: ROL.ADMIN
+                    password: "correctpass"
                 });
 
                 assert.isNotNull(authenticated);
@@ -570,13 +551,12 @@ describe("Tests del Modelo de Librería", function () {
             let cliente, libro1, libro2;
 
             beforeEach(function () {
-                cliente = libreria.addUsuario({
+                cliente = libreria.addCliente({
                     dni: "55555555E",
                     nombre: "Comprador",
                     apellidos: "Test",
                     email: "comprador@test.com",
-                    password: "pass",
-                    rol: ROL.CLIENTE
+                    password: "pass"
                 });
 
                 libro1 = libreria.addLibro({
@@ -659,19 +639,17 @@ describe("Tests del Modelo de Librería", function () {
                 assert.equal(carro.iva, 0);
                 assert.equal(carro.total, 0);
             });
-
         });
 
         describe("Facturas - CRUD", function () {
-            
+
             it("debe crear factura a partir del carro", function () {
-                const cliente = libreria.addUsuario({
+                const cliente = libreria.addCliente({
                     dni: "F001",
                     nombre: "Pepe",
                     apellidos: "Prueba",
                     email: "pepe@prueba.com",
-                    password: "F001",
-                    rol: ROL.CLIENTE
+                    password: "F001"
                 });
 
                 const libro = libreria.addLibro({
@@ -715,13 +693,12 @@ describe("Tests del Modelo de Librería", function () {
 
             it("debe vaciar carro después de facturar", function () {
                 // Crear cliente y libro
-                const cliente = libreria.addUsuario({
+                const cliente = libreria.addCliente({
                     dni: "F002",
                     nombre: "Ana",
                     apellidos: "Prueba",
                     email: "ana@prueba.com",
-                    password: "F002",
-                    rol: ROL.CLIENTE
+                    password: "F002"
                 });
 
                 const libro = libreria.addLibro({
@@ -755,13 +732,12 @@ describe("Tests del Modelo de Librería", function () {
 
             it("debe eliminar una factura", function () {
                 // Crear cliente y libro
-                const cliente = libreria.addUsuario({
+                const cliente = libreria.addCliente({
                     dni: "F003",
                     nombre: "Luis",
                     apellidos: "Prueba",
                     email: "luis@prueba.com",
-                    password: "F003",
-                    rol: ROL.CLIENTE
+                    password: "F003"
                 });
 
                 const libro = libreria.addLibro({
@@ -784,22 +760,20 @@ describe("Tests del Modelo de Librería", function () {
                 // La factura ya está guardada en el modelo automáticamente
                 const totalAntes = libreria.getFacturas().length;
 
-                // removeFactura devuelve el array de facturas encontradas (por diseño actual del modelo)
+                // removeFactura devuelve la factura eliminada
                 const eliminada = libreria.removeFactura(factura._id);
 
                 // Comprobaciones
                 const totalDespues = libreria.getFacturas().length;
                 assert.equal(totalDespues, totalAntes - 1, "Debe reducirse el número de facturas en 1");
 
+                // Verificar que la factura eliminada es la correcta
+                assert.isDefined(eliminada, "removeFactura debe devolver la factura eliminada");
+                assert.equal(eliminada._id, factura._id, "La factura eliminada debe coincidir con la creada");
+
                 // Verificar que ya no existe en el modelo
                 const buscar = libreria.getFacturaPorId(factura._id);
-                assert.isArray(buscar);
-                assert.equal(buscar.length, 0, "No debería encontrarse la factura eliminada");
-
-                // (Opcional) Verificar lo que devolvió removeFactura según implementación actual
-                assert.isArray(eliminada, "removeFactura devuelve el array de coincidencias antes de borrar");
-                assert.equal(eliminada.length, 1, "Debe haber encontrado exactamente una factura para eliminar");
-                assert.equal(eliminada[0]._id, factura._id, "La factura encontrada debe coincidir con la eliminada");
+                assert.isUndefined(buscar, "No debería encontrarse la factura eliminada");
             });
         });
     });
@@ -873,7 +847,7 @@ describe("Tests del Modelo de Librería", function () {
                     stock: 10
                 });
 
-                libro.dexPrecioP(20);
+                libro.decPrecioP(80);
                 assert.equal(libro.precio, 20);
             });
 
@@ -897,13 +871,12 @@ describe("Tests del Modelo de Librería", function () {
 
             beforeEach(function () {
                 // Creamos un cliente y un libro nuevos para cada caso
-                cliente = libreria.addUsuario({
+                cliente = libreria.addCliente({
                     dni: "ITEM-T-DNI",
                     nombre: "ItemTester",
                     apellidos: "Spec",
                     email: "item@test.com",
-                    password: "pass",
-                    rol: ROL.CLIENTE
+                    password: "pass"
                 });
 
                 libro = libreria.addLibro({
@@ -933,7 +906,7 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(item.total, subtotalEsperado, 1e-9);
                 assert.closeTo(carro.subtotal, subtotalEsperado, 1e-9);
                 assert.closeTo(carro.iva, ivaEsperado, 1e-9);
-                assert.closeTo(carro.total, totalEsperado, 1e-9);   
+                assert.closeTo(carro.total, totalEsperado, 1e-9);
             });
 
             it("debe recalcular total al cambiar cantidad", function () {
@@ -991,13 +964,12 @@ describe("Tests del Modelo de Librería", function () {
             let cliente, libro1, libro2;
 
             beforeEach(function () {
-                cliente = libreria.addUsuario({
+                cliente = libreria.addCliente({
                     dni: "CARRO001",
                     nombre: "Test",
                     apellidos: "Carro",
                     email: "carro@test.com",
-                    password: "pass",
-                    rol: ROL.CLIENTE
+                    password: "pass"
                 });
 
                 libro1 = libreria.addLibro({
@@ -1110,15 +1082,41 @@ describe("Tests del Modelo de Librería", function () {
                 assert.equal(carro.total, 0);
             });
 
+            it("debe calcular correctamente con múltiples items de diferentes precios", function () {
+                const libro3 = libreria.addLibro({
+                    isbn: "CARRO-L3",
+                    titulo: "Libro 3",
+                    precio: 7.5,
+                    stock: 100
+                });
+
+                // Añadimos varias cantidades de cada uno
+                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 4 }); // 4 * 10 = 40
+                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 3 }); // 3 * 20 = 60
+                libreria.addClienteCarroItem(cliente._id, { libro: libro3._id, cantidad: 5 }); // 5 * 7.5 = 37.5
+
+                // Act
+                const carro = libreria.getCarroCliente(cliente._id);
+
+                // Assert
+                const subtotalEsperado = (4 * libro1.precio) + (3 * libro2.precio) + (5 * libro3.precio); // 137.5
+                const ivaEsperado = subtotalEsperado * 0.21;  // 28.875
+                const totalEsperado = subtotalEsperado + ivaEsperado; // 166.375
+
+                assert.closeTo(carro.subtotal, subtotalEsperado, 1e-9);
+                assert.closeTo(carro.iva, ivaEsperado, 1e-9);
+                assert.closeTo(carro.total, totalEsperado, 1e-9);
+            });
+        });
+
         describe("Factura - Cálculos", function () {
             it("debe heredar cálculos correctos del carro", function () {
-                const cliente = libreria.addUsuario({
+                const cliente = libreria.addCliente({
                     dni: "FAC-CALC-01",
                     nombre: "Cliente",
                     apellidos: "Factura",
                     email: "fac1@test.com",
-                    password: "pass",
-                    rol: ROL.CLIENTE
+                    password: "pass"
                 });
 
                 const l1 = libreria.addLibro({ isbn: "F-C1", titulo: "L1", precio: 10, stock: 100 });
@@ -1151,13 +1149,12 @@ describe("Tests del Modelo de Librería", function () {
 
             it("debe calcular subtotal de factura correctamente", function () {
                 // Arrange
-                const cliente = libreria.addUsuario({
+                const cliente = libreria.addCliente({
                     dni: "FAC-CALC-02",
                     nombre: "Cliente",
                     apellidos: "Factura",
                     email: "fac2@test.com",
-                    password: "pass",
-                    rol: ROL.CLIENTE
+                    password: "pass"
                 });
 
                 const l1 = libreria.addLibro({ isbn: "F-SUB1", titulo: "L1", precio: 40, stock: 100 });
@@ -1183,16 +1180,14 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(factura.subtotal, subtotalEsperado, 1e-9);
             });
 
-
             it("debe calcular IVA de factura correctamente", function () {
                 // Arrange
-                const cliente = libreria.addUsuario({
+                const cliente = libreria.addCliente({
                     dni: "FAC-CALC-03",
                     nombre: "Cliente",
                     apellidos: "Factura",
                     email: "fac3@test.com",
-                    password: "pass",
-                    rol: ROL.CLIENTE
+                    password: "pass"
                 });
 
                 const l1 = libreria.addLibro({ isbn: "F-IVA1", titulo: "L1", precio: 12.5, stock: 100 });
@@ -1219,17 +1214,14 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(factura.iva, ivaEsperado, 1e-9);
             });
 
-
-
             it("debe calcular total de factura correctamente", function () {
                 // Arrange
-                const cliente = libreria.addUsuario({
+                const cliente = libreria.addCliente({
                     dni: "FAC-CALC-04",
                     nombre: "Cliente",
                     apellidos: "Factura",
                     email: "fac4@test.com",
-                    password: "pass",
-                    rol: ROL.CLIENTE
+                    password: "pass"
                 });
 
                 const l1 = libreria.addLibro({ isbn: "F-TOT1", titulo: "L1", precio: 18, stock: 100 });
@@ -1257,10 +1249,37 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(factura.iva, ivaEsperado, 1e-9);
                 assert.closeTo(factura.total, totalEsperado, 1e-9);
             });
+        });
 
         describe("Cálculos Integrados", function () {
+            let cliente, libro1, libro2;
+
+            beforeEach(function () {
+                cliente = libreria.addCliente({
+                    dni: "INT001",
+                    nombre: "Integrado",
+                    apellidos: "Test",
+                    email: "integrado@test.com",
+                    password: "pass"
+                });
+
+                libro1 = libreria.addLibro({
+                    isbn: "INT-L1",
+                    titulo: "Libro Integrado 1",
+                    precio: 10,
+                    stock: 100
+                });
+
+                libro2 = libreria.addLibro({
+                    isbn: "INT-L2",
+                    titulo: "Libro Integrado 2",
+                    precio: 20,
+                    stock: 50
+                });
+            });
+
             it("debe mantener consistencia entre Item, Carro y Factura", function () {
-                // Arrange: 2 x libro1 (10) + 3 x libro2 (20) = 2*10 + 3*20 = 70
+                // Arrange: 2 x libro1 (10) + 3 x libro2 (20) = 2*10 + 3*20 = 80
                 libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
                 libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 3 });
 
@@ -1275,8 +1294,8 @@ describe("Tests del Modelo de Librería", function () {
 
                 // Consistencia del Carro (sumatorio de items)
                 const subtotalEsperado = totalItem1 + totalItem2;          // 80
-                const ivaEsperado = subtotalEsperado * 0.21;           // 16.8
-                const totalEsperado = subtotalEsperado + ivaEsperado;    // 96.8
+                const ivaEsperado = subtotalEsperado * 0.21;               // 16.8
+                const totalEsperado = subtotalEsperado + ivaEsperado;      // 96.8
                 assert.closeTo(carroAntes.subtotal, subtotalEsperado, 1e-9);
                 assert.closeTo(carroAntes.iva, ivaEsperado, 1e-9);
                 assert.closeTo(carroAntes.total, totalEsperado, 1e-9);
@@ -1304,55 +1323,6 @@ describe("Tests del Modelo de Librería", function () {
                 assert.strictEqual(carroDespues.subtotal, 0);
                 assert.strictEqual(carroDespues.iva, 0);
                 assert.strictEqual(carroDespues.total, 0);
-            });
-
-
-            it("debe calcular correctamente con múltiples items de diferentes precios", function () {
-                      
-                const libro3 = libreria.addLibro({
-                    isbn: "CARRO-L3",
-                    titulo: "Libro 3",
-                    precio: 7.5,
-                    stock: 100
-                });
-
-                // Añadimos varias cantidades de cada uno
-                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 4 }); // 4 * 10 = 40
-                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 3 }); // 3 * 20 = 60
-                libreria.addClienteCarroItem(cliente._id, { libro: libro3._id, cantidad: 5 }); // 5 * 7.5 = 37.5
-
-                // Act
-                const carro = libreria.getCarroCliente(cliente._id);
-
-                // Assert
-                const subtotalEsperado = (4 * libro1.precio) + (3 * libro2.precio) + (5 * libro3.precio); // 137.5
-                const ivaEsperado = subtotalEsperado * 0.21;  // 28.875
-                const totalEsperado = subtotalEsperado + ivaEsperado; // 166.375
-
-                assert.closeTo(carro.subtotal, subtotalEsperado, 1e-9);
-                assert.closeTo(carro.iva, ivaEsperado, 1e-9);
-                assert.closeTo(carro.total, totalEsperado, 1e-9);
-            });
-
-        });
-    });
-
-            // ============================================================================
-            // RESUMEN DE TESTS
-            // ============================================================================
-
-            after(function () {
-                console.log("\n" + "=".repeat(60));
-                console.log("TODOS LOS TESTS COMPLETADOS");
-                console.log("=".repeat(60));
-                console.log("Distribución de puntos:");
-                console.log("  1.Getters y Setters:  1 punto");
-                console.log("  2.Excepciones:        4 puntos");
-                console.log("  3.CRUD:              10 puntos");
-                console.log("  4.Cálculos:          10 puntos");
-                console.log("  " + "-".repeat(35));
-                console.log("TOTAL:            25 puntos");
-                console.log("=".repeat(60) + "\n");
             });
         });
     });
