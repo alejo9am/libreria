@@ -4,8 +4,8 @@
   "main": "app.mjs",
   "type": "module",
   "scripts": {
-    "test-rest": ".\\node_modules\\.bin\\mocha .\\test\\rest.spec.mjs --reporter spec --exit",
-    "test-model": ".\\node_modules\\.bin\\mocha .\\test\\model.spec.mjs --reporter spec --exit",
+    "test-rest": "mocha ./test/rest.spec.mjs --reporter spec --exit",
+    "test-model": "mocha ./test/model.spec.mjs --reporter spec --exit",
     "start": "node ."
   },
   "keywords": [],
