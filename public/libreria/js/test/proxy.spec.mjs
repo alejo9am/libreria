@@ -16,11 +16,23 @@ describe("Tests del Modelo de Librería", function () {
     this.timeout(10000);
     try {
       console.log("Realizando backup del estado del servidor...");
+      console.log("Estado inicial de la librería en el servidor:");
+      console.log("Libros:", await libreria.getLibros());
+      console.log("Clientes:", await libreria.getClientes());
+      console.log("Admins:", await libreria.getAdmins());
+      console.log("Facturas:", await libreria.getFacturas());
+
       backupLibros = await libreria.getLibros();
       backupClientes = await libreria.getClientes();
       backupAdmins = await libreria.getAdmins();
       backupFacturas = await libreria.getFacturas();
       console.log("Backup completado.");
+
+      // Limpiar datos para tests
+      await libreria.removeFacturas();
+      await libreria.removeClientes();
+      await libreria.removeAdmins();
+      await libreria.removeLibros();
     } catch (e) {
       console.error("Error al realizar backup:", e);
       throw e;
@@ -41,6 +53,14 @@ describe("Tests del Modelo de Librería", function () {
       if (backupClientes) await libreria.setClientes(backupClientes);
       if (backupAdmins) await libreria.setAdmins(backupAdmins);
       if (backupFacturas) await libreria.setFacturas(backupFacturas);
+
+      // Estado restaurado
+      console.log("Estado restaurado de la librería en el servidor:");
+      console.log("Libros:", await libreria.getLibros());
+      console.log("Clientes:", await libreria.getClientes());
+      console.log("Admins:", await libreria.getAdmins());
+      console.log("Facturas:", await libreria.getFacturas());
+
       console.log("Restauración completada.");
     } catch (e) {
       console.error("Error al restaurar backup:", e);
@@ -51,7 +71,7 @@ describe("Tests del Modelo de Librería", function () {
   // let libreria; // Usamos la instancia importada
 
   // Limpiar datos antes de cada test
-  beforeEach(async function () {
+  afterEach(async function () {
     this.timeout(5000); // Aumentar timeout por si acaso
     try {
       await libreria.removeFacturas();
@@ -1368,23 +1388,6 @@ describe("Tests del Modelo de Librería", function () {
           assert.closeTo(carro.total, totalEsperado, 1e-9);
         });
 
-      });
-      // ============================================================================
-      // RESUMEN DE TESTS
-      // ============================================================================
-
-      after(function () {
-        console.log("\n" + "=".repeat(60));
-        console.log("TODOS LOS TESTS COMPLETADOS");
-        console.log("=".repeat(60));
-        console.log("Distribución de puntos:");
-        console.log("  1.Getters y Setters:  1 punto");
-        console.log("  2.Excepciones:        4 puntos");
-        console.log("  3.CRUD:              10 puntos");
-        console.log("  4.Cálculos:          10 puntos");
-        console.log("  " + "-".repeat(35));
-        console.log("TOTAL:            25 puntos");
-        console.log("=".repeat(60) + "\n");
       });
     });
   });
