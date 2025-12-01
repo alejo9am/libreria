@@ -270,7 +270,15 @@ export async function seed() {
     console.log('===========================================');
     console.log(`📚 Libros:          ${librosTotal.length}`);
     console.log(`👥 Clientes:        ${clientesTotal.length}`);
+    // Mostrar todos los clientes
+    clientesTotal.forEach(cliente => {
+      console.log(`   - ${cliente.nombre} ${cliente.apellidos} (${cliente.email})`);
+    });
     console.log(`🔑 Administradores: ${adminsTotal.length}`);
+    // Mostrar todos los administradores
+    adminsTotal.forEach(admin => {
+      console.log(`   - ${admin.nombre} ${admin.apellidos} (${admin.email})`);
+    });
     console.log(`🧾 Facturas:        ${facturasTotal.length}`);
     console.log('===========================================\n');
 
