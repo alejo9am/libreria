@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Libro } from './libro.mjs';
 import { Usuario } from './usuario.mjs';
 import { Factura } from './factura.mjs';
@@ -287,22 +288,13 @@ export class Libreria {
     const cliente = await this.getClientePorId(id);
     if (!cliente) return null;
     if (!cliente.carro) return null;
-    const carro = await Carro.findById(cliente.carro);
+    const carro = await Carro.findById(cliente.carro).populate({
+      path: 'items',
+      populate: { path: 'libro' }
+    });
     if (!carro) return null;
     
-    // Cargar los datos completos de cada item
-    const itemsCompletos = [];
-    for (const itemId of carro.items) {
-      const item = await Item.findById(itemId);
-      if (item) {
-        itemsCompletos.push(item);
-      }
-    }
-    
-    // Devolver el carro con los items completos
-    const carroObj = carro.toObject();
-    carroObj.items = itemsCompletos;
-    return carroObj;
+    return carro;
   }
 
   async addClienteCarroItem(id, item) {
@@ -321,15 +313,32 @@ export class Libreria {
       carro = await Carro.findById(carro);
     }
     
-    // Crear item
-    const nuevoItem = await new Item({
-      cantidad: item.cantidad,
-      libro: libro.toObject(),
-      total: item.cantidad * libro.precio
-    }).save();
+    // Verificar si el libro ya está en el carrito
+    let itemExistente = null;
+    for (const itemId of carro.items) {
+      const it = await Item.findById(itemId);
+      if (it && it.libro.toString() === libro._id.toString()) {
+        itemExistente = it;
+        break;
+      }
+    }
     
-    // Agregar item al carro
-    carro.items.push(nuevoItem._id);
+    if (itemExistente) {
+      // Si el libro ya existe, incrementar la cantidad
+      itemExistente.cantidad += item.cantidad;
+      itemExistente.total = itemExistente.cantidad * libro.precio;
+      await itemExistente.save();
+    } else {
+      // Si no existe, crear un nuevo item
+      const nuevoItem = await new Item({
+        cantidad: item.cantidad,
+        libro: libro._id,
+        total: item.cantidad * libro.precio
+      }).save();
+      
+      // Agregar item al carro
+      carro.items.push(nuevoItem._id);
+    }
     
     // Recalcular totales
     let subtotal = 0;
@@ -346,17 +355,12 @@ export class Libreria {
     await carro.save();
     await cliente.save();
     
-    // Devolver el carro con los items completos
-    const itemsCompletos = [];
-    for (const itemId of carro.items) {
-      const it = await Item.findById(itemId);
-      if (it) {
-        itemsCompletos.push(it);
-      }
-    }
-    const carroObj = carro.toObject();
-    carroObj.items = itemsCompletos;
-    return carroObj;
+    // Devolver el carro con los items completos usando populate
+    const carroCompleto = await Carro.findById(carro._id).populate({
+      path: 'items',
+      populate: { path: 'libro' }
+    });
+    return carroCompleto;
   }
 
   async setClienteCarroItemCantidad(id, index, cantidad) {
@@ -375,7 +379,7 @@ export class Libreria {
     }
     
     const itemId = carro.items[index];
-    const item = await Item.findById(itemId);
+    const item = await Item.findById(itemId).populate('libro');
     if (!item) throw new Error('Item no encontrado');
     
     item.cantidad = cantidad;
@@ -396,17 +400,12 @@ export class Libreria {
     
     await carro.save();
     
-    // Devolver el carro con los items completos
-    const itemsCompletos = [];
-    for (const iId of carro.items) {
-      const it = await Item.findById(iId);
-      if (it) {
-        itemsCompletos.push(it);
-      }
-    }
-    const carroObj = carro.toObject();
-    carroObj.items = itemsCompletos;
-    return carroObj;
+    // Devolver el carro con los items completos usando populate
+    const carroCompleto = await Carro.findById(carro._id).populate({
+      path: 'items',
+      populate: { path: 'libro' }
+    });
+    return carroCompleto;
   }
 
   async vaciarCarroCliente(id) {
@@ -475,15 +474,7 @@ export class Libreria {
       direccion: obj.direccion,
       email: obj.email,
       dni: obj.dni,
-      cliente: {
-        _id: cliente._id,
-        dni: cliente.dni,
-        nombre: cliente.nombre,
-        apellidos: cliente.apellidos,
-        direccion: cliente.direccion,
-        email: cliente.email,
-        rol: cliente.rol
-      },
+      cliente: cliente._id,
       items: carro.items,
       subtotal: carro.subtotal,
       iva: carro.iva,
@@ -504,16 +495,35 @@ export class Libreria {
   }
 
   async getFacturaPorId(id) {
-    return await Factura.findById(id);
+    return await Factura.findById(id)
+      .populate('cliente')
+      .populate({
+        path: 'items',
+        populate: { path: 'libro' }
+      });
   }
 
   async getFacturaPorNumero(numero) {
     const numeroLimpio = String(numero).trim();
-    return await Factura.findOne({ numero: numeroLimpio });
+    return await Factura.findOne({ numero: numeroLimpio })
+      .populate('cliente')
+      .populate({
+        path: 'items',
+        populate: { path: 'libro' }
+      });
   }
 
   async getFacturasPorCliente(clienteId) {
-    return await Factura.find({ 'cliente._id': clienteId });
+    // Convertir el clienteId a ObjectId si es un string válido
+    const objectId = mongoose.Types.ObjectId.isValid(clienteId) 
+      ? new mongoose.Types.ObjectId(clienteId) 
+      : clienteId;
+    return await Factura.find({ cliente: objectId })
+      .populate('cliente')
+      .populate({
+        path: 'items',
+        populate: { path: 'libro' }
+      });
   }
 
   async removeFactura(id) {

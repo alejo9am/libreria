@@ -47,7 +47,12 @@ export class ClienteVerCompraPresenter extends Presenter {
   }
 
   set fecha(fecha) {
-    this.fechaParagraph.textContent = fecha;
+    // Formatear la fecha a formato legible (dd/mm/yyyy)
+    const date = new Date(fecha);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    this.fechaParagraph.textContent = `${day}/${month}/${year}`;
   }
 
   get razonSocialParagraph() {

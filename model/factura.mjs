@@ -13,7 +13,7 @@ const schema = Schema({
   subtotal: { type: Number, required: true, default: 0 },
   iva: { type: Number, required: true, default: 0 },
   total: { type: Number, required: true, default: 0 },
-  cliente: { type: Schema.Types.Mixed, required: true },
+  cliente: { type: Schema.Types.ObjectId, ref: 'Usuario', required: true },
 });
 
 export const Factura = mongoose.model('Factura', schema);

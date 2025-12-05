@@ -120,7 +120,7 @@ export async function seed() {
     console.log('[Seeder] Creando usuarios de prueba...');
     try {
       await model.addAdmin({
-        dni: '99999999A',
+        dni: 'p',
         nombre: 'pruebas',
         apellidos: 'pruebas',
         direccion: 'Calle Pruebas 123',
@@ -135,15 +135,15 @@ export async function seed() {
 
     try {
       await model.addCliente({
-        dni: '99999999C',
+        dni: 'p',
         nombre: 'pruebas',
         apellidos: 'pruebas',
         direccion: 'Calle Pruebas 123',
-        email: 'c@c.com',
+        email: 'p@p.com',
         password: '1',
         rol: ROL.CLIENTE
       });
-      console.log('[Seeder] Cliente de pruebas creado (c@c.com / 1)');
+      console.log('[Seeder] Cliente de pruebas creado (p@p.com / 1)');
     } catch (err) {
       console.log('[Seeder] Cliente de pruebas ya existe');
     }
