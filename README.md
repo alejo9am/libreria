@@ -22,12 +22,17 @@ Desarrollar un sistema completo de gestión de librería que permita:
 
 El proyecto implementa una arquitectura **cliente-servidor** con separación clara de responsabilidades:
 
-### Backend (Servidor Node.js + Express)
+### Backend (Servidor Node.js + Express + MongoDB)
 
 ```
 ├── app.mjs                 # Servidor Express con API REST
 ├── model/
 │   ├── model.mjs          # Lógica de negocio y dominio
+│   ├── libro.mjs          # Esquema Mongoose para Libros
+│   ├── usuario.mjs        # Esquema Mongoose para Usuarios
+│   ├── factura.mjs        # Esquema Mongoose para Facturas
+│   ├── carro.mjs          # Esquema Mongoose para Carrito
+│   ├── item.mjs           # Esquema Mongoose para Items
 │   └── seeder.mjs         # Datos iniciales de prueba
 └── test/
     └── rest.spec.mjs      # Tests de la API REST
@@ -175,12 +180,19 @@ El backend expone una API REST completa con los siguientes endpoints:
 ### Backend
 
 - **Node.js** con **Express.js**
+- **MongoDB** como base de datos NoSQL con **Mongoose** como ODM
+- **Esquemas Mongoose** para validación y estructura de documentos:
+  - `Libro` - Catálogo de libros disponibles
+  - `Usuario` - Datos de clientes y administradores
+  - `Factura` - Histórico de compras
+  - `Carro` - Carrito de compras de cada cliente
+  - `Item` - Items dentro del carrito
 - **API REST** completa con todas las operaciones CRUD
 - **Middleware CORS** para desarrollo
 - **Validación de datos** en servidor
 - **Manejo de errores** centralizado
 - **Arquitectura MVC** con separación de capas
-- **Persistencia en memoria** con modelo de dominio
+- **Persistencia en MongoDB** con sincronización cliente-servidor en tiempo real
 
 ### Testing
 
@@ -194,12 +206,77 @@ El backend expone una API REST completa con los siguientes endpoints:
 
 ---
 
+## 🗄️ Arquitectura de Base de Datos
+
+### Colecciones MongoDB
+
+#### Libros
+```javascript
+{
+  isbn: String (único),
+  titulo: String,
+  autor: String,
+  editorial: String,
+  año: Number,
+  precio: Number,
+  cantidad: Number,
+  descripcion: String
+}
+```
+
+#### Usuarios (Clientes y Administradores)
+```javascript
+{
+  nombre: String,
+  email: String (único),
+  password: String (hasheada),
+  rol: String (ADMIN | CLIENTE),
+  activo: Boolean,
+  fechaCreacion: Date
+}
+```
+
+#### Facturas
+```javascript
+{
+  numero: String (único),
+  clienteId: ObjectId (referencia a Usuario),
+  items: [Item],
+  total: Number,
+  fecha: Date,
+  estado: String
+}
+```
+
+#### Carrito
+```javascript
+{
+  clienteId: ObjectId (referencia a Usuario),
+  items: [Item],
+  total: Number,
+  fechaActualizacion: Date
+}
+```
+
+#### Items
+```javascript
+{
+  libroId: ObjectId (referencia a Libro),
+  cantidad: Number,
+  precioUnitario: Number,
+  subtotal: Number
+}
+```
+
+---
+
 ## 🚀 Instalación y Uso
 
 ### Prerrequisitos
 
 - Node.js (versión 14 o superior)
 - npm (incluido con Node.js)
+- MongoDB (versión 4.4 o superior, ejecutándose localmente en puerto 27017)
 
 ### Instalación
 
@@ -217,6 +294,20 @@ El backend expone una API REST completa con los siguientes endpoints:
    ```
 
 ### Ejecución
+
+**Asegúrese de que MongoDB está ejecutándose:**
+
+#### En Windows
+
+```bash
+C:/mongodb/bin/mongod.exe --dbpath C:/mongodb/data
+```
+
+**En otra terminal, inicializar la base de datos:**
+
+```bash
+npm run seed
+```
 
 **Iniciar el servidor:**
 
@@ -247,12 +338,17 @@ npm run test-rest
 ```json
 {
   "express": "^4.21.1",     // Framework web
+  "mongoose": "^8.8.2",     // ODM para MongoDB
   "path": "^0.12.7",        // Utilidades de rutas
   "mocha": "^10.2.0",       // Framework de testing
   "chai": "^4.3.7",         // Librería de aserciones
   "chai-http": "^4.3.0"     // Plugin HTTP para Chai
 }
 ```
+
+### Dependencias de Base de Datos
+
+- **MongoDB** - Base de datos NoSQL (debe estar instalada y ejecutándose localmente en puerto 27017)
 
 ---
 
@@ -265,10 +361,15 @@ libreria/
 ├── 📄 package.json               # Configuración del proyecto
 ├── 📄 package-lock.json          # Lock de dependencias
 ├── 📄 README.md                  # Este archivo
+├── 📄 seeder.mjs                 # Seeder de la base de datos con datos iniciales
 │
-├── 📁 model/                     # Capa de modelo (Backend)
+├── 📁 model/                    # Capa de modelo (Backend) - Esquemas MongoDB
 │   ├── model.mjs                # Lógica de negocio y dominio
-│   └── seeder.mjs               # Datos de inicialización
+│   ├── libro.mjs                # Esquema Mongoose - Libros
+│   ├── usuario.mjs              # Esquema Mongoose - Usuarios (Clientes/Admins)
+│   ├── factura.mjs              # Esquema Mongoose - Facturas
+│   ├── carro.mjs                # Esquema Mongoose - Carrito
+│   └── item.mjs                 # Esquema Mongoose - Items del carrito
 │
 ├── 📁 test/                      # Tests del backend
 │   └── rest.spec.mjs            # Tests de la API REST
@@ -380,6 +481,13 @@ Cada componente tiene:
                                                        ▼
                                                 ┌─────────────┐
                                                 │    Model    │
-                                                │  (Business) │
+                                                │  (Mongoose) │
+                                                └─────────────┘
+                                                       │
+                                                       │ Queries
+                                                       ▼
+                                                ┌─────────────┐
+                                                │  MongoDB    │
+                                                │ (Database)  │
                                                 └─────────────┘
 ```
