@@ -56,8 +56,19 @@ async function disconnect() {
   return await mongoose.disconnect();
 }
 
+// FUncion para borrar BBDD
+async function clearDatabase() {
+  const collections = Object.keys(mongoose.connection.collections);
+  for (const collectionName of collections) {
+    const collection = mongoose.connection.collections[collectionName];
+    await collection.deleteMany();
+  }
+}
+
 // Función principal de seed
 export async function seed() {
+  console.log('[Seeder] Limpiando base de datos...');
+  await clearDatabase();
   console.log('[Seeder] Iniciando seed...');
 
   const ISBNS = [
@@ -268,18 +279,18 @@ export async function seed() {
     console.log('\n===========================================');
     console.log('           SEED COMPLETADO');
     console.log('===========================================');
-    console.log(`📚 Libros:          ${librosTotal.length}`);
-    console.log(`👥 Clientes:        ${clientesTotal.length}`);
+    console.log(`Libros:          ${librosTotal.length}`);
+    console.log(`Clientes:        ${clientesTotal.length}`);
     // Mostrar todos los clientes
     clientesTotal.forEach(cliente => {
       console.log(`   - ${cliente.nombre} ${cliente.apellidos} (${cliente.email})`);
     });
-    console.log(`🔑 Administradores: ${adminsTotal.length}`);
+    console.log(`Administradores: ${adminsTotal.length}`);
     // Mostrar todos los administradores
     adminsTotal.forEach(admin => {
       console.log(`   - ${admin.nombre} ${admin.apellidos} (${admin.email})`);
     });
-    console.log(`🧾 Facturas:        ${facturasTotal.length}`);
+    console.log(`Facturas:        ${facturasTotal.length}`);
     console.log('===========================================\n');
 
   } catch (err) {
