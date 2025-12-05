@@ -2,12 +2,13 @@ import express from 'express';
 import path from 'path';
 import url from 'url';
 import mongoose from 'mongoose';
+import { MONGODB_URI, PORT } from './config.mjs';
 
 import { model } from './model/model.mjs';
 
 // Función de conexión a MongoDB
 async function connect() {
-  const uri = 'mongodb://127.0.0.1/libreria';
+  const uri = MONGODB_URI;
   mongoose.Promise = global.Promise;
   const db = mongoose.connection;
   db.on('connecting', () => console.log('Conectando a', uri));
@@ -22,7 +23,6 @@ async function connect() {
 await connect();
 
 const STATIC_DIR = url.fileURLToPath(new URL('.', import.meta.url));
-const PORT = 3000;
 
 export const app = express();
 
