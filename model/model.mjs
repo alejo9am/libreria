@@ -367,6 +367,8 @@ export class Libreria {
     const cliente = await this.getClientePorId(id);
     if (!cliente) throw new Error('Cliente no encontrado');
     
+    if (cantidad < 0) throw new Error('Cantidad inferior a 0');
+    
     if (!cliente.carro) {
       throw new Error('El cliente no tiene carro');
     }
@@ -382,9 +384,16 @@ export class Libreria {
     const item = await Item.findById(itemId).populate('libro');
     if (!item) throw new Error('Item no encontrado');
     
-    item.cantidad = cantidad;
-    item.total = item.cantidad * item.libro.precio;
-    await item.save();
+    // Si la cantidad es 0, eliminar el item del carro
+    if (cantidad === 0) {
+      carro.items.splice(index, 1);
+      await Item.findByIdAndDelete(itemId);
+    } else {
+      // Actualizar la cantidad del item
+      item.cantidad = cantidad;
+      item.total = item.cantidad * item.libro.precio;
+      await item.save();
+    }
     
     // Recalcular totales del carro
     let subtotal = 0;
