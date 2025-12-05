@@ -251,7 +251,8 @@ app.put('/api/clientes', async function (req, res, next) {
   try {
     // console.log('[PUT /api/clientes]', req.body);
     await model.setClientes(req.body);
-    const clientes = await model.getClientes().map(c => {
+    const clientesDB = await model.getClientes();
+    const clientes = clientesDB.map(c => {
       const clienteObj = c.toObject();
       const { password, ...clienteSinPassword } = clienteObj;
       return clienteSinPassword;
@@ -630,12 +631,12 @@ app.post('/api/facturas', async (req, res) => {
       await model.vaciarCarroCliente(clienteId);
 
       // Agregar cada item al carrito
-      req.body.items.forEach(item => async () => {
+      for (const item of req.body.items) {
         await model.addClienteCarroItem(clienteId, {
           libro: typeof item.libro === 'object' ? item.libro._id : item.libro,
           cantidad: item.cantidad
         });
-      });
+      }
     }
 
     // Ahora sí, facturar la compra

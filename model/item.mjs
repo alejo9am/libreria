@@ -6,6 +6,6 @@ const schema = Schema({
   cantidad: { type: Number, required: true, default: 0 },
   libro: { type: Schema.Types.Mixed, required: true },
   total: { type: Number, required: true, default: 0 },
-}, { _id: false });
+});
 
-export const ItemSchema = schema;
+export const Item = mongoose.model('Item', schema); 

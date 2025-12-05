@@ -1,89 +1,13 @@
 import { Libro } from './libro.mjs';
 import { Usuario } from './usuario.mjs';
 import { Factura } from './factura.mjs';
+import { Carro } from './carro.mjs';
+import { Item } from './item.mjs';
 
 export const ROL = {
   ADMIN: "ADMIN",
   CLIENTE: "CLIENTE",
 };
-
-// ==================== CLASES AUXILIARES ====================
-// Estas clases solo se usan para lógica de negocio del carrito
-
-class Item {
-  cantidad;
-  libro;
-  total;
-
-  constructor() {
-    this.cantidad = 0;
-  }
-
-  calcular() {
-    this.total = this.cantidad * this.libro.precio;
-  }
-}
-
-class Carro {
-  items;
-  subtotal;
-  iva;
-  total;
-
-  constructor() {
-    this.items = [];
-    this.subtotal = 0;
-    this.iva = 0;
-    this.total = 0;
-  }
-
-  addItem(obj) {
-    let item = this.items.find(i => {
-      const libroId1 = i.libro._id ? i.libro._id.toString() : i.libro;
-      const libroId2 = obj.libro._id ? obj.libro._id.toString() : obj.libro;
-      return libroId1 === libroId2;
-    });
-    
-    if (!item) {
-      item = new Item();
-      Object.assign(item, obj);
-      item.calcular();
-      this.items.push(item);
-    } else {
-      item.cantidad = item.cantidad + obj.cantidad;
-      item.calcular();
-    }
-    this.calcular();
-  }
-
-  setItemCantidad(index, cantidad) {
-    if (cantidad < 0) throw new Error('Cantidad inferior a 0');
-    if (cantidad == 0) {
-      this.items = this.items.filter((v, i) => i != index);
-    } else {
-      let item = this.items[index];
-      item.cantidad = cantidad;
-      item.calcular();
-    }
-    this.calcular();
-  }
-
-  borrarItem(index) {
-    this.items = this.items.filter((v, i) => i != index);
-    this.calcular();
-  }
-
-  removeItems() {
-    this.items = [];
-    this.calcular();
-  }
-
-  calcular() {
-    this.subtotal = this.items.reduce((total, i) => total + i.total, 0);
-    this.iva = this.subtotal * 0.21;
-    this.total = this.subtotal + this.iva;
-  }
-}
 
 // ==================== MODELO PRINCIPAL ====================
 
@@ -196,9 +120,10 @@ export class Libreria {
 
   async setClientes(array) {
     await Usuario.deleteMany({ rol: ROL.CLIENTE });
-    const promises = array.map((c) => {
+    const promises = array.map(async (c) => {
       c.rol = ROL.CLIENTE;
-      if (!c.carro) c.carro = new Carro();
+      const carro = await new Carro().save();
+      c.carro = carro._id;
       return new Usuario(c).save();
     });
     await Promise.all(promises);
@@ -215,7 +140,8 @@ export class Libreria {
     if (cliente) throw new Error('Ya existe un CLIENTE registrado con ese email');
     
     obj.rol = ROL.CLIENTE;
-    if (!obj.carro) obj.carro = new Carro();
+    const carro = await new Carro().save();
+    obj.carro = carro._id;
     
     return await new Usuario(obj).save();
   }
@@ -360,7 +286,23 @@ export class Libreria {
   async getCarroCliente(id) {
     const cliente = await this.getClientePorId(id);
     if (!cliente) return null;
-    return cliente.carro || new Carro();
+    if (!cliente.carro) return null;
+    const carro = await Carro.findById(cliente.carro);
+    if (!carro) return null;
+    
+    // Cargar los datos completos de cada item
+    const itemsCompletos = [];
+    for (const itemId of carro.items) {
+      const item = await Item.findById(itemId);
+      if (item) {
+        itemsCompletos.push(item);
+      }
+    }
+    
+    // Devolver el carro con los items completos
+    const carroObj = carro.toObject();
+    carroObj.items = itemsCompletos;
+    return carroObj;
   }
 
   async addClienteCarroItem(id, item) {
@@ -370,22 +312,51 @@ export class Libreria {
     const cliente = await this.getClientePorId(id);
     if (!cliente) throw new Error('Cliente no encontrado');
     
-    // Reconstruir el carro con la clase Carro para tener los métodos
-    if (!cliente.carro) {
-      cliente.carro = new Carro();
+    // Crear o recuperar el carro
+    let carro = cliente.carro;
+    if (!carro) {
+      carro = await new Carro().save();
+      cliente.carro = carro._id;
+    } else {
+      carro = await Carro.findById(carro);
     }
-    const carro = new Carro();
-    Object.assign(carro, cliente.carro);
     
-    // Preparar item con el libro completo
-    item.libro = libro.toObject();
-    carro.addItem(item);
+    // Crear item
+    const nuevoItem = await new Item({
+      cantidad: item.cantidad,
+      libro: libro.toObject(),
+      total: item.cantidad * libro.precio
+    }).save();
     
-    // Guardar el carro actualizado
-    cliente.carro = carro;
+    // Agregar item al carro
+    carro.items.push(nuevoItem._id);
+    
+    // Recalcular totales
+    let subtotal = 0;
+    for (const itemId of carro.items) {
+      const it = await Item.findById(itemId);
+      if (it) {
+        subtotal += it.total;
+      }
+    }
+    carro.subtotal = parseFloat(subtotal.toFixed(2));
+    carro.iva = parseFloat((carro.subtotal * 0.21).toFixed(2));
+    carro.total = parseFloat((carro.subtotal + carro.iva).toFixed(2));
+    
+    await carro.save();
     await cliente.save();
     
-    return cliente.carro;
+    // Devolver el carro con los items completos
+    const itemsCompletos = [];
+    for (const itemId of carro.items) {
+      const it = await Item.findById(itemId);
+      if (it) {
+        itemsCompletos.push(it);
+      }
+    }
+    const carroObj = carro.toObject();
+    carroObj.items = itemsCompletos;
+    return carroObj;
   }
 
   async setClienteCarroItemCantidad(id, index, cantidad) {
@@ -396,24 +367,67 @@ export class Libreria {
       throw new Error('El cliente no tiene carro');
     }
     
-    // Reconstruir el carro
-    const carro = new Carro();
-    Object.assign(carro, cliente.carro);
-    carro.setItemCantidad(index, cantidad);
+    const carro = await Carro.findById(cliente.carro);
+    if (!carro) throw new Error('Carro no encontrado');
     
-    // Guardar
-    cliente.carro = carro;
-    await cliente.save();
+    if (index < 0 || index >= carro.items.length) {
+      throw new Error('Índice de item inválido');
+    }
     
-    return cliente.carro;
+    const itemId = carro.items[index];
+    const item = await Item.findById(itemId);
+    if (!item) throw new Error('Item no encontrado');
+    
+    item.cantidad = cantidad;
+    item.total = item.cantidad * item.libro.precio;
+    await item.save();
+    
+    // Recalcular totales del carro
+    let subtotal = 0;
+    for (const iId of carro.items) {
+      const it = await Item.findById(iId);
+      if (it) {
+        subtotal += it.total;
+      }
+    }
+    carro.subtotal = parseFloat(subtotal.toFixed(2));
+    carro.iva = parseFloat((carro.subtotal * 0.21).toFixed(2));
+    carro.total = parseFloat((carro.subtotal + carro.iva).toFixed(2));
+    
+    await carro.save();
+    
+    // Devolver el carro con los items completos
+    const itemsCompletos = [];
+    for (const iId of carro.items) {
+      const it = await Item.findById(iId);
+      if (it) {
+        itemsCompletos.push(it);
+      }
+    }
+    const carroObj = carro.toObject();
+    carroObj.items = itemsCompletos;
+    return carroObj;
   }
 
   async vaciarCarroCliente(id) {
     const cliente = await this.getClientePorId(id);
     if (!cliente) throw new Error('Cliente no encontrado');
     
-    cliente.carro = new Carro();
-    await cliente.save();
+    if (cliente.carro) {
+      const carro = await Carro.findById(cliente.carro);
+      if (carro) {
+        // Eliminar todos los items
+        for (const itemId of carro.items) {
+          await Item.findByIdAndDelete(itemId);
+        }
+        // Limpiar el carro
+        carro.items = [];
+        carro.subtotal = 0;
+        carro.iva = 0;
+        carro.total = 0;
+        await carro.save();
+      }
+    }
     
     return cliente.carro;
   }
@@ -443,7 +457,10 @@ export class Libreria {
     const cliente = await this.getClientePorId(clienteId);
     
     if (!cliente) throw new Error('Cliente no encontrado');
-    if (!cliente.carro || cliente.carro.items.length < 1) {
+    if (!cliente.carro) throw new Error('Cliente no tiene carro');
+    
+    const carro = await Carro.findById(cliente.carro);
+    if (!carro || carro.items.length < 1) {
       throw new Error('No hay items en el carrito');
     }
 
@@ -467,18 +484,21 @@ export class Libreria {
         email: cliente.email,
         rol: cliente.rol
       },
-      items: cliente.carro.items,
-      subtotal: cliente.carro.subtotal,
-      iva: cliente.carro.iva,
-      total: cliente.carro.total
+      items: carro.items,
+      subtotal: carro.subtotal,
+      iva: carro.iva,
+      total: carro.total
     };
     
     // Guardar factura
     const factura = await new Factura(facturaData).save();
     
     // Vaciar carro del cliente
-    cliente.carro = new Carro();
-    await cliente.save();
+    carro.items = [];
+    carro.subtotal = 0;
+    carro.iva = 0;
+    carro.total = 0;
+    await carro.save();
     
     return factura;
   }
