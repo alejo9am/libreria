@@ -32,7 +32,7 @@ export class ClienteComprarPresenter extends Presenter {
     }
 
     const userId = LibreriaSession.getUserId();
-    const clienteData = LibreriaSession.getUsuarioById(userId);
+    const clienteData = await this.model.getClientePorId(userId);
 
     // Cerrar sesion
     const salirLink = document.getElementById("salirLink");

@@ -6,17 +6,19 @@
   "scripts": {
     "test-rest": "mocha ./test/rest.spec.mjs --reporter spec --exit",
     "test-model": "mocha ./test/model.spec.mjs --reporter spec --exit",
-    "start": "node ."
+    "start": "node .",
+    "seed": "node seeder.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "express": "^4.21.1",
-    "path": "^0.12.7",
-    "mocha": "^10.2.0",
     "chai": "^4.3.7",
-    "chai-http": "^4.3.0"
+    "chai-http": "^4.3.0",
+    "express": "^4.21.1",
+    "mocha": "^10.2.0",
+    "mongoose": "^8.8.2",
+    "path": "^0.12.7"
   }
 }

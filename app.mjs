@@ -1,12 +1,25 @@
 import express from 'express';
 import path from 'path';
 import url from 'url';
+import mongoose from 'mongoose';
 
 import { model } from './model/model.mjs';
-import { seed } from './model/seeder.mjs';
 
-// Inicializar datos
-seed();
+// Función de conexión a MongoDB
+async function connect() {
+  const uri = 'mongodb://127.0.0.1/libreria';
+  mongoose.Promise = global.Promise;
+  const db = mongoose.connection;
+  db.on('connecting', () => console.log('Conectando a', uri));
+  db.on('connected', () => console.log('Conectado a', uri));
+  db.on('disconnecting', () => console.log('Desconectando de', uri));
+  db.on('disconnected', () => console.log('Desconectado de', uri));
+  db.on('error', (err) => console.error('Error', err.message));
+  return await mongoose.connect(uri);
+}
+
+// Conectar a MongoDB
+await connect();
 
 const STATIC_DIR = url.fileURLToPath(new URL('.', import.meta.url));
 const PORT = 3000;
@@ -32,13 +45,13 @@ app.use((req, res, next) => {
 /* ==================== API REST - LIBROS ==================== */
 
 // GET /api/libros - Obtener todos los libros O filtrar por query params
-app.get('/api/libros', function (req, res, next) {
+app.get('/api/libros', async function (req, res, next) {
   try {
     const { isbn, titulo } = req.query;
 
     // Filtrar por ISBN si se proporciona
     if (isbn) {
-      const libro = model.getLibroPorIsbn(isbn);
+      const libro = await model.getLibroPorIsbn(isbn);
       if (!libro) {
         return res.status(404).json({ error: 'Libro no encontrado' });
       }
@@ -47,7 +60,7 @@ app.get('/api/libros', function (req, res, next) {
 
     // Filtrar por título si se proporciona
     if (titulo) {
-      const libro = model.getLibroPorTitulo(titulo);
+      const libro = await model.getLibroPorTitulo(titulo);
       if (!libro) {
         return res.status(404).json({ error: 'Libro no encontrado' });
       }
@@ -55,7 +68,7 @@ app.get('/api/libros', function (req, res, next) {
     }
 
     // Si no hay filtros, devolver todos
-    res.json(model.getLibros());
+    res.json(await model.getLibros());
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -63,13 +76,13 @@ app.get('/api/libros', function (req, res, next) {
 });
 
 // GET /api/libros/:id - Obtener un libro por ID
-app.get('/api/libros/:id', function (req, res, next) {
+app.get('/api/libros/:id', async function (req, res, next) {
   try {
     let id = req.params.id;
     if (!id) {
       return res.status(400).json({ error: 'Id no definido' });
     }
-    let libro = model.getLibroPorId(id);
+    let libro = await model.getLibroPorId(id);
     if (!libro) {
       return res.status(404).json({ error: 'Libro no encontrado' });
     }
@@ -81,11 +94,11 @@ app.get('/api/libros/:id', function (req, res, next) {
 });
 
 // POST /api/libros - Crear un nuevo libro
-app.post('/api/libros', function (req, res, next) {
+app.post('/api/libros', async function (req, res, next) {
   try {
     let obj = req.body;
     // console.log('[POST /api/libros]', obj);
-    let libro = model.addLibro(obj);
+    let libro = await model.addLibro(obj);
     res.status(201).json(libro);
   } catch (err) {
     console.error(err);
@@ -94,11 +107,11 @@ app.post('/api/libros', function (req, res, next) {
 });
 
 // PUT /api/libros - Reemplazar todos los libros (setLibros)
-app.put('/api/libros', function (req, res, next) {
+app.put('/api/libros', async function (req, res, next) {
   try {
     // console.log('[PUT /api/libros]', req.body);
-    model.setLibros(req.body);
-    res.json(model.getLibros());
+    await model.setLibros(req.body);
+    res.json(await model.getLibros());
   } catch (err) {
     console.error(err);
     res.status(400).json({ error: err.message });
@@ -106,19 +119,19 @@ app.put('/api/libros', function (req, res, next) {
 });
 
 // PUT /api/libros/:id - Actualizar un libro existente
-app.put('/api/libros/:id', function (req, res, next) {
+app.put('/api/libros/:id', async function (req, res, next) {
   try {
     let id = req.params.id;
     if (!id) {
       return res.status(400).json({ error: 'ID no definido' });
     }
-    let libro = model.getLibroPorId(id);
+    let libro = await model.getLibroPorId(id);
     if (!libro) {
       return res.status(404).json({ error: 'Libro no encontrado' });
     }
-    req.body._id = Number(id);
-    model.updateLibro(req.body);
-    res.json(model.getLibroPorId(id));
+    req.body._id = id;
+    await model.updateLibro(req.body);
+    res.json(await model.getLibroPorId(id));
   } catch (err) {
     console.error(err);
     res.status(400).json({ error: err.message });
@@ -126,9 +139,9 @@ app.put('/api/libros/:id', function (req, res, next) {
 });
 
 // DELETE /api/libros - Eliminar todos los libros
-app.delete('/api/libros', function (req, res, next) {
+app.delete('/api/libros', async function (req, res, next) {
   try {
-    const count = model.removeLibros();
+    const count = await model.removeLibros();
     res.json({ ok: true, message: `${count} libros eliminados` });
   } catch (err) {
     console.error(err);
@@ -137,13 +150,13 @@ app.delete('/api/libros', function (req, res, next) {
 });
 
 // DELETE /api/libros/:id - Eliminar un libro
-app.delete('/api/libros/:id', function (req, res, next) {
+app.delete('/api/libros/:id', async function (req, res, next) {
   try {
     let id = req.params.id;
     if (!id) {
       return res.status(400).json({ error: 'Id no definido' });
     }
-    model.removeLibro(id);
+    await model.removeLibro(id);
     res.json({ ok: true, message: 'Libro eliminado' });
   } catch (err) {
     console.error(err);
@@ -154,35 +167,38 @@ app.delete('/api/libros/:id', function (req, res, next) {
 /* ==================== API REST - CLIENTES ==================== */
 
 // GET /api/clientes - Obtener todos los clientes O filtrar por query params
-app.get('/api/clientes', function (req, res, next) {
+app.get('/api/clientes', async function (req, res, next) {
   try {
     const { email, dni } = req.query;
 
     // Filtrar por email si se proporciona
     if (email) {
-      const cliente = model.getClientePorEmail(email);
+      const cliente = await model.getClientePorEmail(email);
       if (!cliente) {
         return res.status(404).json({ error: 'Cliente no encontrado' });
       }
       // No devolver contraseña
-      const { password, ...clienteSinPassword } = cliente;
+      const clienteObj = cliente.toObject();
+      const { password, ...clienteSinPassword } = clienteObj;
       return res.json(clienteSinPassword);
     }
 
     // Filtrar por DNI si se proporciona
     if (dni) {
-      const cliente = model.getClientePorDni(dni);
+      const cliente = await model.getClientePorDni(dni);
       if (!cliente) {
         return res.status(404).json({ error: 'Cliente no encontrado' });
       }
       // No devolver contraseña
-      const { password, ...clienteSinPassword } = cliente;
+      const clienteObj = cliente.toObject();
+      const { password, ...clienteSinPassword } = clienteObj;
       return res.json(clienteSinPassword);
     }
 
     // Si no hay filtros, devolver todos (sin contraseñas)
-    const clientes = model.getClientes().map(c => {
-      const { password, ...clienteSinPassword } = c;
+    const clientes = (await model.getClientes()).map(c => {
+      const clienteObj = c.toObject();
+      const { password, ...clienteSinPassword } = clienteObj;
       return clienteSinPassword;
     });
     res.json(clientes);
@@ -193,18 +209,19 @@ app.get('/api/clientes', function (req, res, next) {
 });
 
 // GET /api/clientes/:id - Obtener un cliente por ID
-app.get('/api/clientes/:id', function (req, res, next) {
+app.get('/api/clientes/:id', async function (req, res, next) {
   try {
     let id = req.params.id;
     if (!id) {
       return res.status(400).json({ error: 'Id no definido' });
     }
-    let cliente = model.getClientePorId(id);
+    let cliente = await model.getClientePorId(id);
     if (!cliente) {
       return res.status(404).json({ error: 'Cliente no encontrado' });
     }
     // No devolver contraseña
-    const { password, ...clienteSinPassword } = cliente;
+      const clienteObj = cliente.toObject();
+    const { password, ...clienteSinPassword } = clienteObj;
     res.json(clienteSinPassword);
   } catch (err) {
     console.error(err);
@@ -213,14 +230,15 @@ app.get('/api/clientes/:id', function (req, res, next) {
 });
 
 // POST /api/clientes - Registrar un nuevo cliente
-app.post('/api/clientes', function (req, res, next) {
+app.post('/api/clientes', async function (req, res, next) {
   // console.log('[POST /api/clientes]', req.body);
   try {
     req.body.rol = 'CLIENTE'; // Forzar rol de cliente
-    let cliente = model.addCliente(req.body);
+    let cliente = await model.addCliente(req.body);
     console.log('[Cliente registrado]', cliente.email);
     // No devolver contraseña
-    const { password, ...clienteSinPassword } = cliente;
+      const clienteObj = cliente.toObject();
+    const { password, ...clienteSinPassword } = clienteObj;
     res.status(201).json(clienteSinPassword);
   } catch (err) {
     console.error(err);
@@ -229,12 +247,14 @@ app.post('/api/clientes', function (req, res, next) {
 });
 
 // PUT /api/clientes - Reemplazar todos los clientes (setClientes)
-app.put('/api/clientes', function (req, res, next) {
+app.put('/api/clientes', async function (req, res, next) {
   try {
     // console.log('[PUT /api/clientes]', req.body);
-    model.setClientes(req.body);
-    const clientes = model.getClientes().map(c => {
-      const { password, ...clienteSinPassword } = c;
+    await model.setClientes(req.body);
+    const clientesDB = await model.getClientes();
+    const clientes = clientesDB.map(c => {
+      const clienteObj = c.toObject();
+      const { password, ...clienteSinPassword } = clienteObj;
       return clienteSinPassword;
     });
     res.json(clientes);
@@ -245,16 +265,17 @@ app.put('/api/clientes', function (req, res, next) {
 });
 
 // PUT /api/clientes/:id - Actualizar un cliente
-app.put('/api/clientes/:id', function (req, res, next) {
+app.put('/api/clientes/:id', async function (req, res, next) {
   try {
     let id = req.params.id;
     if (!id) {
       return res.status(400).json({ error: 'ID no definido' });
     }
-    req.body._id = Number(id);
-    let cliente = model.updateCliente(req.body);
+    req.body._id = id;
+    let cliente = await model.updateCliente(req.body);
     // No devolver contraseña
-    const { password, ...clienteSinPassword } = cliente;
+      const clienteObj = cliente.toObject();
+    const { password, ...clienteSinPassword } = clienteObj;
     res.json(clienteSinPassword);
   } catch (err) {
     console.error(err);
@@ -263,9 +284,9 @@ app.put('/api/clientes/:id', function (req, res, next) {
 });
 
 // DELETE /api/clientes - Eliminar todos los clientes
-app.delete('/api/clientes', function (req, res, next) {
+app.delete('/api/clientes', async function (req, res, next) {
   try {
-    const count = model.removeClientes();
+    const count = await model.removeClientes();
     res.json({ ok: true, message: `${count} clientes eliminados` });
   } catch (err) {
     console.error(err);
@@ -274,13 +295,13 @@ app.delete('/api/clientes', function (req, res, next) {
 });
 
 // DELETE /api/clientes/:id - Eliminar un cliente
-app.delete('/api/clientes/:id', function (req, res, next) {
+app.delete('/api/clientes/:id', async function (req, res, next) {
   try {
     let id = req.params.id;
     if (!id) {
       return res.status(400).json({ error: 'Id no definido' });
     }
-    model.removeCliente(id);
+    await model.removeCliente(id);
     res.json({ ok: true, message: 'Cliente eliminado' });
   } catch (err) {
     console.error(err);
@@ -289,13 +310,16 @@ app.delete('/api/clientes/:id', function (req, res, next) {
 });
 
 // POST /api/clientes/autenticar (o /clientes/signin)
-app.post('/api/clientes/autenticar', function (req, res, next) {
+app.post('/api/clientes/autenticar', async function (req, res, next) {
   console.log('[POST /api/clientes/autenticar]', req.body);
   try {
     req.body.rol = 'CLIENTE';
-    let cliente = model.autenticarCliente(req.body);
+    let cliente = await model.autenticarCliente(req.body);
     console.log('[Cliente autenticado]', cliente.email);
-    const { password, ...clienteSinPassword } = cliente;
+    
+    // Convertir a objeto plano primero
+      const clienteObj = cliente.toObject();
+    const { password, ...clienteSinPassword } = clienteObj;
     res.json(clienteSinPassword);
   } catch (err) {
     // NO imprimir el error en consola - es un error esperado
@@ -304,7 +328,7 @@ app.post('/api/clientes/autenticar', function (req, res, next) {
 });
 
 // Alias para signin
-app.post('/api/clientes/signin', function (req, res, next) {
+app.post('/api/clientes/signin', async function (req, res, next) {
   req.body.rol = 'CLIENTE';
   return app._router.handle(Object.assign(req, {
     url: '/api/clientes/autenticar',
@@ -313,13 +337,13 @@ app.post('/api/clientes/signin', function (req, res, next) {
 });
 
 // GET /api/clientes/:id/carro - Obtener el carrito de un cliente
-app.get('/api/clientes/:id/carro', function (req, res, next) {
+app.get('/api/clientes/:id/carro', async function (req, res, next) {
   try {
     let id = req.params.id;
     if (!id) {
       return res.status(400).json({ error: 'Id no definido' });
     }
-    let carro = model.getCarroCliente(id);
+    let carro = await model.getCarroCliente(id);
     if (!carro) {
       return res.status(404).json({ error: 'Cliente no encontrado' });
     }
@@ -331,7 +355,7 @@ app.get('/api/clientes/:id/carro', function (req, res, next) {
 });
 
 // POST /api/clientes/:id/carro/items - Agregar un item al carrito
-app.post('/api/clientes/:id/carro/items', function (req, res, next) {
+app.post('/api/clientes/:id/carro/items', async function (req, res, next) {
   try {
     let id = req.params.id;
     if (!id) {
@@ -339,7 +363,7 @@ app.post('/api/clientes/:id/carro/items', function (req, res, next) {
     }
     let item = req.body;
     // console.log('[POST /api/clientes/:id/carro/items]', id, item);
-    let carro = model.addClienteCarroItem(id, item);
+    let carro = await model.addClienteCarroItem(id, item);
     res.json(carro);
   } catch (err) {
     console.error(err);
@@ -348,7 +372,7 @@ app.post('/api/clientes/:id/carro/items', function (req, res, next) {
 });
 
 // PUT /api/clientes/:id/carro/items/:index - Actualizar cantidad de un item
-app.put('/api/clientes/:id/carro/items/:index', function (req, res, next) {
+app.put('/api/clientes/:id/carro/items/:index', async function (req, res, next) {
   try {
     let id = req.params.id;
     let index = parseInt(req.params.index);
@@ -365,7 +389,7 @@ app.put('/api/clientes/:id/carro/items/:index', function (req, res, next) {
     }
 
     // console.log('[PUT /api/clientes/:id/carro/items/:index]', id, index, cantidad);
-    let carro = model.setClienteCarroItemCantidad(id, index, cantidad);
+    let carro = await model.setClienteCarroItemCantidad(id, index, cantidad);
     res.json(carro);
   } catch (err) {
     console.error(err);
@@ -376,35 +400,38 @@ app.put('/api/clientes/:id/carro/items/:index', function (req, res, next) {
 /* ==================== API REST - ADMINISTRADORES ==================== */
 
 // GET /api/admins - Obtener todos los administradores O filtrar por query params
-app.get('/api/admins', function (req, res, next) {
+app.get('/api/admins', async function (req, res, next) {
   try {
     const { email, dni } = req.query;
 
     // Filtrar por email si se proporciona
     if (email) {
-      const admin = model.getAdministradorPorEmail(email);
+      const admin = await model.getAdministradorPorEmail(email);
       if (!admin) {
         return res.status(404).json({ error: 'Administrador no encontrado' });
       }
       // No devolver contraseña
-      const { password, ...adminSinPassword } = admin;
+      const adminObj = admin.toObject();
+      const { password, ...adminSinPassword } = adminObj;
       return res.json(adminSinPassword);
     }
 
     // Filtrar por DNI si se proporciona
     if (dni) {
-      const admin = model.getAdminPorDni(dni);
+      const admin = await model.getAdminPorDni(dni);
       if (!admin) {
         return res.status(404).json({ error: 'Administrador no encontrado' });
       }
       // No devolver contraseña
-      const { password, ...adminSinPassword } = admin;
+      const adminObj = admin.toObject();
+      const { password, ...adminSinPassword } = adminObj;
       return res.json(adminSinPassword);
     }
 
     // Si no hay filtros, devolver todos (sin contraseñas)
-    const admins = model.getAdmins().map(a => {
-      const { password, ...adminSinPassword } = a;
+    const admins = (await model.getAdmins()).map(a => {
+      const adminObj = a.toObject();
+      const { password, ...adminSinPassword } = adminObj;
       return adminSinPassword;
     });
     res.json(admins);
@@ -415,18 +442,19 @@ app.get('/api/admins', function (req, res, next) {
 });
 
 // GET /api/admins/:id - Obtener un administrador por ID
-app.get('/api/admins/:id', function (req, res, next) {
+app.get('/api/admins/:id', async function (req, res, next) {
   try {
     let id = req.params.id;
     if (!id) {
       return res.status(400).json({ error: 'Id no definido' });
     }
-    let admin = model.getAdminPorId(id);
+    let admin = await model.getAdminPorId(id);
     if (!admin) {
       return res.status(404).json({ error: 'Administrador no encontrado' });
     }
     // No devolver contraseña
-    const { password, ...adminSinPassword } = admin;
+      const adminObj = admin.toObject();
+    const { password, ...adminSinPassword } = adminObj;
     res.json(adminSinPassword);
   } catch (err) {
     console.error(err);
@@ -435,14 +463,15 @@ app.get('/api/admins/:id', function (req, res, next) {
 });
 
 // POST /api/admins - Registrar un nuevo administrador
-app.post('/api/admins', function (req, res, next) {
+app.post('/api/admins', async function (req, res, next) {
   // console.log('[POST /api/admins]', req.body);
   try {
     req.body.rol = 'ADMIN'; // Forzar rol de administrador
-    let admin = model.addAdmin(req.body);
+    let admin = await model.addAdmin(req.body);
     // console.log('[Administrador registrado]', admin.email);
     // No devolver contraseña
-    const { password, ...adminSinPassword } = admin;
+      const adminObj = admin.toObject();
+    const { password, ...adminSinPassword } = adminObj;
     res.status(201).json(adminSinPassword);
   } catch (err) {
     console.error(err);
@@ -451,12 +480,13 @@ app.post('/api/admins', function (req, res, next) {
 });
 
 // PUT /api/admins - Reemplazar todos los administradores (setAdmins)
-app.put('/api/admins', function (req, res, next) {
+app.put('/api/admins', async function (req, res, next) {
   try {
     // console.log('[PUT /api/admins]', req.body);
-    model.setAdmins(req.body);
-    const admins = model.getAdmins().map(a => {
-      const { password, ...adminSinPassword } = a;
+    await model.setAdmins(req.body);
+    const admins = (await model.getAdmins()).map(a => {
+      const adminObj = a.toObject();
+      const { password, ...adminSinPassword } = adminObj;
       return adminSinPassword;
     });
     res.json(admins);
@@ -467,16 +497,17 @@ app.put('/api/admins', function (req, res, next) {
 });
 
 // PUT /api/admins/:id - Actualizar un administrador
-app.put('/api/admins/:id', function (req, res, next) {
+app.put('/api/admins/:id', async function (req, res, next) {
   try {
     let id = req.params.id;
     if (!id) {
       return res.status(400).json({ error: 'ID no definido' });
     }
-    req.body._id = Number(id);
-    let admin = model.updateAdmin(req.body);
+    req.body._id = id;
+    let admin = await model.updateAdmin(req.body);
     // No devolver contraseña
-    const { password, ...adminSinPassword } = admin;
+      const adminObj = admin.toObject();
+    const { password, ...adminSinPassword } = adminObj;
     res.json(adminSinPassword);
   } catch (err) {
     console.error(err);
@@ -485,9 +516,9 @@ app.put('/api/admins/:id', function (req, res, next) {
 });
 
 // DELETE /api/admins - Eliminar todos los administradores
-app.delete('/api/admins', function (req, res, next) {
+app.delete('/api/admins', async function (req, res, next) {
   try {
-    const count = model.removeAdmins();
+    const count = await model.removeAdmins();
     res.json({ ok: true, message: `${count} administradores eliminados` });
   } catch (err) {
     console.error(err);
@@ -496,13 +527,13 @@ app.delete('/api/admins', function (req, res, next) {
 });
 
 // DELETE /api/admins/:id - Eliminar un administrador
-app.delete('/api/admins/:id', function (req, res, next) {
+app.delete('/api/admins/:id', async function (req, res, next) {
   try {
     let id = req.params.id;
     if (!id) {
       return res.status(400).json({ error: 'Id no definido' });
     }
-    model.removeAdmin(id);
+    await model.removeAdmin(id);
     res.json({ ok: true, message: 'Administrador eliminado' });
   } catch (err) {
     console.error(err);
@@ -511,13 +542,16 @@ app.delete('/api/admins/:id', function (req, res, next) {
 });
 
 // POST /api/admins/autenticar (o /admins/signin)
-app.post('/api/admins/autenticar', function (req, res, next) {
+app.post('/api/admins/autenticar', async function (req, res, next) {
   console.log('[POST /api/admins/autenticar]', req.body);
   try {
     req.body.rol = 'ADMIN';
-    let admin = model.autenticarAdmin(req.body);
+    let admin = await model.autenticarAdmin(req.body);
     console.log('[Administrador autenticado]', admin.email);
-    const { password, ...adminSinPassword } = admin;
+    
+    // Convertir a objeto plano primero
+      const adminObj = admin.toObject();
+    const { password, ...adminSinPassword } = adminObj;
     res.json(adminSinPassword);
   } catch (err) {
     // NO imprimir el error en consola - es un error esperado
@@ -526,7 +560,7 @@ app.post('/api/admins/autenticar', function (req, res, next) {
 });
 
 // Alias para signin
-app.post('/api/admins/signin', function (req, res, next) {
+app.post('/api/admins/signin', async function (req, res, next) {
   req.body.rol = 'ADMIN';
   return app._router.handle(Object.assign(req, {
     url: '/api/admins/autenticar',
@@ -537,13 +571,13 @@ app.post('/api/admins/signin', function (req, res, next) {
 /* ==================== API REST - FACTURAS ==================== */
 
 // GET /api/facturas - Obtener todas las facturas O filtrar por query params
-app.get('/api/facturas', function (req, res, next) {
+app.get('/api/facturas', async function (req, res, next) {
   try {
     const { numero, cliente } = req.query;
 
     // Filtrar por número si se proporciona
     if (numero) {
-      const factura = model.getFacturaPorNumero(numero);
+      const factura = await model.getFacturaPorNumero(numero);
       if (!factura) {
         return res.status(404).json({ error: 'Factura no encontrada' });
       }
@@ -552,12 +586,12 @@ app.get('/api/facturas', function (req, res, next) {
 
     // Filtrar por cliente si se proporciona
     if (cliente) {
-      const facturas = model.getFacturasPorCliente(cliente);
+      const facturas = await model.getFacturasPorCliente(cliente);
       return res.json(facturas);
     }
 
     // Si no hay filtros, devolver todas
-    res.json(model.getFacturas());
+    res.json(await model.getFacturas());
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -565,13 +599,13 @@ app.get('/api/facturas', function (req, res, next) {
 });
 
 // GET /api/facturas/:id - Obtener una factura por ID
-app.get('/api/facturas/:id', function (req, res, next) {
+app.get('/api/facturas/:id', async function (req, res, next) {
   try {
     let id = req.params.id;
     if (!id) {
       return res.status(400).json({ error: 'Id no definido' });
     }
-    let factura = model.getFacturaPorId(id);
+    let factura = await model.getFacturaPorId(id);
     if (!factura) {
       return res.status(404).json({ error: 'Factura no encontrada' });
     }
@@ -584,7 +618,7 @@ app.get('/api/facturas/:id', function (req, res, next) {
 
 
 // POST /api/facturas - Crear una nueva factura (facturar compra)
-app.post('/api/facturas', (req, res) => {
+app.post('/api/facturas', async (req, res) => {
   try {
     // Extraer el ID del cliente
     let clienteId = typeof req.body.cliente === 'object'
@@ -594,19 +628,19 @@ app.post('/api/facturas', (req, res) => {
     // Si vienen items en el body, agregarlos al carrito primero
     if (req.body.items && req.body.items.length > 0) {
       // Vaciar el carrito actual del cliente
-      model.vaciarCarroCliente(clienteId);
+      await model.vaciarCarroCliente(clienteId);
 
       // Agregar cada item al carrito
-      req.body.items.forEach(item => {
-        model.addClienteCarroItem(clienteId, {
+      for (const item of req.body.items) {
+        await model.addClienteCarroItem(clienteId, {
           libro: typeof item.libro === 'object' ? item.libro._id : item.libro,
           cantidad: item.cantidad
         });
-      });
+      }
     }
 
     // Ahora sí, facturar la compra
-    let factura = model.facturarCompraCliente({
+    let factura = await model.facturarCompraCliente({
       cliente: clienteId,
       fecha: req.body.fecha || new Date().toISOString(),
       razonSocial: req.body.razonSocial,
@@ -624,11 +658,11 @@ app.post('/api/facturas', (req, res) => {
 });
 
 // PUT /api/facturas - Reemplazar todas las facturas (setFacturas)
-app.put('/api/facturas', function (req, res, next) {
+app.put('/api/facturas', async function (req, res, next) {
   try {
     // console.log('[PUT /api/facturas]', req.body);
-    model.setFacturas(req.body);
-    res.json(model.getFacturas());
+    await model.setFacturas(req.body);
+    res.json(await model.getFacturas());
   } catch (err) {
     console.error(err);
     res.status(400).json({ error: err.message });
@@ -636,9 +670,9 @@ app.put('/api/facturas', function (req, res, next) {
 });
 
 // DELETE /api/facturas - Eliminar todas las facturas
-app.delete('/api/facturas', function (req, res, next) {
+app.delete('/api/facturas', async function (req, res, next) {
   try {
-    const count = model.removeFacturas();
+    const count = await model.removeFacturas();
     res.json({ ok: true, message: `${count} facturas eliminadas` });
   } catch (err) {
     console.error(err);
@@ -647,13 +681,13 @@ app.delete('/api/facturas', function (req, res, next) {
 });
 
 // DELETE /api/facturas/:id - Eliminar una factura
-app.delete('/api/facturas/:id', function (req, res, next) {
+app.delete('/api/facturas/:id', async function (req, res, next) {
   try {
     let id = req.params.id;
     if (!id) {
       return res.status(400).json({ error: 'Id no definido' });
     }
-    const removed = model.removeFactura(id);
+    const removed = await model.removeFactura(id);
     if (!removed) {
       return res.status(404).json({ error: 'Factura no encontrada' });
     }
@@ -692,15 +726,19 @@ app.all('*', function (req, res, next) {
 
 /* ==================== INICIAR SERVIDOR ==================== */
 
-app.listen(PORT, function () {
+app.listen(PORT, async function () {
   console.log(`===========================================`);
   console.log(`   Servidor iniciado en puerto ${PORT}`);
   console.log(`   http://localhost:${PORT}`);
   console.log(`===========================================`);
-  console.log(`Libros en el sistema: ${model.getLibros().length}`);
-  console.log(`Clientes: ${model.getClientes().length}`);
-  console.log(`Administradores: ${model.getAdmins().length}`);
-  console.log(`Facturas: ${model.getFacturas().length}`);
+  const libros = await model.getLibros();
+  const clientes = await model.getClientes();
+  const admins = await model.getAdmins();
+  const facturas = await model.getFacturas();
+  console.log(`Libros en el sistema: ${libros.length}`);
+  console.log(`Clientes: ${clientes.length}`);
+  console.log(`Administradores: ${admins.length}`);
+  console.log(`Facturas: ${facturas.length}`);
   console.log(`===========================================`);
   console.log(`\n API REST Endpoints:`);
   console.log(`   Libros:          /api/libros`);
