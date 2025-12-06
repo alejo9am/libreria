@@ -1,10 +1,10 @@
+import { API_BASE_URL } from '../../config.mjs';
+
 // Proxy del cliente para API REST - Práctica 2
 export const ROL = {
   ADMIN: "ADMIN",
   CLIENTE: "CLIENTE",
 };
-
-const API_BASE_URL = 'http://localhost:3000/api';
 
 export class LibreriaProxy {
   constructor() { }
