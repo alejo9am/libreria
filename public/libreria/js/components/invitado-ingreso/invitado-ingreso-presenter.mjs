@@ -39,17 +39,19 @@ export class InvitadoIngresoPresenter extends Presenter {
         console.log(`Intentando login: ${email} como ${rolEsperado}`);
 
         // Buscar usuario en el MODELO (ya tiene los usuarios de localStorage cargados)
-        const usuario = await this.model.autenticar({
+        const token = await this.model.autenticar({
           email: email,
           password: password,
           rol: rolEsperado
         });
 
+        // Guardar sesión
+        LibreriaSession.setToken(token.token);
+        let usuario = await this.model.getUsuarioActual();
+        LibreriaSession.ingreso(usuario);
+
         // Si llegamos aquí, la autenticación fue exitosa
         console.log("Login exitoso:", usuario);
-
-        // Guardar sesión
-        LibreriaSession.setUser(usuario);
 
         LibreriaSession.addMessage("success", `Bienvenido, ${usuario.nombre} ${usuario.apellidos}`);
         renderUltimoMensaje("#mensajesContainer");
@@ -68,35 +70,5 @@ export class InvitadoIngresoPresenter extends Presenter {
         renderUltimoMensaje("#mensajesContainer");
       }
     };
-
-    // Botón para depurar usuarios
-    // if (btnUsuarios) {
-    //   btnUsuarios.onclick = async () => {
-    //     // Mostrar usuarios del MODELO
-    //     const clientes = await this.model.getClientes();
-    //     const admins = await this.model.getAdmins();
-    //     const usuarios = clientes.concat(admins);
-
-    //     if (usuarios.length === 0) {
-    //       mensajesContainer.innerHTML = `<div class="log">No hay usuarios registrados.</div>`;
-    //       return;
-    //     }
-
-    //     mensajesContainer.innerHTML = `
-    //       <h3>👥 Usuarios registrados (${usuarios.length})</h3>
-    //       <ul>
-    //         ${usuarios.map(u => `
-    //           <li>
-    //             <strong>ID:</strong> ${u._id} | 
-    //             <strong>Email:</strong> ${u.email} | 
-    //             <strong>Rol:</strong> ${u.rol} | 
-    //             <strong>Nombre:</strong> ${u.nombre} ${u.apellidos}
-    //           </li>
-    //         `).join("")}
-    //       </ul>
-    //       <p><em>Usa estos datos para hacer login. La contraseña es el DNI del usuario.</em></p>
-    //     `;
-    //   };
-    // }
   }
 }

@@ -3,8 +3,13 @@ import path from 'path';
 import url from 'url';
 import mongoose from 'mongoose';
 import { MONGODB_URI, PORT } from './config.mjs';
+import passport from 'passport';
+import { Strategy as JWTStrategy, ExtractJwt as ExtractJWT } from 'passport-jwt';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 
 import { model } from './model/model.mjs';
+import { Usuario } from './model/usuario.mjs';
 
 // Función de conexión a MongoDB
 async function connect() {
@@ -35,6 +40,25 @@ app.use('/', express.static(path.join(STATIC_DIR, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const SECRET_KEY = 'TSW';
+passport.use(
+  new JWTStrategy(
+    {
+      jwtFromRequest:
+        ExtractJWT.fromAuthHeaderAsBearerToken(),
+      secretOrKey: SECRET_KEY
+    },
+    async function (jwtPayload, cb) {
+      try {
+        let user = await Usuario.findById(jwtPayload.id);
+        cb(null, user);
+      } catch (err) {
+        return cb(err);
+      }
+    }
+  )
+);
+
 // Middleware CORS para desarrollo
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -45,6 +69,75 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+/* ==================== API REST - AUTENTICACIÓN ==================== */
+
+// POST /api/autenticar - Autenticar usuario y devolver un token JWT
+app.post('/api/autenticar', async function (req, res, next) {
+  try {
+    //Verifico que el usuario existe 
+    const userExists = await Usuario.findOne({ email: req.body.email });
+    if (!userExists) return res.status(400).json({ message: "El usuario no existe" });
+    // Verifico la contraseña 
+    let ok = await bcrypt.compare(req.body.password, userExists.password);
+    if (!ok) return res.status(400).json({ message: "Contraseña incorrecta" });
+    // Creo un token 
+    const accessToken = jwt.sign({ id: userExists._id }, SECRET_KEY, { expiresIn: "24h" });
+    return res.status(200).json({ token: accessToken });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.get("/api/usuarios/actual",
+  passport.authenticate("jwt", { session: false }),
+  function (req, res, next) {
+    try {
+      let usuario = req.user;
+      // console.log(req.user); 
+      if (!usuario) res.status(404).json({ message: "Usuario no encotnrado" });
+      res.json(usuario);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+app.get('/api/usuarios/:id',
+  async function (req, res, next) {
+    try {
+      let usuario = await Usuario.findById(req.params.id);
+      if (!usuario) res.status(404).json({ message: 'Usuario no encotnrado' })
+      res.json(usuario);
+    } catch (err) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+app.put("/api/usuarios/:id",
+  passport.authenticate("jwt", { session: false }),
+  async function (req, res, next) {
+    try {
+      let obj = req.body;
+      obj._id = req.user._id;
+      let usuario = await model.updateUsuario(obj);
+      res.json(usuario);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: err.message });
+    }
+  }
+);
+app.post('/api/usuarios',
+  async function (req, res, next) {
+    try {
+      let usuario = await model.addUsuario(req.body);
+      res.json(usuario);
+    } catch (err) {
+      console.error(err);
+      res.status(401).json({ message: err.message })
+    }
+  })
 
 /* ==================== API REST - LIBROS ==================== */
 
@@ -224,7 +317,7 @@ app.get('/api/clientes/:id', async function (req, res, next) {
       return res.status(404).json({ error: 'Cliente no encontrado' });
     }
     // No devolver contraseña
-      const clienteObj = cliente.toObject();
+    const clienteObj = cliente.toObject();
     const { password, ...clienteSinPassword } = clienteObj;
     res.json(clienteSinPassword);
   } catch (err) {
@@ -241,7 +334,7 @@ app.post('/api/clientes', async function (req, res, next) {
     let cliente = await model.addCliente(req.body);
     console.log('[Cliente registrado]', cliente.email);
     // No devolver contraseña
-      const clienteObj = cliente.toObject();
+    const clienteObj = cliente.toObject();
     const { password, ...clienteSinPassword } = clienteObj;
     res.status(201).json(clienteSinPassword);
   } catch (err) {
@@ -278,7 +371,7 @@ app.put('/api/clientes/:id', async function (req, res, next) {
     req.body._id = id;
     let cliente = await model.updateCliente(req.body);
     // No devolver contraseña
-      const clienteObj = cliente.toObject();
+    const clienteObj = cliente.toObject();
     const { password, ...clienteSinPassword } = clienteObj;
     res.json(clienteSinPassword);
   } catch (err) {
@@ -320,7 +413,7 @@ app.post('/api/clientes/autenticar', async function (req, res, next) {
     req.body.rol = 'CLIENTE';
     let cliente = await model.autenticarCliente(req.body);
     console.log('[Cliente autenticado]', cliente.email);
-    
+
     // Convertir a objeto plano primero
     const clienteObj = cliente.toObject();
     const { password, ...clienteSinPassword } = clienteObj;
@@ -457,7 +550,7 @@ app.get('/api/admins/:id', async function (req, res, next) {
       return res.status(404).json({ error: 'Administrador no encontrado' });
     }
     // No devolver contraseña
-      const adminObj = admin.toObject();
+    const adminObj = admin.toObject();
     const { password, ...adminSinPassword } = adminObj;
     res.json(adminSinPassword);
   } catch (err) {
@@ -474,7 +567,7 @@ app.post('/api/admins', async function (req, res, next) {
     let admin = await model.addAdmin(req.body);
     // console.log('[Administrador registrado]', admin.email);
     // No devolver contraseña
-      const adminObj = admin.toObject();
+    const adminObj = admin.toObject();
     const { password, ...adminSinPassword } = adminObj;
     res.status(201).json(adminSinPassword);
   } catch (err) {
@@ -510,7 +603,7 @@ app.put('/api/admins/:id', async function (req, res, next) {
     req.body._id = id;
     let admin = await model.updateAdmin(req.body);
     // No devolver contraseña
-      const adminObj = admin.toObject();
+    const adminObj = admin.toObject();
     const { password, ...adminSinPassword } = adminObj;
     res.json(adminSinPassword);
   } catch (err) {
@@ -552,9 +645,9 @@ app.post('/api/admins/autenticar', async function (req, res, next) {
     req.body.rol = 'ADMIN';
     let admin = await model.autenticarAdmin(req.body);
     console.log('[Administrador autenticado]', admin.email);
-    
+
     // Convertir a objeto plano primero
-      const adminObj = admin.toObject();
+    const adminObj = admin.toObject();
     const { password, ...adminSinPassword } = adminObj;
     res.json(adminSinPassword);
   } catch (err) {
@@ -701,6 +794,9 @@ app.delete('/api/facturas/:id', async function (req, res, next) {
     res.status(400).json({ error: err.message });
   }
 });
+
+app.use(passport.initialize());
+
 
 /* ==================== RUTAS DEL CLIENTE (SPA) ==================== */
 

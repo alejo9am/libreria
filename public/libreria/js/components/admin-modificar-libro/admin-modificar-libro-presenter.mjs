@@ -38,10 +38,9 @@ export class AdminModificarLibroPresenter extends Presenter {
     if (!form) return;
 
     // Verificar si el usuario es administrador, sino redirigir al login
-    const userSession = LibreriaSession.getUserSession();
-    if (!userSession || userSession.rol !== "ADMIN") {
-      LibreriaSession.addMessage("error", "Debe iniciar sesión como administrador");
-      console.log("ERROR, usuario no autorizado", userSession);
+    if (!LibreriaSession.esAdmin()) {
+      LibreriaSession.addMessage("error", "Acceso no autorizado. Por favor, inicie sesión como administrador.");
+      renderUltimoMensaje("#mensajesContainer");
       router.navigate("/libreria/invitado-ingreso.html");
       return;
     }
@@ -96,9 +95,14 @@ export class AdminModificarLibroPresenter extends Presenter {
     // Cerrar sesion
     const salirLink = document.getElementById("salirLink");
     if (salirLink) {
-      salirLink.addEventListener("click", (e) => {
-        e.preventDefault(); 
-        LibreriaSession.clearUserSession();
+      // Crear un nuevo elemento para eliminar todos los listeners anteriores
+      const newSalirLink = salirLink.cloneNode(true);
+      salirLink.parentNode.replaceChild(newSalirLink, salirLink);
+      
+      newSalirLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        LibreriaSession.salir();
+        router.navigate("/libreria/invitado-home.html");
         LibreriaSession.addMessage("success", "Sesión cerrada correctamente");
       });
     }

@@ -31,10 +31,13 @@ import { Error404Presenter } from "./components/error-404/error-404-presenter.mj
 
 
 export function init() {
-  // Distintas maneras de entrar a la página principal
-  router.register(/^\/libreria\/index.html$/, new InvitadoHomePresenter(proxy, 'invitado-home'));
-  router.register(/^\/libreria\/invitado-home.html$/, new InvitadoHomePresenter(proxy, 'invitado-home'));
-  router.register(/^\/libreria\/$/, new InvitadoHomePresenter(proxy, 'invitado-home'));
+  // Crear una instancia única para invitado-home
+  const invitadoHomePresenter = new InvitadoHomePresenter(proxy, 'invitado-home');
+  
+  // Distintas maneras de entrar a la página principal (todas apuntan a la misma instancia)
+  router.register(/^\/libreria\/index.html$/, invitadoHomePresenter);
+  router.register(/^\/libreria\/invitado-home.html$/, invitadoHomePresenter);
+  router.register(/^\/libreria\/$/, invitadoHomePresenter);
 
   // Otras páginas
   router.register(/^\/libreria\/catalogo.html$/, new InvitadoCatalogoPresenter(proxy, 'invitado-catalogo'));

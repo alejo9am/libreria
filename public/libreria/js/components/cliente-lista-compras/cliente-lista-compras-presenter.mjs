@@ -38,14 +38,19 @@ export class ClienteListaComprasPresenter extends Presenter {
     if (this.tbody) this.tbody.innerHTML = "";
     if (this.mensajes) this.mensajes.innerHTML = "";
 
-    const facturas = await this.model.getFacturasCliente(LibreriaSession.getUserId()) || [];
+    const facturas = await this.model.getFacturasCliente(LibreriaSession.getUsuarioId()) || [];
 
     // Cerrar sesion
     const salirLink = document.getElementById("salirLink");
     if (salirLink) {
-      salirLink.addEventListener("click", (e) => {
+      // Crear un nuevo elemento para eliminar todos los listeners anteriores
+      const newSalirLink = salirLink.cloneNode(true);
+      salirLink.parentNode.replaceChild(newSalirLink, salirLink);
+      
+      newSalirLink.addEventListener("click", (e) => {
         e.preventDefault();
-        LibreriaSession.clearUserSession();
+        LibreriaSession.salir();
+        router.navigate("/libreria/invitado-home.html");
         LibreriaSession.addMessage("success", "Sesión cerrada correctamente");
       });
     }

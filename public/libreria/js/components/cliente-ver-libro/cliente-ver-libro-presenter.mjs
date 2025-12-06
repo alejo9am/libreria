@@ -93,23 +93,23 @@ export class ClienteVerLibroPresenter extends Presenter {
     await super.refresh();
     
     // Verificar si el usuario es cliente, sino redirigir al login
-    const userSession = LibreriaSession.getUserSession();
-    if (!userSession || userSession.rol !== "CLIENTE") {
-        LibreriaSession.addMessage("error", "Debe iniciar sesión como cliente");
-        console.log("ERROR, usuario no autorizado", userSession);
-        //poner timeout antes de redirigir
-        setTimeout(() => {
-          router.navigate("/libreria/invitado-ingreso.html");
-        }, 2000);
-        return;
+    if (!LibreriaSession.esCliente()) {
+      LibreriaSession.addMessage("error", "Acceso no autorizado. Por favor, inicie sesión como cliente.");
+      router.navigate("/libreria/invitado-ingreso.html");
+      return;
     }
 
     // Cerrar sesion
     const salirLink = document.getElementById("salirLink");
     if (salirLink) {
-      salirLink.addEventListener("click", (e) => {
+      // Crear un nuevo elemento para eliminar todos los listeners anteriores
+      const newSalirLink = salirLink.cloneNode(true);
+      salirLink.parentNode.replaceChild(newSalirLink, salirLink);
+      
+      newSalirLink.addEventListener("click", (e) => {
         e.preventDefault();
-        LibreriaSession.clearUserSession();
+        LibreriaSession.salir();
+        router.navigate("/libreria/invitado-home.html");
         LibreriaSession.addMessage("success", "Sesión cerrada correctamente");
       });
     }
@@ -137,7 +137,7 @@ export class ClienteVerLibroPresenter extends Presenter {
         if (mensajesContainer) mensajesContainer.innerHTML = "";
 
         try {
-          const userId = LibreriaSession.getUserId();
+          const userId = LibreriaSession.getUsuarioId();
           console.log('[ClienteVerLibroPresenter] userId:', userId);
           if (!userId) throw new Error('Debe iniciar sesión para añadir al carrito');
 
