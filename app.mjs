@@ -12,7 +12,11 @@ async function connect() {
   mongoose.Promise = global.Promise;
   const db = mongoose.connection;
   db.on('connecting', () => console.log('Conectando a', uri));
-  db.on('connected', () => console.log('Conectado a', uri));
+  db.on('connected', () => {
+    console.log('Conectado a', uri);
+    console.log('Base de datos en uso:', db.name);
+    console.log('Host:', db.host);
+  });
   db.on('disconnecting', () => console.log('Desconectando de', uri));
   db.on('disconnected', () => console.log('Desconectado de', uri));
   db.on('error', (err) => console.error('Error', err.message));
@@ -318,7 +322,7 @@ app.post('/api/clientes/autenticar', async function (req, res, next) {
     console.log('[Cliente autenticado]', cliente.email);
     
     // Convertir a objeto plano primero
-      const clienteObj = cliente.toObject();
+    const clienteObj = cliente.toObject();
     const { password, ...clienteSinPassword } = clienteObj;
     res.json(clienteSinPassword);
   } catch (err) {
