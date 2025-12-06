@@ -2,16 +2,21 @@ import express from 'express';
 import path from 'path';
 import url from 'url';
 import mongoose from 'mongoose';
+import { MONGODB_URI, PORT } from './config.mjs';
 
 import { model } from './model/model.mjs';
 
 // Función de conexión a MongoDB
 async function connect() {
-  const uri = 'mongodb://127.0.0.1/libreria';
+  const uri = MONGODB_URI;
   mongoose.Promise = global.Promise;
   const db = mongoose.connection;
   db.on('connecting', () => console.log('Conectando a', uri));
-  db.on('connected', () => console.log('Conectado a', uri));
+  db.on('connected', () => {
+    console.log('Conectado a', uri);
+    console.log('Base de datos en uso:', db.name);
+    console.log('Host:', db.host);
+  });
   db.on('disconnecting', () => console.log('Desconectando de', uri));
   db.on('disconnected', () => console.log('Desconectado de', uri));
   db.on('error', (err) => console.error('Error', err.message));
@@ -22,7 +27,6 @@ async function connect() {
 await connect();
 
 const STATIC_DIR = url.fileURLToPath(new URL('.', import.meta.url));
-const PORT = 3000;
 
 export const app = express();
 
@@ -318,7 +322,7 @@ app.post('/api/clientes/autenticar', async function (req, res, next) {
     console.log('[Cliente autenticado]', cliente.email);
     
     // Convertir a objeto plano primero
-      const clienteObj = cliente.toObject();
+    const clienteObj = cliente.toObject();
     const { password, ...clienteSinPassword } = clienteObj;
     res.json(clienteSinPassword);
   } catch (err) {
