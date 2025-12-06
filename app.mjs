@@ -75,9 +75,9 @@ app.use((req, res, next) => {
 // POST /api/autenticar - Autenticar usuario y devolver un token JWT
 app.post('/api/autenticar', async function (req, res, next) {
   try {
-    //Verifico que el usuario existe 
-    const userExists = await Usuario.findOne({ email: req.body.email });
-    if (!userExists) return res.status(400).json({ message: "El usuario no existe" });
+    //Verifico que el usuario existe con el rol especificado
+    const userExists = await Usuario.findOne({ email: req.body.email, rol: req.body.rol });
+    if (!userExists) return res.status(400).json({ message: "El usuario no existe con ese rol" });
     // Verifico la contraseña 
     let ok = await bcrypt.compare(req.body.password, userExists.password);
     if (!ok) return res.status(400).json({ message: "Contraseña incorrecta" });
