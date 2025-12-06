@@ -4,6 +4,8 @@ Aplicación **full-stack** desarrollada como práctica de la asignatura **Tecnol
 
 La aplicación implementa un sistema completo de gestión de librería con arquitectura cliente-servidor, incluyendo una **SPA (Single Page Application)** en el frontend y una **API REST** en el backend.
 
+[![Deploy on Render](https://img.shields.io/badge/Render-Online-brightgreen?logo=render&logoColor=white)](https://libreria-le6m.onrender.com/libreria/)
+
 ---
 
 ## 🎯 Objetivo
