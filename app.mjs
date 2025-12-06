@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import url from 'url';
 import mongoose from 'mongoose';
-import { MONGODB_URI, PORT } from './config.mjs';
+import { MONGODB_URI, PORT, SECRET_KEY } from './config.mjs';
 import passport from 'passport';
 import { Strategy as JWTStrategy, ExtractJwt as ExtractJWT } from 'passport-jwt';
 import jwt from 'jsonwebtoken';
@@ -40,7 +40,6 @@ app.use('/', express.static(path.join(STATIC_DIR, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const SECRET_KEY = 'TSW';
 passport.use(
   new JWTStrategy(
     {
