@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '../../config.mjs';
+import { LibreriaSession } from "../commons/libreria-session.mjs";
 
 // Proxy del cliente para API REST - Práctica 2
 export const ROL = {
@@ -145,18 +146,6 @@ export class LibreriaProxy {
     return await response.json();
   }
 
-  // Método unificado de autenticación
-  async autenticar(obj) {
-    const ruta = obj.rol === ROL.ADMIN ? 'admins' : 'clientes';
-    const response = await fetch(`${API_BASE_URL}/${ruta}/autenticar`, {
-      method: 'POST',
-      body: JSON.stringify(obj),
-      headers: { 'Content-Type': 'application/json' }
-    });
-    if (!response.ok) throw new Error((await response.json()).error);
-    return await response.json();
-  }
-
   // Método unificado de registro
   async registrar(obj) {
     const ruta = obj.rol === ROL.ADMIN ? 'admins' : 'clientes';
@@ -170,7 +159,7 @@ export class LibreriaProxy {
   }
 
   /* ==================== CARRITO ==================== */
-  
+
   async getCarroCliente(clienteId) {
     const response = await fetch(`${API_BASE_URL}/clientes/${clienteId}/carro`);
     if (!response.ok) throw new Error((await response.json()).error);
@@ -198,7 +187,7 @@ export class LibreriaProxy {
   }
 
   /* ==================== ADMINISTRADORES ==================== */
-  
+
   async getAdmins() {
     const response = await fetch(`${API_BASE_URL}/admins`);
     if (!response.ok) throw new Error((await response.json()).error);
@@ -267,7 +256,7 @@ export class LibreriaProxy {
   }
 
   /* ==================== FACTURAS ==================== */
-  
+
   async getFacturas() {
     const response = await fetch(`${API_BASE_URL}/facturas`);
     if (!response.ok) throw new Error((await response.json()).error);
@@ -322,6 +311,84 @@ export class LibreriaProxy {
     const response = await fetch(`${API_BASE_URL}/facturas/${id}`, { method: 'DELETE' });
     if (!response.ok) throw new Error((await response.json()).error);
     return await response.json();
+  }
+
+  /* ==================== USUARIOS (para passport) ==================== */
+  async addUsuario(obj) {
+    let response = await fetch('/api/usuarios', {
+      method: 'POST',
+      body: JSON.stringify(obj),
+      headers: { 'Content-Type': 'application/json;charset=utf-8' }
+    });
+    if (response.ok) {
+      return await response.json();
+    } else {
+      let body = await response.json();
+      throw new Error(`Error ${response.status}: ${response.statusText}\n ${body.message}`);
+    }
+  }
+
+  async getUsuarioById(id) {
+    let response = await fetch('/api/usuarios/' + id, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8',
+        Authorization: `bearer ${LibreriaSession.getToken()}`,
+      }
+    });
+    if (response.ok) {
+      return await response.json();
+    } else {
+      let body = await response.json();
+      throw new Error(`Error ${response.status}: ${response.statusText}\n ${body.message}`);
+    }
+  }
+
+  async getUsuarioActual() {
+    let response = await fetch('/api/usuarios/actual', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8',
+        Authorization: `bearer ${LibreriaSession.getToken()}`,
+      }
+    });
+    if (response.ok) {
+      return await response.json();
+    } else {
+      let body = await response.json();
+      throw new Error(`Error ${response.status}: ${response.statusText}\n ${body.message}`);
+    }
+  }
+
+  async updateUsuario(obj) {
+    let response = await fetch('/api/usuarios/' + obj._id, {
+      method: 'PUT',
+      body: JSON.stringify(obj),
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8',
+        Authorization: `bearer ${LibreriaSession.getToken()}`,
+      },
+    });
+    if (response.ok) {
+      return await response.json();
+    } else {
+      let body = await response.json();
+      throw new Error(`Error ${response.status}: ${response.statusText}\n ${body.message}`);
+    }
+  }
+
+  async autenticar(obj) {
+    let response = await fetch('/api/autenticar', {
+      method: 'POST',
+      body: JSON.stringify(obj),
+      headers: { 'Content-Type': 'application/json;charset=utf-8' }
+    });
+    if (response.ok) {
+      return await response.json();
+    } else {
+      let body = await response.json();
+      throw new Error(`Error ${response.status}: ${response.statusText}\n ${body.message}`);
+    }
   }
 }
 

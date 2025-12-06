@@ -6,3 +6,6 @@ export const MONGODB_URI =
 
 export const PORT =
   process.env.PORT || 3000;
+
+export const SECRET_KEY =
+  process.env.JWT_SECRET || "default_secret_key";

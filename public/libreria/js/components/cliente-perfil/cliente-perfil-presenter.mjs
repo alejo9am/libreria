@@ -14,24 +14,20 @@ export class ClientePerfilPresenter extends Presenter {
     await super.refresh();
 
     // Verificar si el usuario es cliente, sino redirigir al login
-    const userSession = LibreriaSession.getUserSession();
-    if (!userSession || userSession.rol !== "CLIENTE") {
-        LibreriaSession.addMessage("error", "Debe iniciar sesión como cliente");
-        console.log("ERROR, usuario no autorizado", userSession);
-        //poner timeout antes de redirigir
-        setTimeout(() => {
-          router.navigate("/libreria/invitado-ingreso.html");
-        }, 2000);
-        return;
+    if (!LibreriaSession.esCliente()) {
+      LibreriaSession.addMessage("error", "Acceso no autorizado. Por favor, inicie sesión como cliente.");
+      router.navigate("/libreria/invitado-ingreso.html");
+      return;
     }
-  
+
+    const userSessionId = LibreriaSession.getUsuarioId();
     // Buscar el usuario completo en el MODELO (no en localStorage)
-    const cliente = await this.model.getClientePorId(userSession._id);
+    const cliente = await this.model.getClientePorId(userSessionId);
 
     if (!cliente) {
-        LibreriaSession.addMessage("error", "Cliente no encontrado");
-        router.navigate("/libreria/invitado-ingreso.html");
-        return;
+      LibreriaSession.addMessage("error", "Cliente no encontrado");
+      router.navigate("/libreria/invitado-ingreso.html");
+      return;
     }
 
     this.cliente = cliente;
@@ -41,9 +37,14 @@ export class ClientePerfilPresenter extends Presenter {
     // Cerrar sesion
     const salirLink = document.getElementById("salirLink");
     if (salirLink) {
-      salirLink.addEventListener("click", (e) => {
+      // Crear un nuevo elemento para eliminar todos los listeners anteriores
+      const newSalirLink = salirLink.cloneNode(true);
+      salirLink.parentNode.replaceChild(newSalirLink, salirLink);
+
+      newSalirLink.addEventListener("click", (e) => {
         e.preventDefault();
-        LibreriaSession.clearUserSession();
+        LibreriaSession.salir();
+        router.navigate("/libreria/invitado-home.html");
         LibreriaSession.addMessage("success", "Sesión cerrada correctamente");
       });
     }
@@ -99,12 +100,8 @@ export class ClientePerfilPresenter extends Presenter {
         console.log("Actualizando perfil:", datosActualizados);
 
         // Actualizar en el modelo (servidor)
-        const clienteActualizado = await this.model.updateCliente(datosActualizados);
+        await this.model.updateUsuario(datosActualizados);
 
-        // Actualizar la referencia local
-        this.cliente = clienteActualizado;
-        // Actualizar sesión
-        LibreriaSession.setUser(this.cliente);
         LibreriaSession.addMessage("success", "Perfil actualizado correctamente");
         renderUltimoMensaje("#mensajesContainer");
 

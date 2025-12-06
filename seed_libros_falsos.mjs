@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { model, ROL } from './model/model.mjs';
 import { MONGODB_URI } from './config.mjs';
+import bcrypt from 'bcrypt';
 
 // Funciones auxiliares para crear datos
 export function crearLibro(isbn) {
@@ -108,12 +109,20 @@ export async function seed() {
     // Limpiar y crear administradores
     console.log('[Seeder] Creando administradores...');
     const admins = A_DNIS.map(dni => crearAdmin(dni));
+    // Hashear contraseñas antes de guardar
+    for (let admin of admins) {
+      admin.password = await bcrypt.hash(admin.password, 10);
+    }
     await model.setAdmins(admins);
     console.log(`[Seeder] ${admins.length} administradores creados`);
 
     // Limpiar y crear clientes
     console.log('[Seeder] Creando clientes...');
     const clientes = C_DNIS.map(dni => crearCliente(dni));
+    // Hashear contraseñas antes de guardar
+    for (let cliente of clientes) {
+      cliente.password = await bcrypt.hash(cliente.password, 10);
+    }
     await model.setClientes(clientes);
     console.log(`[Seeder] ${clientes.length} clientes creados`);
 

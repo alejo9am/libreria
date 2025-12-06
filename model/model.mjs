@@ -4,6 +4,7 @@ import { Usuario } from './usuario.mjs';
 import { Factura } from './factura.mjs';
 import { Carro } from './carro.mjs';
 import { Item } from './item.mjs';
+import bcrypt from 'bcrypt';
 
 export const ROL = {
   ADMIN: "ADMIN",
@@ -63,7 +64,7 @@ export class Libreria {
   async updateLibro(obj) {
     const libro = await this.getLibroPorId(obj._id);
     if (!libro) throw new Error('Libro no encontrado');
-    
+
     libro.isbn = obj.isbn;
     libro.titulo = obj.titulo;
     libro.autores = obj.autores;
@@ -71,7 +72,7 @@ export class Libreria {
     libro.resumen = obj.resumen;
     libro.stock = obj.stock;
     libro.precio = obj.precio;
-    
+
     return await libro.save();
   }
 
@@ -102,15 +103,28 @@ export class Libreria {
   async updateUsuario(obj) {
     const usuario = await this.getUsuarioPorId(obj._id);
     if (!usuario) throw new Error('Usuario no encontrado');
-    
+
     usuario.dni = obj.dni;
     usuario.nombre = obj.nombre;
     usuario.apellidos = obj.apellidos;
     usuario.direccion = obj.direccion;
     usuario.email = obj.email;
-    if (obj.password) usuario.password = obj.password;
-    
+    if (obj.password) usuario.password = await bcrypt.hash(obj.password, 10);
+
     return await usuario.save();
+  }
+
+  async setUsuarios(array) {
+    await Usuario.deleteMany({});
+    const promises = array.map(async (u) => {
+      if (u.rol == ROL.CLIENTE) {
+        const carro = await new Carro().save();
+        u.carro = carro._id;
+      }
+      return new Usuario(u).save();
+    });
+    await Promise.all(promises);
+    return await Usuario.find();
   }
 
   // ==================== CLIENTES ====================
@@ -139,11 +153,12 @@ export class Libreria {
   async addCliente(obj) {
     const cliente = await this.getClientePorEmail(obj.email);
     if (cliente) throw new Error('Ya existe un CLIENTE registrado con ese email');
-    
+
     obj.rol = ROL.CLIENTE;
     const carro = await new Carro().save();
     obj.carro = carro._id;
-    
+    obj.password = await bcrypt.hash(obj.password, 10);
+
     return await new Usuario(obj).save();
   }
 
@@ -169,7 +184,7 @@ export class Libreria {
   async updateCliente(obj) {
     const cliente = await this.getClientePorId(obj._id);
     if (!cliente) throw new Error('Cliente no encontrado');
-    
+
     cliente.dni = obj.dni;
     cliente.nombre = obj.nombre;
     cliente.apellidos = obj.apellidos;
@@ -177,7 +192,7 @@ export class Libreria {
     cliente.email = obj.email;
     if (obj.password) cliente.password = obj.password;
     cliente.rol = ROL.CLIENTE; // Asegurar que no cambie el rol
-    
+
     return await cliente.save();
   }
 
@@ -215,8 +230,9 @@ export class Libreria {
   async addAdmin(obj) {
     const admin = await this.getAdministradorPorEmail(obj.email);
     if (admin) throw new Error('Ya existe un ADMIN registrado con ese email');
-    
+
     obj.rol = ROL.ADMIN;
+    obj.password = await bcrypt.hash(obj.password, 10);
     return await new Usuario(obj).save();
   }
 
@@ -242,7 +258,7 @@ export class Libreria {
   async updateAdmin(obj) {
     const admin = await this.getAdminPorId(obj._id);
     if (!admin) throw new Error('Administrador no encontrado');
-    
+
     admin.dni = obj.dni;
     admin.nombre = obj.nombre;
     admin.apellidos = obj.apellidos;
@@ -250,7 +266,7 @@ export class Libreria {
     admin.email = obj.email;
     if (obj.password) admin.password = obj.password;
     admin.rol = ROL.ADMIN; // Asegurar que no cambie el rol
-    
+
     return await admin.save();
   }
 
@@ -269,17 +285,13 @@ export class Libreria {
     let password = obj.password;
     let usuario;
 
-    if (obj.rol == ROL.CLIENTE) {
-      usuario = await this.getClientePorEmail(email);
-    } else if (obj.rol == ROL.ADMIN) {
-      usuario = await this.getAdministradorPorEmail(email);
-    } else {
-      throw new Error('Rol no encontrado');
-    }
+    if (obj.rol == ROL.CLIENTE) usuario = await this.getClientePorEmail(email);
+    else if (obj.rol == ROL.ADMIN) usuario = await this.getAdministradorPorEmail(email);
+    else throw new Error('Rol no encontrado');
 
     if (!usuario) throw new Error('Usuario no encontrado');
-    if (usuario.password == password) return usuario;
-    throw new Error('Error en la contraseña');
+    else if (usuario.password == password) return usuario;
+    else throw new Error('Error en la contraseña');
   }
 
   // ==================== CARRITO ====================
@@ -293,17 +305,17 @@ export class Libreria {
       populate: { path: 'libro' }
     });
     if (!carro) return null;
-    
+
     return carro;
   }
 
   async addClienteCarroItem(id, item) {
     const libro = await this.getLibroPorId(item.libro);
     if (!libro) throw new Error('Libro no encontrado');
-    
+
     const cliente = await this.getClientePorId(id);
     if (!cliente) throw new Error('Cliente no encontrado');
-    
+
     // Crear o recuperar el carro
     let carro = cliente.carro;
     if (!carro) {
@@ -312,7 +324,7 @@ export class Libreria {
     } else {
       carro = await Carro.findById(carro);
     }
-    
+
     // Verificar si el libro ya está en el carrito
     let itemExistente = null;
     for (const itemId of carro.items) {
@@ -322,7 +334,7 @@ export class Libreria {
         break;
       }
     }
-    
+
     if (itemExistente) {
       // Si el libro ya existe, incrementar la cantidad
       itemExistente.cantidad += item.cantidad;
@@ -335,11 +347,11 @@ export class Libreria {
         libro: libro._id,
         total: item.cantidad * libro.precio
       }).save();
-      
+
       // Agregar item al carro
       carro.items.push(nuevoItem._id);
     }
-    
+
     // Recalcular totales
     let subtotal = 0;
     for (const itemId of carro.items) {
@@ -351,10 +363,10 @@ export class Libreria {
     carro.subtotal = parseFloat(subtotal.toFixed(2));
     carro.iva = parseFloat((carro.subtotal * 0.21).toFixed(2));
     carro.total = parseFloat((carro.subtotal + carro.iva).toFixed(2));
-    
+
     await carro.save();
     await cliente.save();
-    
+
     // Devolver el carro con los items completos usando populate
     const carroCompleto = await Carro.findById(carro._id).populate({
       path: 'items',
@@ -366,24 +378,24 @@ export class Libreria {
   async setClienteCarroItemCantidad(id, index, cantidad) {
     const cliente = await this.getClientePorId(id);
     if (!cliente) throw new Error('Cliente no encontrado');
-    
+
     if (cantidad < 0) throw new Error('Cantidad inferior a 0');
-    
+
     if (!cliente.carro) {
       throw new Error('El cliente no tiene carro');
     }
-    
+
     const carro = await Carro.findById(cliente.carro);
     if (!carro) throw new Error('Carro no encontrado');
-    
+
     if (index < 0 || index >= carro.items.length) {
       throw new Error('Índice de item inválido');
     }
-    
+
     const itemId = carro.items[index];
     const item = await Item.findById(itemId).populate('libro');
     if (!item) throw new Error('Item no encontrado');
-    
+
     // Si la cantidad es 0, eliminar el item del carro
     if (cantidad === 0) {
       carro.items.splice(index, 1);
@@ -394,7 +406,7 @@ export class Libreria {
       item.total = item.cantidad * item.libro.precio;
       await item.save();
     }
-    
+
     // Recalcular totales del carro
     let subtotal = 0;
     for (const iId of carro.items) {
@@ -406,9 +418,9 @@ export class Libreria {
     carro.subtotal = parseFloat(subtotal.toFixed(2));
     carro.iva = parseFloat((carro.subtotal * 0.21).toFixed(2));
     carro.total = parseFloat((carro.subtotal + carro.iva).toFixed(2));
-    
+
     await carro.save();
-    
+
     // Devolver el carro con los items completos usando populate
     const carroCompleto = await Carro.findById(carro._id).populate({
       path: 'items',
@@ -420,7 +432,7 @@ export class Libreria {
   async vaciarCarroCliente(id) {
     const cliente = await this.getClientePorId(id);
     if (!cliente) throw new Error('Cliente no encontrado');
-    
+
     if (cliente.carro) {
       const carro = await Carro.findById(cliente.carro);
       if (carro) {
@@ -436,7 +448,7 @@ export class Libreria {
         await carro.save();
       }
     }
-    
+
     return cliente.carro;
   }
 
@@ -460,13 +472,13 @@ export class Libreria {
 
   async facturarCompraCliente(obj) {
     if (!obj.cliente) throw new Error('Cliente no definido');
-    
+
     const clienteId = typeof obj.cliente === 'object' ? obj.cliente._id : obj.cliente;
     const cliente = await this.getClientePorId(clienteId);
-    
+
     if (!cliente) throw new Error('Cliente no encontrado');
     if (!cliente.carro) throw new Error('Cliente no tiene carro');
-    
+
     const carro = await Carro.findById(cliente.carro);
     if (!carro || carro.items.length < 1) {
       throw new Error('No hay items en el carrito');
@@ -474,7 +486,7 @@ export class Libreria {
 
     // Generar número de factura
     const numero = `F-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-    
+
     // Crear objeto de factura
     const facturaData = {
       numero: numero,
@@ -489,17 +501,17 @@ export class Libreria {
       iva: carro.iva,
       total: carro.total
     };
-    
+
     // Guardar factura
     const factura = await new Factura(facturaData).save();
-    
+
     // Vaciar carro del cliente
     carro.items = [];
     carro.subtotal = 0;
     carro.iva = 0;
     carro.total = 0;
     await carro.save();
-    
+
     return factura;
   }
 
@@ -524,8 +536,8 @@ export class Libreria {
 
   async getFacturasPorCliente(clienteId) {
     // Convertir el clienteId a ObjectId si es un string válido
-    const objectId = mongoose.Types.ObjectId.isValid(clienteId) 
-      ? new mongoose.Types.ObjectId(clienteId) 
+    const objectId = mongoose.Types.ObjectId.isValid(clienteId)
+      ? new mongoose.Types.ObjectId(clienteId)
       : clienteId;
     return await Factura.find({ cliente: objectId })
       .populate('cliente')
