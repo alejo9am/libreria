@@ -73,30 +73,30 @@ const LIBROS_SEMILLA = [
     precio: 9.50
   },
   {
-    isbn: "9780140449266",
+    isbn: "9780140268867",
     titulo: "La Odisea",
     autores: "Homero",
-    portada: "https://covers.openlibrary.org/b/isbn/9780140449266-L.jpg",
+    portada: "https://covers.openlibrary.org/b/isbn/9780140268867-L.jpg",
     resumen:
       "Tras la guerra de Troya, el astuto héroe Odiseo emprende un peligroso viaje de diez años para regresar a su hogar en Ítaca. Enfrentándose a cíclopes, sirenas y la ira de los dioses, debe usar todo su ingenio para sobrevivir. Mientras tanto, en su hogar, su esposa Penélope resiste a los pretendientes que asedian su palacio, esperando el regreso de su rey en esta epopeya fundacional.",
     stock: 8,
     precio: 13.99
   },
   {
-    isbn: "9780140449181",
+    isbn: "9780140445923",
     titulo: "La Ilíada",
     autores: "Homero",
-    portada: "https://covers.openlibrary.org/b/isbn/9780140449181-L.jpg",
+    portada: "https://covers.openlibrary.org/b/isbn/9780140445923-L.jpg",
     resumen:
       "Este poema épico relata las últimas semanas de la guerra de Troya, centrándose en la cólera del invencible Aquiles. Tras una disputa con el rey Agamenón, Aquiles se retira del combate, desencadenando consecuencias trágicas para ambos bandos. La obra explora la gloria, el honor, el destino inevitable y la brutalidad de la guerra, culminando en un duelo legendario con Héctor.",
     stock: 10,
     precio: 14.50
   },
   {
-    isbn: "9780140449334",
+    isbn: "9780140449136",
     titulo: "Crimen y Castigo",
     autores: "Fiódor Dostoyevski",
-    portada: "https://covers.openlibrary.org/b/isbn/9780140449334-L.jpg",
+    portada: "https://covers.openlibrary.org/b/isbn/9780140449136-L.jpg",
     resumen:
       "Raskólnikov, un estudiante pobre en San Petersburgo, comete un asesinato justificado por su propia teoría de que algunos hombres extraordinarios están por encima de la ley moral. Sin embargo, la culpa y la paranoia lo consumen, sumergiéndolo en una pesadilla psicológica. Perseguido por un astuto investigador, debe buscar la redención y enfrentar las consecuencias de sus actos en esta profunda exploración de la conciencia humana.",
     stock: 6,
