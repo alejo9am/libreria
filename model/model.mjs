@@ -114,6 +114,19 @@ export class Libreria {
     return await usuario.save();
   }
 
+  async setUsuarios(array) {
+    await Usuario.deleteMany({});
+    const promises = array.map(async (u) => {
+      if (u.rol == ROL.CLIENTE) {
+        const carro = await new Carro().save();
+        u.carro = carro._id;
+      }
+      return new Usuario(u).save();
+    });
+    await Promise.all(promises);
+    return await Usuario.find();
+  }
+
   // ==================== CLIENTES ====================
 
   async getClientes() {
