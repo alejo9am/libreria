@@ -16,6 +16,7 @@
   "dependencies": {
     "chai": "^4.3.7",
     "chai-http": "^4.3.0",
+    "dotenv": "^17.2.3",
     "express": "^4.21.1",
     "mocha": "^10.2.0",
     "mongoose": "^8.8.2",

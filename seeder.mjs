@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { model, ROL } from './model/model.mjs';
+import { MONGODB_URI } from './config.mjs';
 
 // Funciones auxiliares para crear datos
 export function crearLibro(isbn) {
@@ -40,7 +41,7 @@ export function crearAdmin(dni) {
 
 // Función de conexión
 async function connect() {
-  const uri = 'mongodb://127.0.0.1/libreria';
+  const uri = MONGODB_URI;
   mongoose.Promise = global.Promise;
   const db = mongoose.connection;
   db.on('connecting', () => console.log('Conectando a', uri));
