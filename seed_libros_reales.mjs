@@ -6,6 +6,7 @@ import { Factura } from "./model/factura.mjs";
 import { Carro } from "./model/carro.mjs";
 import { Item } from "./model/item.mjs";
 import { MONGODB_URI } from './config.mjs';
+import bcrypt from 'bcrypt';
 
 // =======================================
 //   LIBROS PARA EL CATÁLOGO (10 LIBROS)
@@ -191,6 +192,10 @@ async function run() {
     console.log(`[Seeder] Libros creados: ${LIBROS_SEMILLA.length}`);
 
     console.log("[Seeder] Creando administradores y clientes...");
+    // Hashear contraseñas antes de guardar
+    for (let usuario of USUARIOS_SEMILLA) {
+      usuario.password = await bcrypt.hash(usuario.password, 10);
+    }
     await model.setUsuarios(USUARIOS_SEMILLA);
     console.log("[Seeder] Usuarios creados.");
 

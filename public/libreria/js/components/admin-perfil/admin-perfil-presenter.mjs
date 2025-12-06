@@ -14,15 +14,16 @@ export class AdminPerfilPresenter extends Presenter {
     await super.refresh();
 
     // Verificar autenticación
-    const userSession = LibreriaSession.getUserSession();
-    if (!userSession || userSession.rol !== "ADMIN") {
-      LibreriaSession.addMessage("error", "Debe iniciar sesión como administrador");
+    if (!LibreriaSession.esAdmin()) {
+      LibreriaSession.addMessage("error", "Acceso no autorizado. Por favor, inicie sesión como administrador.");
       router.navigate("/libreria/invitado-ingreso.html");
       return;
     }
 
+    const userSessionId = LibreriaSession.getUsuarioId();
+
     // Buscar el usuario completo en el MODELO (no en localStorage)
-    const admin = await this.model.getAdminPorId(userSession._id);
+    const admin = await this.model.getAdminPorId(userSessionId);
 
     if (!admin) {
       LibreriaSession.addMessage("error", "Administrador no encontrado");
@@ -37,9 +38,14 @@ export class AdminPerfilPresenter extends Presenter {
     // Cerrar sesion
     const salirLink = document.getElementById("salirLink");
     if (salirLink) {
-      salirLink.addEventListener("click", (e) => {
+      // Crear un nuevo elemento para eliminar todos los listeners anteriores
+      const newSalirLink = salirLink.cloneNode(true);
+      salirLink.parentNode.replaceChild(newSalirLink, salirLink);
+      
+      newSalirLink.addEventListener("click", (e) => {
         e.preventDefault();
-        LibreriaSession.clearUserSession();
+        LibreriaSession.salir();
+        router.navigate("/libreria/invitado-home.html");
         LibreriaSession.addMessage("success", "Sesión cerrada correctamente");
       });
     }
@@ -58,7 +64,7 @@ export class AdminPerfilPresenter extends Presenter {
     const form = document.querySelector("#perfilForm");
     const mensajesContainer = document.querySelector("#mensajesContainer");
 
-    form.addEventListener("submit", (ev) => {
+    form.addEventListener("submit", async (ev) => {
       ev.preventDefault();
       mensajesContainer.innerHTML = "";
 
@@ -95,9 +101,8 @@ export class AdminPerfilPresenter extends Presenter {
         console.log("Actualizando perfil:", datosActualizados);
 
         // Actualizar en el modelo (esto también actualiza en localStorage automáticamente)
-        this.model.updateAdmin(datosActualizados);
+        await this.model.updateUsuario(datosActualizados);
         // Actualizar sesión
-        LibreriaSession.setUser(datosActualizados);
         LibreriaSession.addMessage("success", "Perfil actualizado correctamente");
         renderUltimoMensaje("#mensajesContainer");
 

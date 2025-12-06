@@ -102,9 +102,14 @@ export class ClienteVerCompraPresenter extends Presenter {
     // Cerrar sesion
     const salirLink = document.getElementById("salirLink");
     if (salirLink) {
-      salirLink.addEventListener("click", (e) => {
+      // Crear un nuevo elemento para eliminar todos los listeners anteriores
+      const newSalirLink = salirLink.cloneNode(true);
+      salirLink.parentNode.replaceChild(newSalirLink, salirLink);
+      
+      newSalirLink.addEventListener("click", (e) => {
         e.preventDefault();
-        LibreriaSession.clearUserSession();
+        LibreriaSession.salir();
+        router.navigate("/libreria/invitado-home.html");
         LibreriaSession.addMessage("success", "Sesión cerrada correctamente");
       });
     }
