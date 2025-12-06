@@ -18,7 +18,7 @@ const LIBROS_SEMILLA = [
     autores: "Charlotte Brontë",
     portada: "https://covers.openlibrary.org/b/isbn/9780141441146-L.jpg",
     resumen:
-      "La historia de Jane Eyre, una joven que lucha por su independencia y dignidad frente a las adversidades de su tiempo.",
+      "Huérfana desde niña, Jane Eyre sufre una infancia cruel antes de convertirse en institutriz en Thornfield Hall. Allí se enamora del misterioso Sr. Rochester, pero descubre un oscuro secreto que amenaza su felicidad. Esta novela clásica explora temas de independencia, moralidad y la apasionada búsqueda de una mujer por encontrar su lugar en el mundo respetándose a sí misma.",
     stock: 10,
     precio: 9.95
   },
@@ -28,7 +28,7 @@ const LIBROS_SEMILLA = [
     autores: "Harper Lee",
     portada: "https://covers.openlibrary.org/b/isbn/9780061120084-L.jpg",
     resumen:
-      "Un retrato crítico de la injusticia racial en el sur de Estados Unidos, narrado por la joven Scout Finch.",
+      "A través de los ojos de la joven Scout Finch, esta novela explora la injusticia racial y la pérdida de la inocencia en el sur de Estados Unidos durante la Gran Depresión. Su padre, el abogado Atticus Finch, defiende a un hombre negro acusado injustamente, enseñando a sus hijos lecciones vitales sobre la empatía, el coraje y la integridad moral frente a los prejuicios de una comunidad.",
     stock: 12,
     precio: 11.50
   },
@@ -38,7 +38,7 @@ const LIBROS_SEMILLA = [
     autores: "F. Scott Fitzgerald",
     portada: "https://covers.openlibrary.org/b/isbn/9780743273565-L.jpg",
     resumen:
-      "Jay Gatsby persigue un ideal imposible en el Nueva York de los años 20, en una historia sobre ambición y desengaño.",
+      "En el vibrante Nueva York de los años 20, el millonario Jay Gatsby organiza fiestas extravagantes obsesionado con reconquistar a su antiguo amor, Daisy Buchanan. Narrada por Nick Carraway, esta obra maestra desentraña la decadencia del Sueño Americano, revelando una historia de obsesión, riqueza desmedida y tragedia inevitable detrás del brillo superficial de la Era del Jazz.",
     stock: 7,
     precio: 10.20
   },
@@ -48,7 +48,7 @@ const LIBROS_SEMILLA = [
     autores: "John Boyne",
     portada: "https://covers.openlibrary.org/b/isbn/9780385751537-L.jpg",
     resumen:
-      "La amistad inocente entre dos niños durante la Segunda Guerra Mundial revela las atrocidades del Holocausto.",
+      "Bruno, un niño alemán de ocho años, se muda con su familia cerca de un campo de concentración donde su padre es comandante. Inocente de la realidad que lo rodea, se hace amigo de Shmuel, un niño judío al otro lado de la alambrada. Su prohibida amistad expone la brutalidad del Holocausto y conduce a un desenlace devastador que marca la pérdida de la inocencia.",
     stock: 9,
     precio: 8.95
   },
@@ -58,7 +58,7 @@ const LIBROS_SEMILLA = [
     autores: "Paulo Coelho",
     portada: "https://covers.openlibrary.org/b/isbn/9780062315007-L.jpg",
     resumen:
-      "Santiago emprende un viaje espiritual en busca de su leyenda personal, descubriendo el poder de los sueños.",
+      "Santiago, un joven pastor andaluz, viaja desde España hacia el desierto egipcio en busca de un tesoro oculto en las pirámides. A lo largo de su camino, conoce a mentores y enfrenta desafíos que le enseñan a escuchar a su corazón. Esta fábula inspiradora nos recuerda la importancia de perseguir nuestros sueños y reconocer las señales que el destino pone en nuestro camino.",
     stock: 15,
     precio: 12.99
   },
@@ -68,7 +68,7 @@ const LIBROS_SEMILLA = [
     autores: "George Orwell",
     portada: "https://covers.openlibrary.org/b/isbn/9780141036144-L.jpg",
     resumen:
-      "Una distopía sobre un régimen totalitario que controla cada aspecto de la vida y manipula la verdad.",
+      "En un futuro sombrío gobernado por el Gran Hermano, la vigilancia es total y la libertad de pensamiento es un crimen. Winston Smith, un funcionario del Partido encargado de reescribir la historia, intenta rebelarse manteniendo una relación prohibida. Esta novela distópica es una advertencia escalofriante sobre los peligros del totalitarismo, la manipulación de la verdad y la aniquilación de la individualidad humana.",
     stock: 11,
     precio: 9.50
   },
@@ -78,7 +78,7 @@ const LIBROS_SEMILLA = [
     autores: "Homero",
     portada: "https://covers.openlibrary.org/b/isbn/9780140449266-L.jpg",
     resumen:
-      "El regreso épico de Ulises a Ítaca, enfrentándose a criaturas mitológicas, dioses y tentaciones.",
+      "Tras la guerra de Troya, el astuto héroe Odiseo emprende un peligroso viaje de diez años para regresar a su hogar en Ítaca. Enfrentándose a cíclopes, sirenas y la ira de los dioses, debe usar todo su ingenio para sobrevivir. Mientras tanto, en su hogar, su esposa Penélope resiste a los pretendientes que asedian su palacio, esperando el regreso de su rey en esta epopeya fundacional.",
     stock: 8,
     precio: 13.99
   },
@@ -88,7 +88,7 @@ const LIBROS_SEMILLA = [
     autores: "Homero",
     portada: "https://covers.openlibrary.org/b/isbn/9780140449181-L.jpg",
     resumen:
-      "El poema épico que narra la guerra de Troya, el honor, la furia de Aquiles y el destino de los héroes.",
+      "Este poema épico relata las últimas semanas de la guerra de Troya, centrándose en la cólera del invencible Aquiles. Tras una disputa con el rey Agamenón, Aquiles se retira del combate, desencadenando consecuencias trágicas para ambos bandos. La obra explora la gloria, el honor, el destino inevitable y la brutalidad de la guerra, culminando en un duelo legendario con Héctor.",
     stock: 10,
     precio: 14.50
   },
@@ -98,7 +98,7 @@ const LIBROS_SEMILLA = [
     autores: "Fiódor Dostoyevski",
     portada: "https://covers.openlibrary.org/b/isbn/9780140449334-L.jpg",
     resumen:
-      "Raskólnikov comete un crimen que desencadena una batalla moral y psicológica consigo mismo.",
+      "Raskólnikov, un estudiante pobre en San Petersburgo, comete un asesinato justificado por su propia teoría de que algunos hombres extraordinarios están por encima de la ley moral. Sin embargo, la culpa y la paranoia lo consumen, sumergiéndolo en una pesadilla psicológica. Perseguido por un astuto investigador, debe buscar la redención y enfrentar las consecuencias de sus actos en esta profunda exploración de la conciencia humana.",
     stock: 6,
     precio: 12.40
   },
@@ -108,7 +108,7 @@ const LIBROS_SEMILLA = [
     autores: "Ray Bradbury",
     portada: "https://covers.openlibrary.org/b/isbn/9781451673319-L.jpg",
     resumen:
-      "En una sociedad donde los libros están prohibidos, Montag empieza a cuestionar todo lo que siempre creyó.",
+      "Guy Montag es un bombero cuyo trabajo no es apagar fuegos, sino provocarlos para quemar libros, prohibidos por un gobierno que busca suprimir el pensamiento crítico. Tras conocer a una joven vecina que le abre los ojos, Montag comienza a cuestionar su vida vacía y se une a la resistencia para preservar el conocimiento. Una poderosa defensa de la literatura y la libertad intelectual.",
     stock: 13,
     precio: 9.80
   }
