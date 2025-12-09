@@ -15,7 +15,7 @@ describe("Tests del Modelo de Librería", function () {
   before(async function () {
     this.timeout(10000);
     try {
-      console.log("Realizando backup del estado del servidor...");
+      console.log("Realizando backup del estado del servidor: colecciones: usuarios, libros, facturas, items, carros...");
       console.log("Estado inicial de la librería en el servidor:");
       console.log("Libros:", await libreria.getLibros());
       console.log("Clientes:", await libreria.getClientes());
