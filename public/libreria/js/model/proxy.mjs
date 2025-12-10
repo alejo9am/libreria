@@ -314,6 +314,23 @@ export class LibreriaProxy {
   }
 
   /* ==================== USUARIOS (para passport) ==================== */
+
+  async getUsuarios() {
+    let response = await fetch('/api/usuarios', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8',
+        Authorization: `bearer ${LibreriaSession.getToken()}`,
+      }
+    });
+    if (response.ok) {
+      return await response.json();
+    } else {
+      let body = await response.json();
+      throw new Error(`Error ${response.status}: ${response.statusText}\n ${body.message}`);
+    }
+  }
+
   async addUsuario(obj) {
     let response = await fetch('/api/usuarios', {
       method: 'POST',
