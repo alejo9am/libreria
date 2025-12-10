@@ -25,11 +25,6 @@ describe("Tests del Modelo de Librería", function () {
         for (const col of collections) {
             dbBackup[col] = await mongoose.connection.db.collection(col).find({}).toArray();
         }
-
-        // Limpiar la base de datos
-        for (const col of collections) {
-            await mongoose.connection.db.collection(col).deleteMany({});
-        }
     });
 
     // Limpiar la base de datos antes de cada test (ya que los tests pueden dejar datos)
@@ -42,6 +37,12 @@ describe("Tests del Modelo de Librería", function () {
 
     // Restaurar el estado original y desconectar después de todos los tests
     after(async function () {
+        // Limpiar completamente la base de datos antes de restaurar
+        const collections = ['libros', 'usuarios', 'facturas', 'carros', 'items'];
+        for (const col of collections) {
+            await mongoose.connection.db.collection(col).deleteMany({});
+        }
+        
         // Restaurar backup
         for (const col in dbBackup) {
             if (dbBackup[col].length > 0) {
