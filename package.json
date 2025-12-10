@@ -7,8 +7,7 @@
     "test-rest": "mocha ./test/rest.spec.mjs --reporter spec --exit",
     "test-model": "mocha ./test/model.spec.mjs --reporter spec --exit",
     "start": "node .",
-    "seed_libros_falsos": "node seed_libros_falsos.mjs",
-    "seed_libros_reales": "node seed_libros_reales.mjs"
+    "seeder": "node ./seeder.mjs"
   },
   "keywords": [],
   "author": "",

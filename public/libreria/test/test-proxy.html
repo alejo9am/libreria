@@ -10,6 +10,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/10.7.3/mocha.js"></script>
   <script>
     mocha.setup('bdd'); // configuración mínima
+    mocha.timeout(5000); // tiempo máximo de espera por test
   </script>
   <title>Test Proxy</title>
   <!-- incluir chai -->

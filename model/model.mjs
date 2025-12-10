@@ -539,7 +539,10 @@ export class Libreria {
     if (!cliente) throw new Error('Cliente no encontrado');
     if (!cliente.carro) throw new Error('Cliente no tiene carro');
 
-    const carro = await Carro.findById(cliente.carro);
+    const carro = await Carro.findById(cliente.carro).populate({
+      path: 'items',
+      populate: { path: 'libro' }
+    });
     if (!carro || carro.items.length < 1) {
       throw new Error('No hay items en el carrito');
     }
@@ -556,7 +559,7 @@ export class Libreria {
       email: obj.email,
       dni: obj.dni,
       cliente: cliente._id,
-      items: carro.items,
+      items: carro.items.map(item => item._id),
       subtotal: carro.subtotal,
       iva: carro.iva,
       total: carro.total
@@ -564,6 +567,11 @@ export class Libreria {
 
     // Guardar factura
     const factura = await new Factura(facturaData).save();
+
+    // Descontar el stock de cada libro comprado
+    for (const item of carro.items) {
+      await this.decStockN(item.libro._id, item.cantidad);
+    }
 
     // Vaciar carro del cliente
     carro.items = [];
