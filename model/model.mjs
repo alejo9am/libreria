@@ -361,6 +361,10 @@ export class Libreria {
       cliente.carro = carro._id;
     } else {
       carro = await Carro.findById(carro);
+      if (!carro) {
+        carro = await new Carro().save();
+        cliente.carro = carro._id;
+      }
     }
 
     // Verificar si el libro ya está en el carrito

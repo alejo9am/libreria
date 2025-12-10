@@ -1,6 +1,7 @@
 import { Presenter } from "../../commons/presenter.mjs";
 import { LibreriaSession } from "../../commons/libreria-session.mjs";
 import { router } from "../../commons/router.mjs";
+import { renderUltimoMensaje } from "../../commons/mensajes-helper.mjs";
 
 export class ClienteVerLibroPresenter extends Presenter {
 
@@ -142,6 +143,10 @@ export class ClienteVerLibroPresenter extends Presenter {
           if (!userId) throw new Error('Debe iniciar sesión para añadir al carrito');
 
           console.log('[ClienteVerLibroPresenter] libro._id:', libro._id);
+          // Verificar stock antes de añadir
+          if (libro.stock <= 0) {
+            throw new Error('No hay stock disponible para este libro');
+          }
           // Añadir 1 unidad del libro al carrito del cliente
           await this.model.addClienteCarroItem(userId, { libro: libro._id, cantidad: 1 });
 
@@ -155,7 +160,7 @@ export class ClienteVerLibroPresenter extends Presenter {
         } catch (err) {
           console.error('[ClienteVerLibroPresenter] Error:', err);
           LibreriaSession.addMessage('error', err.message);
-          if (mensajesContainer) mensajesContainer.innerHTML = `<div class="error">${err.message}</div>`;
+          renderUltimoMensaje("#mensajesContainer");
           // Si no está autenticado, redirigir al formulario de ingreso pasado 1s
           if (err.message && err.message.toLowerCase().includes('iniciar sesión')) {
             setTimeout(() => router.navigate('/libreria/invitado-ingreso.html'), 1000);
