@@ -9,7 +9,7 @@ const ROL = {
 
 describe("Tests del Modelo de Librería", function () {
   // Variables para backup
-  let backupLibros, backupUsuarios, backupFacturas;
+  let backupLibros, backupUsuarios, backupFacturas, backupItems, backupCarros;
 
   // Backup antes de todos los tests
   before(async function () {
@@ -20,14 +20,20 @@ describe("Tests del Modelo de Librería", function () {
       console.log("Usuarios:", await libreria.getUsuarios());
       console.log("Libros:", await libreria.getLibros());
       console.log("Facturas:", await libreria.getFacturas());
+      console.log("Items:", await libreria.getItems());
+      console.log("Carros:", await libreria.getCarros());
 
       backupLibros = await libreria.getLibros();
       backupUsuarios = await libreria.getUsuarios(); // Obtiene todos los usuarios con passwords
       backupFacturas = await libreria.getFacturas();
+      backupItems = await libreria.getItems();
+      backupCarros = await libreria.getCarros();
       console.log("Backup completado.");
 
       // Limpiar datos para tests
       await libreria.removeFacturas();
+      await libreria.removeItems();
+      await libreria.removeCarros();
       await libreria.removeClientes();
       await libreria.removeAdmins();
       await libreria.removeLibros();
@@ -43,6 +49,7 @@ describe("Tests del Modelo de Librería", function () {
     try {
       console.log("Restaurando estado del servidor...");
 
+      // Restaurar en el orden correcto para mantener las referencias
       if (backupLibros) await libreria.setLibros(backupLibros);
       
       if (backupUsuarios && backupUsuarios.length > 0) {
@@ -60,6 +67,10 @@ describe("Tests del Modelo de Librería", function () {
           await libreria.setAdmins(admins);
         }
       }
+
+      // Restaurar items y carros después de los usuarios (porque están relacionados)
+      if (backupItems) await libreria.setItems(backupItems);
+      if (backupCarros) await libreria.setCarros(backupCarros);
       
       if (backupFacturas) await libreria.setFacturas(backupFacturas);
 
@@ -67,6 +78,8 @@ describe("Tests del Modelo de Librería", function () {
       console.log("Estado restaurado de la librería en el servidor:");
       console.log("Libros:", await libreria.getLibros());
       console.log("Usuarios:", await libreria.getUsuarios());
+      console.log("Items:", await libreria.getItems());
+      console.log("Carros:", await libreria.getCarros());
       console.log("Facturas:", await libreria.getFacturas());
 
       console.log("Restauración completada.");
@@ -83,6 +96,8 @@ describe("Tests del Modelo de Librería", function () {
     this.timeout(5000); // Aumentar timeout por si acaso
     try {
       await libreria.removeFacturas();
+      await libreria.removeItems();
+      await libreria.removeCarros();
       await libreria.removeClientes();
       await libreria.removeAdmins();
       await libreria.removeLibros();

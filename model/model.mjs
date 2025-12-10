@@ -523,6 +523,65 @@ export class Libreria {
     return await carro.save();
   }
 
+  // ==================== ITEMS ====================
+
+  async getItems() {
+    return await Item.find().populate('libro');
+  }
+
+  async setItems(array) {
+    await Item.deleteMany({});
+    const promises = array.map((item) => {
+      // Si libro está populado (es un objeto), extraer solo el _id
+      const itemData = {
+        ...item,
+        libro: typeof item.libro === 'object' && item.libro !== null 
+          ? item.libro._id 
+          : item.libro
+      };
+      return new Item(itemData).save();
+    });
+    await Promise.all(promises);
+    return await this.getItems();
+  }
+
+  async removeItems() {
+    const result = await Item.deleteMany({});
+    return result.deletedCount;
+  }
+
+  // ==================== CARROS ====================
+
+  async getCarros() {
+    return await Carro.find().populate({
+      path: 'items',
+      populate: { path: 'libro' }
+    });
+  }
+
+  async setCarros(array) {
+    await Carro.deleteMany({});
+    const promises = array.map((carro) => {
+      // Si items está populado (son objetos), extraer solo los _id
+      const carroData = {
+        ...carro,
+        items: carro.items.map(item => 
+          typeof item === 'object' && item !== null 
+            ? item._id 
+            : item
+        )
+      };
+      return new Carro(carroData).save();
+    });
+    await Promise.all(promises);
+    return await this.getCarros();
+  }
+
+  async removeCarros() {
+    const result = await Carro.deleteMany({});
+    return result.deletedCount;
+  }
+
   // ==================== FACTURAS ====================
 
   async getFacturas() {

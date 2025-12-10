@@ -506,6 +506,76 @@ app.put('/api/clientes/:id/carro/items/:index', async function (req, res, next) 
   }
 });
 
+/* ==================== API REST - ITEMS ==================== */
+
+// GET /api/items - Obtener todos los items
+app.get('/api/items', async function (req, res, next) {
+  try {
+    const items = await model.getItems();
+    res.json(items);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/items - Reemplazar todos los items
+app.put('/api/items', async function (req, res, next) {
+  try {
+    await model.setItems(req.body);
+    res.json(await model.getItems());
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// DELETE /api/items - Eliminar todos los items
+app.delete('/api/items', async function (req, res, next) {
+  try {
+    const count = await model.removeItems();
+    res.json({ ok: true, message: `${count} items eliminados` });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: err.message });
+  }
+});
+
+/* ==================== API REST - CARROS ==================== */
+
+// GET /api/carros - Obtener todos los carros
+app.get('/api/carros', async function (req, res, next) {
+  try {
+    const carros = await model.getCarros();
+    res.json(carros);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/carros - Reemplazar todos los carros
+app.put('/api/carros', async function (req, res, next) {
+  try {
+    await model.setCarros(req.body);
+    res.json(await model.getCarros());
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// DELETE /api/carros - Eliminar todos los carros
+app.delete('/api/carros', async function (req, res, next) {
+  try {
+    const count = await model.removeCarros();
+    res.json({ ok: true, message: `${count} carros eliminados` });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: err.message });
+  }
+});
+
 /* ==================== API REST - ADMINISTRADORES ==================== */
 
 // GET /api/admins - Obtener todos los administradores O filtrar por query params
