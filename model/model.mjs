@@ -114,6 +114,10 @@ export class Libreria {
     return await usuario.save();
   }
 
+  async getUsuarios() {
+    return await Usuario.find();
+  }
+
   async setUsuarios(array) {
     await Usuario.deleteMany({});
     const promises = array.map(async (u) => {

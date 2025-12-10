@@ -136,7 +136,20 @@ app.post('/api/usuarios',
       console.error(err);
       res.status(401).json({ message: err.message })
     }
-  })
+  }
+);
+
+app.get('/api/usuarios',
+  async function (req, res, next) {
+    try {
+      let usuarios = await model.getUsuarios();
+      res.json(usuarios);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: err.message });
+    }
+  }
+);
 
 /* ==================== API REST - LIBROS ==================== */
 
