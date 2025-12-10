@@ -760,13 +760,10 @@ describe("Tests del Modelo de Librería", function () {
                 await libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
                 await libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 1 });
 
-                // Mientras queden items, borra el primero (índice 0)
-                let carro = await libreria.getCarroCliente(cliente._id);
-                while (carro.items.length > 0) {
-                    await libreria.setClienteCarroItemCantidad(cliente._id, 0, 0);
-                    carro = await libreria.getCarroCliente(cliente._id);
-                }
+                // Vaciar el carro usando el método dedicado
+                await libreria.vaciarCarroCliente(cliente._id);
 
+                const carro = await libreria.getCarroCliente(cliente._id);
                 assert.equal(carro.items.length, 0);
                 assert.equal(carro.subtotal, 0);
                 assert.equal(carro.iva, 0);
@@ -1143,16 +1140,16 @@ describe("Tests del Modelo de Librería", function () {
 
             beforeEach(async function () {
                 cliente = await libreria.addCliente({
-                    dni: "CARRO001",
+                    dni: "CARROCALC001",
                     nombre: "Test",
                     apellidos: "Carro",
                     direccion: "Dirección Carro",
-                    email: "carro@test.com",
+                    email: "carrocalc@test.com",
                     password: "pass"
                 });
 
                 libro1 = await libreria.addLibro({
-                    isbn: "CARRO-L1",
+                    isbn: "CARROCALC-L1",
                     titulo: "Libro 1",
                     autores: "Author",
                     portada: "cover",
@@ -1162,7 +1159,7 @@ describe("Tests del Modelo de Librería", function () {
                 });
 
                 libro2 = await libreria.addLibro({
-                    isbn: "CARRO-L2",
+                    isbn: "CARROCALC-L2",
                     titulo: "Libro 2",
                     autores: "Author",
                     portada: "cover",
@@ -1269,7 +1266,7 @@ describe("Tests del Modelo de Librería", function () {
 
             it("debe calcular correctamente con múltiples items de diferentes precios", async function () {
                 const libro3 = await libreria.addLibro({
-                    isbn: "CARRO-L3",
+                    isbn: "CARROCALC-L3",
                     titulo: "Libro 3",
                     autores: "Author",
                     portada: "cover",
