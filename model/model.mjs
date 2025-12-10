@@ -76,6 +76,34 @@ export class Libreria {
     return await libro.save();
   }
 
+  async incStockN(libroId, n) {
+    const libro = await this.getLibroPorId(libroId);
+    if (!libro) throw new Error('Libro no encontrado');
+    libro.stock += n;
+    return await libro.save();
+  }
+
+  async decStockN(libroId, n) {
+    const libro = await this.getLibroPorId(libroId);
+    if (!libro) throw new Error('Libro no encontrado');
+    libro.stock -= n;
+    return await libro.save();
+  }
+
+  async incPrecioP(libroId, porcentaje) {
+    const libro = await this.getLibroPorId(libroId);
+    if (!libro) throw new Error('Libro no encontrado');
+    libro.precio = Math.round((libro.precio * (1 + porcentaje / 100)) * 100) / 100;
+    return await libro.save();
+  }
+
+  async decPrecioP(libroId, porcentaje) {
+    const libro = await this.getLibroPorId(libroId);
+    if (!libro) throw new Error('Libro no encontrado');
+    libro.precio = Math.round((libro.precio * (1 - porcentaje / 100)) * 100) / 100;
+    return await libro.save();
+  }
+
   // ==================== USUARIOS (GENERALES) ====================
 
   async addUsuario(obj) {
@@ -276,7 +304,8 @@ export class Libreria {
     const admin = await this.getAdministradorPorEmail(email);
 
     if (!admin) throw new Error('Administrador no encontrado');
-    if (admin.password === password) return admin;
+    const isValidPassword = await bcrypt.compare(password, admin.password);
+    if (isValidPassword) return admin;
     throw new Error('Error en la contraseña');
   }
 
@@ -299,7 +328,12 @@ export class Libreria {
   async getCarroCliente(id) {
     const cliente = await this.getClientePorId(id);
     if (!cliente) return null;
-    if (!cliente.carro) return null;
+    if (!cliente.carro) {
+      const carro = await new Carro().save();
+      cliente.carro = carro._id;
+      await cliente.save();
+      return carro;
+    }
     const carro = await Carro.findById(cliente.carro).populate({
       path: 'items',
       populate: { path: 'libro' }
@@ -360,9 +394,9 @@ export class Libreria {
         subtotal += it.total;
       }
     }
-    carro.subtotal = parseFloat(subtotal.toFixed(2));
-    carro.iva = parseFloat((carro.subtotal * 0.21).toFixed(2));
-    carro.total = parseFloat((carro.subtotal + carro.iva).toFixed(2));
+    carro.subtotal = subtotal;
+    carro.iva = carro.subtotal * 0.21;
+    carro.total = carro.subtotal + carro.iva;
 
     await carro.save();
     await cliente.save();
@@ -452,6 +486,28 @@ export class Libreria {
     return cliente.carro;
   }
 
+  async calcularItem(itemId) {
+    const item = await Item.findById(itemId).populate('libro');
+    if (!item) throw new Error('Item no encontrado');
+    item.total = item.cantidad * item.libro.precio;
+    return await item.save();
+  }
+
+  async calcularCarro(carroId) {
+    const carro = await Carro.findById(carroId).populate('items');
+    if (!carro) throw new Error('Carro no encontrado');
+    
+    let subtotal = 0;
+    for (const item of carro.items) {
+      await this.calcularItem(item._id);
+      subtotal += item.total;
+    }
+    carro.subtotal = subtotal;
+    carro.iva = subtotal * 0.21;
+    carro.total = subtotal + carro.iva;
+    return await carro.save();
+  }
+
   // ==================== FACTURAS ====================
 
   async getFacturas() {
@@ -512,7 +568,8 @@ export class Libreria {
     carro.total = 0;
     await carro.save();
 
-    return factura;
+    // Devolver factura populada
+    return await Factura.findById(factura._id).populate('items');
   }
 
   async getFacturaPorId(id) {

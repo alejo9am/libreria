@@ -3,17 +3,52 @@
 // Adaptado para el nuevo modelo con API REST
 
 import chai from 'chai';
+import mongoose from 'mongoose';
 import { Libreria, ROL } from '../model/model.mjs';
+import { MONGODB_URI } from '../config.mjs';
 
 const assert = chai.assert;
 
 describe("Tests del Modelo de Librería", function () {
 
     let libreria;
+    let dbBackup = {};
 
-    // Crear nueva instancia antes de cada test
-    beforeEach(function () {
+    // Conectar a MongoDB, guardar estado y limpiar antes de todos los tests
+    before(async function () {
+        this.timeout(10000); // Aumentar timeout para conexión
+        await mongoose.connect(MONGODB_URI);
         libreria = new Libreria();
+
+        // Guardar backup de las colecciones
+        const collections = ['libros', 'usuarios', 'facturas', 'carros', 'items'];
+        for (const col of collections) {
+            dbBackup[col] = await mongoose.connection.db.collection(col).find({}).toArray();
+        }
+
+        // Limpiar la base de datos
+        for (const col of collections) {
+            await mongoose.connection.db.collection(col).deleteMany({});
+        }
+    });
+
+    // Limpiar la base de datos antes de cada test (ya que los tests pueden dejar datos)
+    beforeEach(async function () {
+        const collections = mongoose.connection.collections;
+        for (const key in collections) {
+            await collections[key].deleteMany({});
+        }
+    });
+
+    // Restaurar el estado original y desconectar después de todos los tests
+    after(async function () {
+        // Restaurar backup
+        for (const col in dbBackup) {
+            if (dbBackup[col].length > 0) {
+                await mongoose.connection.db.collection(col).insertMany(dbBackup[col]);
+            }
+        }
+        await mongoose.connection.close();
     });
 
     // ============================================================================
@@ -23,8 +58,8 @@ describe("Tests del Modelo de Librería", function () {
     describe("Getters y Setters", function () {
 
         describe("Libro", function () {
-            it("Añadir libro", function () {
-                const libro = libreria.addLibro({
+            it("Añadir libro", async function () {
+                const libro = await libreria.addLibro({
                     isbn: "978-3-16-148410-0",
                     titulo: "Test Book",
                     autores: "Author Test",
@@ -46,8 +81,8 @@ describe("Tests del Modelo de Librería", function () {
         });
 
         describe("Usuario Cliente", function () {
-            it("Añadir cliente", function () {
-                const cliente = libreria.addCliente({
+            it("Añadir cliente", async function () {
+                const cliente = await libreria.addCliente({
                     dni: "12345678A",
                     nombre: "Juan",
                     apellidos: "Pérez García",
@@ -68,8 +103,8 @@ describe("Tests del Modelo de Librería", function () {
         });
 
         describe("Usuario Administrador", function () {
-            it("Añadir administrador", function () {
-                const admin = libreria.addAdmin({
+            it("Añadir administrador", async function () {
+                const admin = await libreria.addAdmin({
                     dni: "87654321B",
                     nombre: "Admin",
                     apellidos: "Test User",
@@ -94,91 +129,102 @@ describe("Tests del Modelo de Librería", function () {
     describe("Excepciones (4 puntos)", function () {
 
         describe("Libros - Excepciones", function () {
-            it("debe lanzar error al agregar libro sin ISBN", function () {
-                assert.throws(
-                    () => libreria.addLibro({ titulo: "Book without ISBN" }),
-                    Error,
-                    "El libro no tiene ISBN"
-                );
+            it("debe lanzar error al agregar libro sin ISBN", async function () {
+                try {
+                    await libreria.addLibro({ titulo: "Book without ISBN" });
+                    assert.fail("Debería haber lanzado un error");
+                } catch (error) {
+                    assert.equal(error.message, "El libro no tiene ISBN");
+                }
             });
 
-            it("debe lanzar error al agregar libro con ISBN duplicado", function () {
-                libreria.addLibro({ isbn: "123", titulo: "First Book", precio: 10, stock: 5 });
+            it("debe lanzar error al agregar libro con ISBN duplicado", async function () {
+                await libreria.addLibro({ isbn: "123", titulo: "First Book", autores: "Author", portada: "cover", resumen: "res", precio: 10, stock: 5 });
 
-                assert.throws(
-                    () => libreria.addLibro({ isbn: "123", titulo: "Second Book", precio: 15, stock: 3 }),
-                    Error,
-                    "El ISBN 123 ya existe"
-                );
+                try {
+                    await libreria.addLibro({ isbn: "123", titulo: "Second Book", autores: "Author", portada: "cover", resumen: "res", precio: 15, stock: 3 });
+                    assert.fail("Debería haber lanzado un error");
+                } catch (error) {
+                    assert.equal(error.message, "El ISBN 123 ya existe");
+                }
             });
 
-            it("debe lanzar error al eliminar libro inexistente", function () {
-                assert.throws(
-                    () => libreria.removeLibro(999),
-                    Error,
-                    "Libro no encontrado"
-                );
+            it("debe lanzar error al eliminar libro inexistente", async function () {
+                try {
+                    await libreria.removeLibro("507f1f77bcf86cd799439011"); // ObjectId válido pero inexistente
+                    assert.fail("Debería haber lanzado un error");
+                } catch (error) {
+                    assert.equal(error.message, "Libro no encontrado");
+                }
             });
         });
 
         describe("Usuarios - Excepciones", function () {
-            it("debe lanzar error al registrar email duplicado con mismo rol (CLIENTE)", function () {
-                libreria.addCliente({
+            it("debe lanzar error al registrar email duplicado con mismo rol (CLIENTE)", async function () {
+                await libreria.addCliente({
                     dni: "11111111A",
                     nombre: "User1",
                     apellidos: "Test",
+                    direccion: "Dirección 1",
                     email: "duplicate@test.com",
                     password: "pass1"
                 });
 
-                assert.throws(
-                    () => libreria.addCliente({
+                try {
+                    await libreria.addCliente({
                         dni: "22222222B",
                         nombre: "User2",
                         apellidos: "Test",
+                        direccion: "Dirección 2",
                         email: "duplicate@test.com",
                         password: "pass2"
-                    }),
-                    Error,
-                    "Ya existe un CLIENTE registrado con ese email"
-                );
+                    });
+                    assert.fail("Debería haber lanzado un error");
+                } catch (error) {
+                    assert.equal(error.message, "Ya existe un CLIENTE registrado con ese email");
+                }
             });
 
-            it("debe lanzar error al registrar email duplicado con mismo rol (ADMIN)", function () {
-                libreria.addAdmin({
+            it("debe lanzar error al registrar email duplicado con mismo rol (ADMIN)", async function () {
+                await libreria.addAdmin({
                     dni: "33333333C",
                     nombre: "Admin1",
                     apellidos: "Test",
+                    direccion: "Dirección Admin 1",
                     email: "admin@test.com",
                     password: "pass1"
                 });
 
-                assert.throws(
-                    () => libreria.addAdmin({
+                try {
+                    await libreria.addAdmin({
                         dni: "44444444D",
                         nombre: "Admin2",
                         apellidos: "Test",
+                        direccion: "Dirección Admin 2",
                         email: "admin@test.com",
                         password: "pass2"
-                    }),
-                    Error,
-                    "Ya existe un ADMIN registrado con ese email"
-                );
+                    });
+                    assert.fail("Debería haber lanzado un error");
+                } catch (error) {
+                    assert.equal(error.message, "Ya existe un ADMIN registrado con ese email");
+                }
             });
 
-            it("debe permitir mismo email con diferentes roles", function () {
-                const cliente = libreria.addCliente({
+            it("debe permitir mismo email con diferentes roles", async function () {
+                const cliente = await libreria.addCliente({
                     dni: "55555555E",
                     nombre: "User",
                     apellidos: "Dual",
+                    direccion: "Dirección Dual",
                     email: "dual@test.com",
                     password: "pass"
                 });
 
-                const admin = libreria.addAdmin({
+                const admin = await libreria.addAdmin({
                     dni: "66666666F",
                     nombre: "Admin",
                     apellidos: "Dual",
+                    direccion: "Dirección Admin Dual",
                     email: "dual@test.com",
                     password: "pass"
                 });
@@ -187,111 +233,123 @@ describe("Tests del Modelo de Librería", function () {
                 assert.notEqual(cliente.rol, admin.rol);
             });
 
-            it("debe lanzar error en autenticación con cliente inexistente", function () {
-                assert.throws(
-                    () => libreria.autenticarCliente({
+            it("debe lanzar error en autenticación con cliente inexistente", async function () {
+                try {
+                    await libreria.autenticarCliente({
                         email: "noexiste@test.com",
                         password: "anypass"
-                    }),
-                    Error,
-                    "Cliente no encontrado"
-                );
+                    });
+                    assert.fail("Debería haber lanzado un error");
+                } catch (error) {
+                    assert.equal(error.message, "Cliente no encontrado");
+                }
             });
 
-            it("debe lanzar error en autenticación con contraseña incorrecta", function () {
-                libreria.addCliente({
+            it("debe lanzar error en autenticación con contraseña incorrecta", async function () {
+                await libreria.addCliente({
                     dni: "77777777G",
                     nombre: "Test",
                     apellidos: "User",
+                    direccion: "Dirección Test",
                     email: "test@test.com",
                     password: "correctpass"
                 });
 
-                assert.throws(
-                    () => libreria.autenticarCliente({
+                try {
+                    await libreria.autenticarCliente({
                         email: "test@test.com",
                         password: "wrongpass"
-                    }),
-                    Error,
-                    "Error en la contraseña"
-                );
+                    });
+                    assert.fail("Debería haber lanzado un error");
+                } catch (error) {
+                    assert.equal(error.message, "Error en la contraseña");
+                }
             });
 
-            it("debe lanzar error en autenticación con administrador inexistente", function () {
-                assert.throws(
-                    () => libreria.autenticarAdmin({
+            it("debe lanzar error en autenticación con administrador inexistente", async function () {
+                try {
+                    await libreria.autenticarAdmin({
                         email: "noadmin@test.com",
                         password: "anypass"
-                    }),
-                    Error,
-                    "Administrador no encontrado"
-                );
+                    });
+                    assert.fail("Debería haber lanzado un error");
+                } catch (error) {
+                    assert.equal(error.message, "Administrador no encontrado");
+                }
             });
         });
 
         describe("Carro - Excepciones", function () {
-            it("debe lanzar error al establecer cantidad negativa", function () {
-                const cliente = libreria.addCliente({
+            it("debe lanzar error al establecer cantidad negativa", async function () {
+                const cliente = await libreria.addCliente({
                     dni: "CNEG001",
                     nombre: "Negativo",
                     apellidos: "Test",
+                    direccion: "Dirección Neg",
                     email: "neg@test.com",
                     password: "pass"
                 });
 
-                const libro = libreria.addLibro({
+                const libro = await libreria.addLibro({
                     isbn: "NEG-L1",
                     titulo: "Libro Neg",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 10,
                     stock: 5
                 });
 
                 // Añade 1 unidad y luego intenta poner cantidad negativa
-                libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 1 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 1 });
 
-                assert.throws(
-                    () => libreria.setClienteCarroItemCantidad(cliente._id, 0, -1),
-                    Error,
-                    "Cantidad inferior a 0"
-                );
+                try {
+                    await libreria.setClienteCarroItemCantidad(cliente._id, 0, -1);
+                    assert.fail("Debería haber lanzado un error");
+                } catch (error) {
+                    assert.equal(error.message, "Cantidad inferior a 0");
+                }
             });
         });
 
         describe("Factura - Excepciones", function () {
-            it("debe lanzar error al pagar sin cliente", function () {
-                assert.throws(
-                    () => libreria.facturarCompraCliente({
+            it("debe lanzar error al pagar sin cliente", async function () {
+                try {
+                    await libreria.facturarCompraCliente({
                         razonSocial: "Test S.A.",
                         direccion: "Calle Test",
                         email: "test@test.com",
                         dni: "00000000X"
-                    }),
-                    Error,
-                    "Cliente no definido"
-                );
+                    });
+                    assert.fail("Debería haber lanzado un error");
+                } catch (error) {
+                    assert.equal(error.message, "Cliente no definido");
+                }
             });
 
-            it("debe lanzar error al pagar carro vacío", function () {
-                const cliente = libreria.addCliente({
+            it("debe lanzar error al pagar carro vacío", async function () {
+                const cliente = await libreria.addCliente({
                     dni: "CVOID001",
                     nombre: "Vacio",
                     apellidos: "Test",
+                    direccion: "Dirección Void",
                     email: "void@test.com",
                     password: "pass"
                 });
 
                 // No hay items en el carro -> debe fallar
-                assert.throws(
-                    () => libreria.facturarCompraCliente({
+                try {
+                    await libreria.facturarCompraCliente({
                         cliente: cliente._id,
                         razonSocial: "Acme S.A.",
                         direccion: "Calle Falsa 123",
                         email: "fact@acme.com",
                         dni: "A0000000Z"
-                    }),
-                    Error,
-                    "No hay items en el carrito"
-                );
+                    });
+                    assert.fail("Debería haber lanzado un error");
+                } catch (error) {
+                    assert.equal(error.message, "No hay items en el carrito");
+                }
             });
         });
     });
@@ -303,8 +361,8 @@ describe("Tests del Modelo de Librería", function () {
     describe("Operaciones CRUD (10 puntos)", function () {
 
         describe("Libros - CRUD", function () {
-            it("debe agregar un libro correctamente", function () {
-                const libro = libreria.addLibro({
+            it("debe agregar un libro correctamente", async function () {
+                const libro = await libreria.addLibro({
                     isbn: "978-1-23-456789-0",
                     titulo: "JavaScript: The Good Parts",
                     autores: "Douglas Crockford",
@@ -314,94 +372,154 @@ describe("Tests del Modelo de Librería", function () {
                     precio: 29.99
                 });
 
+                const libros = await libreria.getLibros();
                 assert.isDefined(libro._id);
-                assert.equal(libreria.getLibros().length, 1);
+                assert.equal(libros.length, 1);
                 assert.equal(libro.titulo, "JavaScript: The Good Parts");
             });
 
-            it("debe obtener libro por ID", function () {
-                const libro = libreria.addLibro({
+            it("debe obtener libro por ID", async function () {
+                const libro = await libreria.addLibro({
                     isbn: "222",
                     titulo: "Test Book",
+                    autores: "Test Author",
+                    portada: "http://test.com/cover.jpg",
+                    resumen: "Test resumen",
                     precio: 20,
                     stock: 5
                 });
 
-                const retrieved = libreria.getLibroPorId(libro._id);
-                assert.equal(retrieved._id, libro._id);
+                const retrieved = await libreria.getLibroPorId(libro._id);
+                assert.equal(retrieved._id.toString(), libro._id.toString());
                 assert.equal(retrieved.titulo, "Test Book");
             });
 
-            it("debe obtener libro por ISBN", function () {
-                libreria.addLibro({ isbn: "333", titulo: "Book by ISBN", precio: 15, stock: 3 });
+            it("debe obtener libro por ISBN", async function () {
+                await libreria.addLibro({ 
+                    isbn: "333", 
+                    titulo: "Book by ISBN", 
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
+                    precio: 15, 
+                    stock: 3 
+                });
 
-                const libro = libreria.getLibroPorIsbn("333");
+                const libro = await libreria.getLibroPorIsbn("333");
                 assert.equal(libro.isbn, "333");
                 assert.equal(libro.titulo, "Book by ISBN");
             });
 
-            it("debe obtener libro por título (con regex)", function () {
-                libreria.addLibro({ isbn: "444", titulo: "Advanced JavaScript", precio: 30, stock: 10 });
+            it("debe obtener libro por título (con regex)", async function () {
+                await libreria.addLibro({ 
+                    isbn: "444", 
+                    titulo: "Advanced JavaScript", 
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
+                    precio: 30, 
+                    stock: 10 
+                });
 
-                const libro = libreria.getLibroPorTitulo("javascript");
+                const libro = await libreria.getLibroPorTitulo("javascript");
                 assert.isNotNull(libro);
                 assert.include(libro.titulo.toLowerCase(), "javascript");
             });
 
-            it("debe modificar un libro existente", function () {
-                const libro = libreria.addLibro({
+            it("debe modificar un libro existente", async function () {
+                const libro = await libreria.addLibro({
                     isbn: "555",
                     titulo: "Original Title",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 25,
                     stock: 8
                 });
 
-                libreria.updateLibro({
+                await libreria.updateLibro({
                     _id: libro._id,
                     isbn: "555",
                     titulo: "Modified Title",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 30,
                     stock: 12
                 });
 
-                const updated = libreria.getLibroPorId(libro._id);
+                const updated = await libreria.getLibroPorId(libro._id);
                 assert.equal(updated.titulo, "Modified Title");
                 assert.equal(updated.precio, 30);
                 assert.equal(updated.stock, 12);
             });
 
-            it("debe eliminar un libro existente", function () {
-                const libro = libreria.addLibro({
+            it("debe eliminar un libro existente", async function () {
+                const libro = await libreria.addLibro({
                     isbn: "666",
                     titulo: "To be deleted",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 10,
                     stock: 5
                 });
 
-                const initialCount = libreria.getLibros().length;
-                libreria.removeLibro(libro._id);
+                const librosAntes = await libreria.getLibros();
+                const initialCount = librosAntes.length;
+                await libreria.removeLibro(libro._id);
 
-                assert.equal(libreria.getLibros().length, initialCount - 1);
-                assert.isUndefined(libreria.getLibroPorId(libro._id));
+                const librosDespues = await libreria.getLibros();
+                assert.equal(librosDespues.length, initialCount - 1);
+                const retrieved = await libreria.getLibroPorId(libro._id);
+                assert.isNull(retrieved);
             });
 
-            it("debe mantener integridad tras eliminar", function () {
-                libreria.addLibro({ isbn: "777", titulo: "Book 1", precio: 10, stock: 5 });
-                const libro2 = libreria.addLibro({ isbn: "888", titulo: "Book 2", precio: 15, stock: 3 });
-                libreria.addLibro({ isbn: "999", titulo: "Book 3", precio: 20, stock: 8 });
+            it("debe mantener integridad tras eliminar", async function () {
+                await libreria.addLibro({ 
+                    isbn: "777", 
+                    titulo: "Book 1", 
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
+                    precio: 10, 
+                    stock: 5 
+                });
+                const libro2 = await libreria.addLibro({ 
+                    isbn: "888", 
+                    titulo: "Book 2", 
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
+                    precio: 15, 
+                    stock: 3 
+                });
+                await libreria.addLibro({ 
+                    isbn: "999", 
+                    titulo: "Book 3", 
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
+                    precio: 20, 
+                    stock: 8 
+                });
 
-                libreria.removeLibro(libro2._id);
+                await libreria.removeLibro(libro2._id);
 
-                assert.equal(libreria.getLibros().length, 2);
-                assert.isDefined(libreria.getLibroPorIsbn("777"));
-                assert.isUndefined(libreria.getLibroPorIsbn("888"));
-                assert.isDefined(libreria.getLibroPorIsbn("999"));
+                const libros = await libreria.getLibros();
+                assert.equal(libros.length, 2);
+                const libro777 = await libreria.getLibroPorIsbn("777");
+                assert.isDefined(libro777);
+                const libro888 = await libreria.getLibroPorIsbn("888");
+                assert.isNull(libro888);
+                const libro999 = await libreria.getLibroPorIsbn("999");
+                assert.isDefined(libro999);
             });
         });
 
         describe("Usuarios - Clientes CRUD", function () {
-            it("debe agregar un cliente correctamente", function () {
-                const cliente = libreria.addCliente({
+            it("debe agregar un cliente correctamente", async function () {
+                const cliente = await libreria.addCliente({
                     dni: "12345678X",
                     nombre: "María",
                     apellidos: "González López",
@@ -413,40 +531,43 @@ describe("Tests del Modelo de Librería", function () {
                 assert.isDefined(cliente._id);
                 assert.equal(cliente.rol, ROL.CLIENTE);
                 assert.isDefined(cliente.carro);
-                assert.equal(libreria.getClientes().length, 1);
+                const clientes = await libreria.getClientes();
+                assert.equal(clientes.length, 1);
             });
 
-            it("debe obtener cliente por email", function () {
-                libreria.addCliente({
+            it("debe obtener cliente por email", async function () {
+                await libreria.addCliente({
                     dni: "11111111X",
                     nombre: "Test",
                     apellidos: "User",
+                    direccion: "Dirección Find",
                     email: "findme@test.com",
                     password: "pass"
                 });
 
-                const cliente = libreria.getClientePorEmail("findme@test.com");
+                const cliente = await libreria.getClientePorEmail("findme@test.com");
                 assert.isNotNull(cliente);
                 assert.equal(cliente.email, "findme@test.com");
                 assert.equal(cliente.rol, ROL.CLIENTE);
             });
 
-            it("debe obtener cliente por ID", function () {
-                const cliente = libreria.addCliente({
+            it("debe obtener cliente por ID", async function () {
+                const cliente = await libreria.addCliente({
                     dni: "22222222Y",
                     nombre: "Test",
                     apellidos: "User",
+                    direccion: "Dirección ID",
                     email: "test@test.com",
                     password: "pass"
                 });
 
-                const found = libreria.getClientePorId(cliente._id);
-                assert.equal(found._id, cliente._id);
+                const found = await libreria.getClientePorId(cliente._id);
+                assert.equal(found._id.toString(), cliente._id.toString());
                 assert.equal(found.rol, ROL.CLIENTE);
             });
 
-            it("debe modificar datos del cliente", function () {
-                const cliente = libreria.addCliente({
+            it("debe modificar datos del cliente", async function () {
+                const cliente = await libreria.addCliente({
                     dni: "33333333Z",
                     nombre: "Original",
                     apellidos: "Name",
@@ -455,7 +576,7 @@ describe("Tests del Modelo de Librería", function () {
                     password: "oldpass"
                 });
 
-                libreria.updateCliente({
+                await libreria.updateCliente({
                     _id: cliente._id,
                     dni: "33333333Z",
                     nombre: "Updated",
@@ -465,7 +586,7 @@ describe("Tests del Modelo de Librería", function () {
                     password: "newpass"
                 });
 
-                const updated = libreria.getClientePorId(cliente._id);
+                const updated = await libreria.getClientePorId(cliente._id);
                 assert.equal(updated.nombre, "Updated");
                 assert.equal(updated.direccion, "New Address");
                 assert.equal(updated.password, "newpass");
@@ -473,8 +594,8 @@ describe("Tests del Modelo de Librería", function () {
         });
 
         describe("Usuarios - Administradores CRUD", function () {
-            it("debe agregar un administrador correctamente", function () {
-                const admin = libreria.addAdmin({
+            it("debe agregar un administrador correctamente", async function () {
+                const admin = await libreria.addAdmin({
                     dni: "99999999A",
                     nombre: "Admin",
                     apellidos: "System",
@@ -486,57 +607,62 @@ describe("Tests del Modelo de Librería", function () {
                 assert.isDefined(admin._id);
                 assert.equal(admin.rol, ROL.ADMIN);
                 assert.isUndefined(admin.carro);
-                assert.equal(libreria.getAdmins().length, 1);
+                const admins = await libreria.getAdmins();
+                assert.equal(admins.length, 1);
             });
 
-            it("debe obtener administrador por email", function () {
-                libreria.addAdmin({
+            it("debe obtener administrador por email", async function () {
+                await libreria.addAdmin({
                     dni: "88888888B",
                     nombre: "Admin",
                     apellidos: "Test",
+                    direccion: "Dirección Admin Test",
                     email: "admintest@test.com",
                     password: "pass"
                 });
 
-                const admin = libreria.getAdministradorPorEmail("admintest@test.com");
+                const admin = await libreria.getAdministradorPorEmail("admintest@test.com");
                 assert.isNotNull(admin);
                 assert.equal(admin.email, "admintest@test.com");
                 assert.equal(admin.rol, ROL.ADMIN);
             });
 
-            it("debe modificar datos del administrador", function () {
-                const admin = libreria.addAdmin({
+            it("debe modificar datos del administrador", async function () {
+                const admin = await libreria.addAdmin({
                     dni: "77777777C",
                     nombre: "OldAdmin",
                     apellidos: "Name",
+                    direccion: "Dirección Old",
                     email: "oldadmin@test.com",
                     password: "oldpass"
                 });
 
-                libreria.updateAdmin({
+                await libreria.updateAdmin({
                     _id: admin._id,
                     dni: "77777777C",
                     nombre: "NewAdmin",
                     apellidos: "Name",
+                    direccion: "Dirección New",
                     email: "oldadmin@test.com",
                     password: "newpass"
                 });
 
-                const updated = libreria.getAdminPorId(admin._id);
+                const updated = await libreria.getAdminPorId(admin._id);
                 assert.equal(updated.nombre, "NewAdmin");
                 assert.equal(updated.password, "newpass");
             });
 
-            it("debe autenticar administrador correctamente", function () {
-                libreria.addAdmin({
+            it("debe autenticar administrador correctamente", async function () {
+                await libreria.addAdmin({
                     dni: "66666666D",
                     nombre: "Auth",
                     apellidos: "Admin",
+                    direccion: "Dirección Auth",
                     email: "auth@admin.com",
                     password: "correctpass"
                 });
 
-                const authenticated = libreria.autenticarAdmin({
+                const authenticated = await libreria.autenticarAdmin({
                     email: "auth@admin.com",
                     password: "correctpass"
                 });
@@ -550,37 +676,44 @@ describe("Tests del Modelo de Librería", function () {
         describe("Carro de Compras - CRUD", function () {
             let cliente, libro1, libro2;
 
-            beforeEach(function () {
-                cliente = libreria.addCliente({
+            beforeEach(async function () {
+                cliente = await libreria.addCliente({
                     dni: "55555555E",
                     nombre: "Comprador",
                     apellidos: "Test",
+                    direccion: "Dirección Comprador",
                     email: "comprador@test.com",
                     password: "pass"
                 });
 
-                libro1 = libreria.addLibro({
+                libro1 = await libreria.addLibro({
                     isbn: "BOOK1",
                     titulo: "Book One",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 10,
                     stock: 100
                 });
 
-                libro2 = libreria.addLibro({
+                libro2 = await libreria.addLibro({
                     isbn: "BOOK2",
                     titulo: "Book Two",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 20,
                     stock: 50
                 });
             });
 
-            it("debe agregar item al carro del cliente", function () {
-                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
-                const carro = libreria.getCarroCliente(cliente._id);
+            it("debe agregar item al carro del cliente", async function () {
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
+                const carro = await libreria.getCarroCliente(cliente._id);
 
                 assert.equal(carro.items.length, 1);
                 assert.equal(carro.items[0].cantidad, 2);
-                assert.equal(carro.items[0].libro._id, libro1._id);
+                assert.equal(carro.items[0].libro._id.toString(), libro1._id.toString());
 
                 const subtotalEsperado = 2 * libro1.precio;
                 const ivaEsperado = subtotalEsperado * 0.21;
@@ -591,47 +724,47 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(carro.total, totalEsperado, 1e-9);
             });
 
-            it("debe incrementar cantidad si el libro ya existe en carro", function () {
-                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
-                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 }); // mismo libro
+            it("debe incrementar cantidad si el libro ya existe en carro", async function () {
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 }); // mismo libro
 
-                const carro = libreria.getCarroCliente(cliente._id);
+                const carro = await libreria.getCarroCliente(cliente._id);
                 assert.equal(carro.items.length, 1); // no duplica el ítem
                 assert.equal(carro.items[0].cantidad, 3); // 1 + 2
                 assert.closeTo(carro.subtotal, 3 * libro1.precio, 1e-9);
             });
 
-            it("debe modificar cantidad de item en carro", function () {
-                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
-                libreria.setClienteCarroItemCantidad(cliente._id, 0, 4);
+            it("debe modificar cantidad de item en carro", async function () {
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
+                await libreria.setClienteCarroItemCantidad(cliente._id, 0, 4);
 
-                const carro = libreria.getCarroCliente(cliente._id);
+                const carro = await libreria.getCarroCliente(cliente._id);
                 assert.equal(carro.items[0].cantidad, 4);
                 assert.closeTo(carro.subtotal, 4 * libro1.precio, 1e-9);
                 assert.closeTo(carro.iva, 4 * libro1.precio * 0.21, 1e-9);
                 assert.closeTo(carro.total, 4 * libro1.precio * 1.21, 1e-9);
             });
 
-            it("debe eliminar item cuando cantidad es 0", function () {
-                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
-                libreria.setClienteCarroItemCantidad(cliente._id, 0, 0);
+            it("debe eliminar item cuando cantidad es 0", async function () {
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
+                await libreria.setClienteCarroItemCantidad(cliente._id, 0, 0);
 
-                const carro = libreria.getCarroCliente(cliente._id);
+                const carro = await libreria.getCarroCliente(cliente._id);
                 assert.equal(carro.items.length, 0);
                 assert.equal(carro.subtotal, 0);
                 assert.equal(carro.iva, 0);
                 assert.equal(carro.total, 0);
             });
 
-            it("debe vaciar el carro", function () {
-                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
-                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 1 });
+            it("debe vaciar el carro", async function () {
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 1 });
 
                 // Mientras queden items, borra el primero (índice 0)
-                let carro = libreria.getCarroCliente(cliente._id);
+                let carro = await libreria.getCarroCliente(cliente._id);
                 while (carro.items.length > 0) {
-                    libreria.setClienteCarroItemCantidad(cliente._id, 0, 0);
-                    carro = libreria.getCarroCliente(cliente._id);
+                    await libreria.setClienteCarroItemCantidad(cliente._id, 0, 0);
+                    carro = await libreria.getCarroCliente(cliente._id);
                 }
 
                 assert.equal(carro.items.length, 0);
@@ -643,33 +776,37 @@ describe("Tests del Modelo de Librería", function () {
 
         describe("Facturas - CRUD", function () {
 
-            it("debe crear factura a partir del carro", function () {
-                const cliente = libreria.addCliente({
+            it("debe crear factura a partir del carro", async function () {
+                const cliente = await libreria.addCliente({
                     dni: "F001",
                     nombre: "Pepe",
                     apellidos: "Prueba",
+                    direccion: "Dirección Fact",
                     email: "pepe@prueba.com",
                     password: "F001"
                 });
 
-                const libro = libreria.addLibro({
+                const libro = await libreria.addLibro({
                     isbn: "FACT001",
                     titulo: "Libro de Facturación",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 50,
                     stock: 20
                 });
 
                 // Añadir al carro del cliente
-                libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 2 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 2 });
 
                 // Obtener carro para verificar datos antes de facturar
-                const carro = libreria.getCarroCliente(cliente._id);
+                const carro = await libreria.getCarroCliente(cliente._id);
                 const subtotalEsperado = 2 * libro.precio; // 100
                 const ivaEsperado = subtotalEsperado * 0.21; // 21
                 const totalEsperado = subtotalEsperado + ivaEsperado; // 121
 
                 // Facturar
-                const factura = libreria.facturarCompraCliente({
+                const factura = await libreria.facturarCompraCliente({
                     cliente: cliente._id,
                     razonSocial: "Pepe Prueba",
                     direccion: "Calle 123",
@@ -691,30 +828,34 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(factura.total, totalEsperado, 1e-9);
             });
 
-            it("debe vaciar carro después de facturar", function () {
+            it("debe vaciar carro después de facturar", async function () {
                 // Crear cliente y libro
-                const cliente = libreria.addCliente({
+                const cliente = await libreria.addCliente({
                     dni: "F002",
                     nombre: "Ana",
                     apellidos: "Prueba",
+                    direccion: "Dirección Ana",
                     email: "ana@prueba.com",
                     password: "F002"
                 });
 
-                const libro = libreria.addLibro({
+                const libro = await libreria.addLibro({
                     isbn: "FACT002",
                     titulo: "Libro de Facturación 2",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 25,
                     stock: 10
                 });
 
                 // Añadir al carro y verificar que tiene contenido
-                libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 3 });
-                let carro = libreria.getCarroCliente(cliente._id);
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 3 });
+                let carro = await libreria.getCarroCliente(cliente._id);
                 assert.equal(carro.items.length, 1, "El carro debería tener 1 ítem antes de facturar");
 
                 // Facturar (esto debe vaciar el carro del cliente)
-                libreria.facturarCompraCliente({
+                await libreria.facturarCompraCliente({
                     cliente: cliente._id,
                     razonSocial: "Ana Prueba",
                     direccion: "Calle 456",
@@ -723,33 +864,37 @@ describe("Tests del Modelo de Librería", function () {
                 });
 
                 // Comprobaciones: carro vacío y totales a cero
-                carro = libreria.getCarroCliente(cliente._id);
+                carro = await libreria.getCarroCliente(cliente._id);
                 assert.equal(carro.items.length, 0, "El carro debería quedar vacío tras facturar");
                 assert.strictEqual(carro.subtotal, 0, "Subtotal del carro debería ser 0 tras facturar");
                 assert.strictEqual(carro.iva, 0, "IVA del carro debería ser 0 tras facturar");
                 assert.strictEqual(carro.total, 0, "Total del carro debería ser 0 tras facturar");
             });
 
-            it("debe eliminar una factura", function () {
+            it("debe eliminar una factura", async function () {
                 // Crear cliente y libro
-                const cliente = libreria.addCliente({
+                const cliente = await libreria.addCliente({
                     dni: "F003",
                     nombre: "Luis",
                     apellidos: "Prueba",
+                    direccion: "Dirección Luis",
                     email: "luis@prueba.com",
                     password: "F003"
                 });
 
-                const libro = libreria.addLibro({
+                const libro = await libreria.addLibro({
                     isbn: "FACT003",
                     titulo: "Libro de Facturación 3",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 30,
                     stock: 5
                 });
 
                 // Añadir al carro y facturar
-                libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 1 });
-                const factura = libreria.facturarCompraCliente({
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 1 });
+                const factura = await libreria.facturarCompraCliente({
                     cliente: cliente._id,
                     razonSocial: "Luis Prueba",
                     direccion: "Calle 789",
@@ -758,22 +903,22 @@ describe("Tests del Modelo de Librería", function () {
                 });
 
                 // La factura ya está guardada en el modelo automáticamente
-                const totalAntes = libreria.getFacturas().length;
+                const totalAntes = (await libreria.getFacturas()).length;
 
                 // removeFactura devuelve la factura eliminada
-                const eliminada = libreria.removeFactura(factura._id);
+                const eliminada = await libreria.removeFactura(factura._id);
 
                 // Comprobaciones
-                const totalDespues = libreria.getFacturas().length;
+                const totalDespues = (await libreria.getFacturas()).length;
                 assert.equal(totalDespues, totalAntes - 1, "Debe reducirse el número de facturas en 1");
 
                 // Verificar que la factura eliminada es la correcta
                 assert.isDefined(eliminada, "removeFactura debe devolver la factura eliminada");
-                assert.equal(eliminada._id, factura._id, "La factura eliminada debe coincidir con la creada");
+                assert.equal(eliminada._id.toString(), factura._id.toString(), "La factura eliminada debe coincidir con la creada");
 
                 // Verificar que ya no existe en el modelo
-                const buscar = libreria.getFacturaPorId(factura._id);
-                assert.isUndefined(buscar, "No debería encontrarse la factura eliminada");
+                const buscar = await libreria.getFacturaPorId(factura._id);
+                assert.isNull(buscar, "No debería encontrarse la factura eliminada");
             });
         });
     });
@@ -785,83 +930,107 @@ describe("Tests del Modelo de Librería", function () {
     describe("Cálculos (10 puntos)", function () {
 
         describe("Libro - Gestión de Stock", function () {
-            it("debe incrementar stock en N unidades", function () {
-                const libro = libreria.addLibro({
+            it("debe incrementar stock en N unidades", async function () {
+                let libro = await libreria.addLibro({
                     isbn: "STOCK001",
                     titulo: "Test Stock",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 20,
                     stock: 10
                 });
 
-                libro.incStockN(5);
+                await libreria.incStockN(libro._id, 5);
+                libro = await libreria.getLibroPorId(libro._id);
                 assert.equal(libro.stock, 15);
             });
 
-            it("debe decrementar stock en N unidades", function () {
-                const libro = libreria.addLibro({
+            it("debe decrementar stock en N unidades", async function () {
+                let libro = await libreria.addLibro({
                     isbn: "STOCK002",
                     titulo: "Test Stock",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 20,
                     stock: 10
                 });
 
-                libro.decStockN(3);
+                await libreria.decStockN(libro._id, 3);
+                libro = await libreria.getLibroPorId(libro._id);
                 assert.equal(libro.stock, 7);
             });
 
-            it("debe mantener stock correcto tras múltiples operaciones", function () {
-                const libro = libreria.addLibro({
+            it("debe mantener stock correcto tras múltiples operaciones", async function () {
+                let libro = await libreria.addLibro({
                     isbn: "STOCK003",
                     titulo: "Test Stock",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 20,
                     stock: 10
                 });
 
-                libro.incStockN(5);
-                libro.decStockN(3);
-                libro.incStockN(8);
-                libro.decStockN(5);
+                await libreria.incStockN(libro._id, 5);
+                await libreria.decStockN(libro._id, 3);
+                await libreria.incStockN(libro._id, 8);
+                await libreria.decStockN(libro._id, 5);
 
+                libro = await libreria.getLibroPorId(libro._id);
                 assert.equal(libro.stock, 15);
             });
         });
 
         describe("Libro - Gestión de Precio", function () {
-            it("debe incrementar precio en porcentaje", function () {
-                const libro = libreria.addLibro({
+            it("debe incrementar precio en porcentaje", async function () {
+                let libro = await libreria.addLibro({
                     isbn: "PRICE001",
                     titulo: "Test Price",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 100,
                     stock: 10
                 });
 
-                libro.incPrecioP(10);
+                await libreria.incPrecioP(libro._id, 10);
+                libro = await libreria.getLibroPorId(libro._id);
                 assert.equal(libro.precio, 110);
             });
 
-            it("debe aplicar descuento (porcentaje) al precio", function () {
-                const libro = libreria.addLibro({
+            it("debe aplicar descuento (porcentaje) al precio", async function () {
+                let libro = await libreria.addLibro({
                     isbn: "PRICE002",
                     titulo: "Test Price",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 100,
                     stock: 10
                 });
 
-                libro.decPrecioP(80);
+                await libreria.decPrecioP(libro._id, 80);
+                libro = await libreria.getLibroPorId(libro._id);
                 assert.equal(libro.precio, 20);
             });
 
-            it("debe mantener precio correcto tras múltiples operaciones", function () {
-                const libro = libreria.addLibro({
+            it("debe mantener precio correcto tras múltiples operaciones", async function () {
+                let libro = await libreria.addLibro({
                     isbn: "PRICE003",
                     titulo: "Test Price",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 50,
                     stock: 10
                 });
 
-                libro.incPrecioP(20);
-                libro.incPrecioP(10);
+                await libreria.incPrecioP(libro._id, 20);
+                await libreria.incPrecioP(libro._id, 10);
 
+                libro = await libreria.getLibroPorId(libro._id);
                 assert.equal(libro.precio, 66);
             });
         });
@@ -869,30 +1038,34 @@ describe("Tests del Modelo de Librería", function () {
         describe("Item - Cálculo de Total", function () {
             let cliente, libro;
 
-            beforeEach(function () {
+            beforeEach(async function () {
                 // Creamos un cliente y un libro nuevos para cada caso
-                cliente = libreria.addCliente({
+                cliente = await libreria.addCliente({
                     dni: "ITEM-T-DNI",
                     nombre: "ItemTester",
                     apellidos: "Spec",
+                    direccion: "Dirección Item",
                     email: "item@test.com",
                     password: "pass"
                 });
 
-                libro = libreria.addLibro({
+                libro = await libreria.addLibro({
                     isbn: "ITEM-T1",
                     titulo: "Libro para Item Test",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 15,   // € unitario
                     stock: 100
                 });
             });
 
-            it("debe calcular total del item (cantidad * precio)", function () {
+            it("debe calcular total del item (cantidad * precio)", async function () {
                 // añadimos 4 unidades del libro al carro del cliente
-                libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 4 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 4 });
 
                 // obtenemos el carro y el item
-                const carro = libreria.getCarroCliente(cliente._id);
+                const carro = await libreria.getCarroCliente(cliente._id);
                 const item = carro.items[0];
 
                 // total del ítem y coherencia con subtotal/IVA/total
@@ -909,16 +1082,16 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(carro.total, totalEsperado, 1e-9);
             });
 
-            it("debe recalcular total al cambiar cantidad", function () {
+            it("debe recalcular total al cambiar cantidad", async function () {
                 // añadimos 1 unidad del libro
-                libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 1 });
-                let carro = libreria.getCarroCliente(cliente._id);
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 1 });
+                let carro = await libreria.getCarroCliente(cliente._id);
                 assert.equal(carro.items.length, 1);
                 assert.closeTo(carro.items[0].total, 1 * libro.precio, 1e-9);
 
                 // cambiamos la cantidad a 5
-                libreria.setClienteCarroItemCantidad(cliente._id, 0, 5);
-                carro = libreria.getCarroCliente(cliente._id);
+                await libreria.setClienteCarroItemCantidad(cliente._id, 0, 5);
+                carro = await libreria.getCarroCliente(cliente._id);
                 const item = carro.items[0];
 
                 // item.total y totales del carro se recalculan
@@ -933,10 +1106,10 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(carro.total, totalEsperado, 1e-9);
             });
 
-            it("debe recalcular total al cambiar precio del libro", function () {
+            it("debe recalcular total al cambiar precio del libro", async function () {
                 //añadimos 2 unidades del libro al carrito
-                libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 2 });
-                let carro = libreria.getCarroCliente(cliente._id);
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro._id, cantidad: 2 });
+                let carro = await libreria.getCarroCliente(cliente._id);
                 let item = carro.items[0];
 
                 // Comprobamos estado 
@@ -945,8 +1118,13 @@ describe("Tests del Modelo de Librería", function () {
 
                 // cambiamos el precio del libro y forzamos recálculo
                 libro.precio = 30;
-                item.calcular();     // recalcula el total 
-                carro.calcular();    // recalcula subtotal, iva y total del carro
+                await libreria.updateLibro(libro);
+                await libreria.calcularItem(item._id);     // recalcula el total 
+                await libreria.calcularCarro(carro._id);    // recalcula subtotal, iva y total del carro
+
+                // Re-fetch the updated objects
+                carro = await libreria.getCarroCliente(cliente._id);
+                item = carro.items[0];
 
                 // totales actualizados con el nuevo precio
                 const subtotalEsperado = 2 * 30;
@@ -963,73 +1141,80 @@ describe("Tests del Modelo de Librería", function () {
         describe("Carro - Cálculos Completos", function () {
             let cliente, libro1, libro2;
 
-            beforeEach(function () {
-                cliente = libreria.addCliente({
+            beforeEach(async function () {
+                cliente = await libreria.addCliente({
                     dni: "CARRO001",
                     nombre: "Test",
                     apellidos: "Carro",
+                    direccion: "Dirección Carro",
                     email: "carro@test.com",
                     password: "pass"
                 });
 
-                libro1 = libreria.addLibro({
+                libro1 = await libreria.addLibro({
                     isbn: "CARRO-L1",
                     titulo: "Libro 1",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 10,
                     stock: 100
                 });
 
-                libro2 = libreria.addLibro({
+                libro2 = await libreria.addLibro({
                     isbn: "CARRO-L2",
                     titulo: "Libro 2",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 20,
                     stock: 50
                 });
             });
 
-            it("debe calcular subtotal correctamente", function () {
+            it("debe calcular subtotal correctamente", async function () {
                 // 2 x libro1 (10) + 1 x libro2 (20) = 40
-                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
-                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 1 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 1 });
 
-                const carro = libreria.getCarroCliente(cliente._id);
+                const carro = await libreria.getCarroCliente(cliente._id);
                 const subtotalEsperado = 2 * libro1.precio + 1 * libro2.precio; // 40
 
                 assert.closeTo(carro.subtotal, subtotalEsperado, 1e-9);
             });
 
-            it("debe calcular IVA (21%) correctamente", function () {
+            it("debe calcular IVA (21%) correctamente", async function () {
                 // Subtotal 40 => IVA 8.4
-                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
-                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 1 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 1 });
 
-                const carro = libreria.getCarroCliente(cliente._id);
+                const carro = await libreria.getCarroCliente(cliente._id);
                 const ivaEsperado = (2 * libro1.precio + 1 * libro2.precio) * 0.21; // 8.4
 
                 assert.closeTo(carro.iva, ivaEsperado, 1e-9);
             });
 
-            it("debe calcular total (subtotal + IVA) correctamente", function () {
+            it("debe calcular total (subtotal + IVA) correctamente", async function () {
                 // Subtotal 40 + IVA 8.4 => total 48.4
-                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
-                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 1 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 1 });
 
-                const carro = libreria.getCarroCliente(cliente._id);
+                const carro = await libreria.getCarroCliente(cliente._id);
                 const subtotal = 2 * libro1.precio + 1 * libro2.precio; // 40
                 const totalEsperado = subtotal * 1.21; // 48.4
 
                 assert.closeTo(carro.total, totalEsperado, 1e-9);
             });
 
-            it("debe recalcular al agregar items", function () {
+            it("debe recalcular al agregar items", async function () {
                 // Paso 1: 1 x libro1 => subtotal 10
-                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
-                let carro = libreria.getCarroCliente(cliente._id);
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
+                let carro = await libreria.getCarroCliente(cliente._id);
                 assert.closeTo(carro.subtotal, 10, 1e-9);
 
                 // Paso 2: agrego 2 x libro2 => +40 => subtotal 50
-                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 2 });
-                carro = libreria.getCarroCliente(cliente._id);
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 2 });
+                carro = await libreria.getCarroCliente(cliente._id);
 
                 const subtotalEsperado = 1 * libro1.precio + 2 * libro2.precio; // 10 + 40 = 50
                 const ivaEsperado = subtotalEsperado * 0.21;
@@ -1040,13 +1225,13 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(carro.total, totalEsperado, 1e-9);
             });
 
-            it("debe recalcular al modificar cantidad", function () {
+            it("debe recalcular al modificar cantidad", async function () {
                 // 1 x libro1 => 10
-                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 1 });
                 // Cambio cantidad a 3 => 30
-                libreria.setClienteCarroItemCantidad(cliente._id, 0, 3);
+                await libreria.setClienteCarroItemCantidad(cliente._id, 0, 3);
 
-                const carro = libreria.getCarroCliente(cliente._id);
+                const carro = await libreria.getCarroCliente(cliente._id);
                 const subtotalEsperado = 3 * libro1.precio; // 30
                 const ivaEsperado = subtotalEsperado * 0.21;
                 const totalEsperado = subtotalEsperado + ivaEsperado;
@@ -1057,16 +1242,16 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(carro.total, totalEsperado, 1e-9);
             });
 
-            it("debe recalcular al eliminar items", function () {
+            it("debe recalcular al eliminar items", async function () {
                 // 2 x libro1 (20) + 2 x libro2 (40) => 60
-                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
-                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 2 });
-                let carro = libreria.getCarroCliente(cliente._id);
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 2 });
+                let carro = await libreria.getCarroCliente(cliente._id);
                 assert.closeTo(carro.subtotal, 60, 1e-9);
 
                 // Elimino el primer ítem (index 0) poniendo cantidad 0 => quedan 2 x libro2 => 40
-                libreria.setClienteCarroItemCantidad(cliente._id, 0, 0);
-                carro = libreria.getCarroCliente(cliente._id);
+                await libreria.setClienteCarroItemCantidad(cliente._id, 0, 0);
+                carro = await libreria.getCarroCliente(cliente._id);
 
                 assert.equal(carro.items.length, 1);
                 assert.closeTo(carro.subtotal, 2 * libro2.precio, 1e-9);
@@ -1074,29 +1259,32 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(carro.total, 2 * libro2.precio * 1.21, 1e-9);
             });
 
-            it("debe tener valores en cero con carro vacío", function () {
-                const carro = libreria.getCarroCliente(cliente._id);
+            it("debe tener valores en cero con carro vacío", async function () {
+                const carro = await libreria.getCarroCliente(cliente._id);
                 assert.equal(carro.items.length, 0);
                 assert.equal(carro.subtotal, 0);
                 assert.equal(carro.iva, 0);
                 assert.equal(carro.total, 0);
             });
 
-            it("debe calcular correctamente con múltiples items de diferentes precios", function () {
-                const libro3 = libreria.addLibro({
+            it("debe calcular correctamente con múltiples items de diferentes precios", async function () {
+                const libro3 = await libreria.addLibro({
                     isbn: "CARRO-L3",
                     titulo: "Libro 3",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 7.5,
                     stock: 100
                 });
 
                 // Añadimos varias cantidades de cada uno
-                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 4 }); // 4 * 10 = 40
-                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 3 }); // 3 * 20 = 60
-                libreria.addClienteCarroItem(cliente._id, { libro: libro3._id, cantidad: 5 }); // 5 * 7.5 = 37.5
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 4 }); // 4 * 10 = 40
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 3 }); // 3 * 20 = 60
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro3._id, cantidad: 5 }); // 5 * 7.5 = 37.5
 
                 // Act
-                const carro = libreria.getCarroCliente(cliente._id);
+                const carro = await libreria.getCarroCliente(cliente._id);
 
                 // Assert
                 const subtotalEsperado = (4 * libro1.precio) + (3 * libro2.precio) + (5 * libro3.precio); // 137.5
@@ -1110,29 +1298,30 @@ describe("Tests del Modelo de Librería", function () {
         });
 
         describe("Factura - Cálculos", function () {
-            it("debe heredar cálculos correctos del carro", function () {
-                const cliente = libreria.addCliente({
+            it("debe heredar cálculos correctos del carro", async function () {
+                const cliente = await libreria.addCliente({
                     dni: "FAC-CALC-01",
                     nombre: "Cliente",
                     apellidos: "Factura",
+                    direccion: "Dirección Factura",
                     email: "fac1@test.com",
                     password: "pass"
                 });
 
-                const l1 = libreria.addLibro({ isbn: "F-C1", titulo: "L1", precio: 10, stock: 100 });
-                const l2 = libreria.addLibro({ isbn: "F-C2", titulo: "L2", precio: 25, stock: 50 });
+                const l1 = await libreria.addLibro({ isbn: "F-C1", titulo: "L1", autores: "Author", portada: "cover", resumen: "res", precio: 10, stock: 100 });
+                const l2 = await libreria.addLibro({ isbn: "F-C2", titulo: "L2", autores: "Author", portada: "cover", resumen: "res", precio: 25, stock: 50 });
 
                 // 2 x 10 + 1 x 25 = 45 → IVA 9.45 → total 54.45
-                libreria.addClienteCarroItem(cliente._id, { libro: l1._id, cantidad: 2 });
-                libreria.addClienteCarroItem(cliente._id, { libro: l2._id, cantidad: 1 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: l1._id, cantidad: 2 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: l2._id, cantidad: 1 });
 
-                const carroAntes = libreria.getCarroCliente(cliente._id);
+                const carroAntes = await libreria.getCarroCliente(cliente._id);
                 const subEsperado = carroAntes.subtotal;
                 const ivaEsperado = carroAntes.iva;
                 const totalEsperado = carroAntes.total;
 
                 // Act
-                const factura = libreria.facturarCompraCliente({
+                const factura = await libreria.facturarCompraCliente({
                     cliente: cliente._id,
                     razonSocial: "Cliente Factura",
                     direccion: "Calle 1",
@@ -1147,27 +1336,28 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(factura.total, totalEsperado, 1e-9);
             });
 
-            it("debe calcular subtotal de factura correctamente", function () {
+            it("debe calcular subtotal de factura correctamente", async function () {
                 // Arrange
-                const cliente = libreria.addCliente({
+                const cliente = await libreria.addCliente({
                     dni: "FAC-CALC-02",
                     nombre: "Cliente",
                     apellidos: "Factura",
+                    direccion: "Dirección Factura 2",
                     email: "fac2@test.com",
                     password: "pass"
                 });
 
-                const l1 = libreria.addLibro({ isbn: "F-SUB1", titulo: "L1", precio: 40, stock: 100 });
-                const l2 = libreria.addLibro({ isbn: "F-SUB2", titulo: "L2", precio: 15, stock: 100 });
+                const l1 = await libreria.addLibro({ isbn: "F-SUB1", titulo: "L1", autores: "Author", portada: "cover", resumen: "res", precio: 40, stock: 100 });
+                const l2 = await libreria.addLibro({ isbn: "F-SUB2", titulo: "L2", autores: "Author", portada: "cover", resumen: "res", precio: 15, stock: 100 });
 
                 // 3 x 40 = 120; 2 x 15 = 30; subtotal esperado = 150
-                libreria.addClienteCarroItem(cliente._id, { libro: l1._id, cantidad: 3 });
-                libreria.addClienteCarroItem(cliente._id, { libro: l2._id, cantidad: 2 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: l1._id, cantidad: 3 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: l2._id, cantidad: 2 });
 
                 const subtotalEsperado = 3 * l1.precio + 2 * l2.precio; // 150
 
                 // Act
-                const factura = libreria.facturarCompraCliente({
+                const factura = await libreria.facturarCompraCliente({
                     cliente: cliente._id,
                     razonSocial: "Cliente Subtotal",
                     direccion: "Calle 2",
@@ -1180,28 +1370,29 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(factura.subtotal, subtotalEsperado, 1e-9);
             });
 
-            it("debe calcular IVA de factura correctamente", function () {
+            it("debe calcular IVA de factura correctamente", async function () {
                 // Arrange
-                const cliente = libreria.addCliente({
+                const cliente = await libreria.addCliente({
                     dni: "FAC-CALC-03",
                     nombre: "Cliente",
                     apellidos: "Factura",
+                    direccion: "Dirección IVA",
                     email: "fac3@test.com",
                     password: "pass"
                 });
 
-                const l1 = libreria.addLibro({ isbn: "F-IVA1", titulo: "L1", precio: 12.5, stock: 100 });
-                const l2 = libreria.addLibro({ isbn: "F-IVA2", titulo: "L2", precio: 7.5, stock: 100 });
+                const l1 = await libreria.addLibro({ isbn: "F-IVA1", titulo: "L1", autores: "Author", portada: "cover", resumen: "res", precio: 12.5, stock: 100 });
+                const l2 = await libreria.addLibro({ isbn: "F-IVA2", titulo: "L2", autores: "Author", portada: "cover", resumen: "res", precio: 7.5, stock: 100 });
 
                 // 4 x 12.5 = 50; 5 x 7.5 = 37.5; subtotal = 87.5; IVA = 18.375
-                libreria.addClienteCarroItem(cliente._id, { libro: l1._id, cantidad: 4 });
-                libreria.addClienteCarroItem(cliente._id, { libro: l2._id, cantidad: 5 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: l1._id, cantidad: 4 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: l2._id, cantidad: 5 });
 
                 const subtotalEsperado = 4 * l1.precio + 5 * l2.precio; // 87.5
                 const ivaEsperado = subtotalEsperado * 0.21;            // 18.375
 
                 // Act
-                const factura = libreria.facturarCompraCliente({
+                const factura = await libreria.facturarCompraCliente({
                     cliente: cliente._id,
                     razonSocial: "Cliente IVA",
                     direccion: "Calle 3",
@@ -1214,29 +1405,30 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(factura.iva, ivaEsperado, 1e-9);
             });
 
-            it("debe calcular total de factura correctamente", function () {
+            it("debe calcular total de factura correctamente", async function () {
                 // Arrange
-                const cliente = libreria.addCliente({
+                const cliente = await libreria.addCliente({
                     dni: "FAC-CALC-04",
                     nombre: "Cliente",
                     apellidos: "Factura",
+                    direccion: "Dirección Total",
                     email: "fac4@test.com",
                     password: "pass"
                 });
 
-                const l1 = libreria.addLibro({ isbn: "F-TOT1", titulo: "L1", precio: 18, stock: 100 });
-                const l2 = libreria.addLibro({ isbn: "F-TOT2", titulo: "L2", precio: 22, stock: 100 });
+                const l1 = await libreria.addLibro({ isbn: "F-TOT1", titulo: "L1", autores: "Author", portada: "cover", resumen: "res", precio: 18, stock: 100 });
+                const l2 = await libreria.addLibro({ isbn: "F-TOT2", titulo: "L2", autores: "Author", portada: "cover", resumen: "res", precio: 22, stock: 100 });
 
                 // 2 x 18 = 36; 3 x 22 = 66; subtotal = 102; IVA = 21.42; total = 123.42
-                libreria.addClienteCarroItem(cliente._id, { libro: l1._id, cantidad: 2 });
-                libreria.addClienteCarroItem(cliente._id, { libro: l2._id, cantidad: 3 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: l1._id, cantidad: 2 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: l2._id, cantidad: 3 });
 
                 const subtotalEsperado = 2 * l1.precio + 3 * l2.precio; // 102
                 const ivaEsperado = subtotalEsperado * 0.21;            // 21.42
                 const totalEsperado = subtotalEsperado + ivaEsperado;   // 123.42
 
                 // Act
-                const factura = libreria.facturarCompraCliente({
+                const factura = await libreria.facturarCompraCliente({
                     cliente: cliente._id,
                     razonSocial: "Cliente Total",
                     direccion: "Calle 4",
@@ -1254,36 +1446,43 @@ describe("Tests del Modelo de Librería", function () {
         describe("Cálculos Integrados", function () {
             let cliente, libro1, libro2;
 
-            beforeEach(function () {
-                cliente = libreria.addCliente({
+            beforeEach(async function () {
+                cliente = await libreria.addCliente({
                     dni: "INT001",
                     nombre: "Integrado",
                     apellidos: "Test",
+                    direccion: "Dirección Integrado",
                     email: "integrado@test.com",
                     password: "pass"
                 });
 
-                libro1 = libreria.addLibro({
+                libro1 = await libreria.addLibro({
                     isbn: "INT-L1",
                     titulo: "Libro Integrado 1",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 10,
                     stock: 100
                 });
 
-                libro2 = libreria.addLibro({
+                libro2 = await libreria.addLibro({
                     isbn: "INT-L2",
                     titulo: "Libro Integrado 2",
+                    autores: "Author",
+                    portada: "cover",
+                    resumen: "res",
                     precio: 20,
                     stock: 50
                 });
             });
 
-            it("debe mantener consistencia entre Item, Carro y Factura", function () {
+            it("debe mantener consistencia entre Item, Carro y Factura", async function () {
                 // Arrange: 2 x libro1 (10) + 3 x libro2 (20) = 2*10 + 3*20 = 80
-                libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
-                libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 3 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro1._id, cantidad: 2 });
+                await libreria.addClienteCarroItem(cliente._id, { libro: libro2._id, cantidad: 3 });
 
-                const carroAntes = libreria.getCarroCliente(cliente._id);
+                const carroAntes = await libreria.getCarroCliente(cliente._id);
                 assert.equal(carroAntes.items.length, 2, "El carro debe tener 2 ítems");
 
                 // Consistencia de cada Item (cantidad * precio)
@@ -1301,7 +1500,7 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(carroAntes.total, totalEsperado, 1e-9);
 
                 // Act: facturar (copia items y totales del carro y vacía el carro del cliente)
-                const factura = libreria.facturarCompraCliente({
+                const factura = await libreria.facturarCompraCliente({
                     cliente: cliente._id,
                     razonSocial: "Consistencia Global S.A.",
                     direccion: "Calle Consistencia 123",
@@ -1318,7 +1517,7 @@ describe("Tests del Modelo de Librería", function () {
                 assert.closeTo(factura.total, totalEsperado, 1e-9);
 
                 // Y el carro del cliente debe quedar vacío
-                const carroDespues = libreria.getCarroCliente(cliente._id);
+                const carroDespues = await libreria.getCarroCliente(cliente._id);
                 assert.equal(carroDespues.items.length, 0, "El carro debe quedar vacío tras facturar");
                 assert.strictEqual(carroDespues.subtotal, 0);
                 assert.strictEqual(carroDespues.iva, 0);
