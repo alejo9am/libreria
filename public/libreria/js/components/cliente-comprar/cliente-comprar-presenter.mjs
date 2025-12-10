@@ -130,12 +130,19 @@ export class ClienteComprarPresenter extends Presenter {
         const input = document.createElement('input');
         input.type = 'number';
         input.min = '0';
+        input.max = item.libro.stock;
         input.value = item.cantidad;
         input.dataset.index = idx;
         input.className = 'qty-input';
         input.onchange = async (e) => {
           const v = Number(e.target.value);
           try {
+            if (v > item.libro.stock) {
+              LibreriaSession.addMessage('warn', `La cantidad solicitada (${v}) supera el stock disponible (${item.libro.stock})`);
+              this.refresh();
+              if (mensajesContainer) renderUltimoMensaje("#mensajesContainer");
+              return;
+            }
             await this.model.setClienteCarroItemCantidad(userId, idx, v);
             console.log('[ComprarPresenter] Cantidad actualizada para item index', idx, 'a', v);
             LibreriaSession.addMessage('success', 'Cantidad actualizada');

@@ -374,12 +374,19 @@ export class Libreria {
     }
 
     if (itemExistente) {
-      // Si el libro ya existe, incrementar la cantidad
-      itemExistente.cantidad += item.cantidad;
+      // Si el libro ya existe, verificar stock antes de incrementar la cantidad
+      const nuevaCantidad = itemExistente.cantidad + item.cantidad;
+      if (nuevaCantidad > libro.stock) {
+        throw new Error(`Stock insuficiente para "${libro.titulo}". Disponible: ${libro.stock}, En carrito: ${itemExistente.cantidad}, Solicitado: ${item.cantidad}`);
+      }
+      itemExistente.cantidad = nuevaCantidad;
       itemExistente.total = itemExistente.cantidad * libro.precio;
       await itemExistente.save();
     } else {
-      // Si no existe, crear un nuevo item
+      // Si no existe, verificar stock antes de crear un nuevo item
+      if (item.cantidad > libro.stock) {
+        throw new Error(`Stock insuficiente para "${libro.titulo}". Disponible: ${libro.stock}, Solicitado: ${item.cantidad}`);
+      }
       const nuevoItem = await new Item({
         cantidad: item.cantidad,
         libro: libro._id,
@@ -439,6 +446,10 @@ export class Libreria {
       carro.items.splice(index, 1);
       await Item.findByIdAndDelete(itemId);
     } else {
+      // Verificar stock antes de actualizar la cantidad
+      if (cantidad > item.libro.stock) {
+        throw new Error(`Stock insuficiente para "${item.libro.titulo}". Disponible: ${item.libro.stock}, Solicitado: ${cantidad}`);
+      }
       // Actualizar la cantidad del item
       item.cantidad = cantidad;
       item.total = item.cantidad * item.libro.precio;
