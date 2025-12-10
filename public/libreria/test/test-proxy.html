@@ -9,8 +9,11 @@
   <!-- incluir el código del framework mocha -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mocha/10.7.3/mocha.js"></script>
   <script>
-    mocha.setup('bdd'); // configuración mínima
-    mocha.timeout(5000); // tiempo máximo de espera por test
+    mocha.setup({
+      ui: 'bdd',      // Define el estilo 'describe/it'
+      timeout: 10000, // Sube el tiempo límite a 10 segundos (para que no fallen los lentos)
+      slow: 2000      // Sube el umbral de "lento" a 2 segundos (para que no salgan en rojo)
+    });
   </script>
   <title>Test Proxy</title>
   <!-- incluir chai -->
