@@ -361,6 +361,10 @@ export class Libreria {
       cliente.carro = carro._id;
     } else {
       carro = await Carro.findById(carro);
+      if (!carro) {
+        carro = await new Carro().save();
+        cliente.carro = carro._id;
+      }
     }
 
     // Verificar si el libro ya está en el carrito
@@ -374,12 +378,19 @@ export class Libreria {
     }
 
     if (itemExistente) {
-      // Si el libro ya existe, incrementar la cantidad
-      itemExistente.cantidad += item.cantidad;
+      // Si el libro ya existe, verificar stock antes de incrementar la cantidad
+      const nuevaCantidad = itemExistente.cantidad + item.cantidad;
+      if (nuevaCantidad > libro.stock) {
+        throw new Error(`Stock insuficiente para "${libro.titulo}". Disponible: ${libro.stock}, En carrito: ${itemExistente.cantidad}, Solicitado: ${item.cantidad}`);
+      }
+      itemExistente.cantidad = nuevaCantidad;
       itemExistente.total = itemExistente.cantidad * libro.precio;
       await itemExistente.save();
     } else {
-      // Si no existe, crear un nuevo item
+      // Si no existe, verificar stock antes de crear un nuevo item
+      if (item.cantidad > libro.stock) {
+        throw new Error(`Stock insuficiente para "${libro.titulo}". Disponible: ${libro.stock}, Solicitado: ${item.cantidad}`);
+      }
       const nuevoItem = await new Item({
         cantidad: item.cantidad,
         libro: libro._id,
@@ -439,6 +450,10 @@ export class Libreria {
       carro.items.splice(index, 1);
       await Item.findByIdAndDelete(itemId);
     } else {
+      // Verificar stock antes de actualizar la cantidad
+      if (cantidad > item.libro.stock) {
+        throw new Error(`Stock insuficiente para "${item.libro.titulo}". Disponible: ${item.libro.stock}, Solicitado: ${cantidad}`);
+      }
       // Actualizar la cantidad del item
       item.cantidad = cantidad;
       item.total = item.cantidad * item.libro.precio;
@@ -512,6 +527,65 @@ export class Libreria {
     return await carro.save();
   }
 
+  // ==================== ITEMS ====================
+
+  async getItems() {
+    return await Item.find().populate('libro');
+  }
+
+  async setItems(array) {
+    await Item.deleteMany({});
+    const promises = array.map((item) => {
+      // Si libro está populado (es un objeto), extraer solo el _id
+      const itemData = {
+        ...item,
+        libro: typeof item.libro === 'object' && item.libro !== null 
+          ? item.libro._id 
+          : item.libro
+      };
+      return new Item(itemData).save();
+    });
+    await Promise.all(promises);
+    return await this.getItems();
+  }
+
+  async removeItems() {
+    const result = await Item.deleteMany({});
+    return result.deletedCount;
+  }
+
+  // ==================== CARROS ====================
+
+  async getCarros() {
+    return await Carro.find().populate({
+      path: 'items',
+      populate: { path: 'libro' }
+    });
+  }
+
+  async setCarros(array) {
+    await Carro.deleteMany({});
+    const promises = array.map((carro) => {
+      // Si items está populado (son objetos), extraer solo los _id
+      const carroData = {
+        ...carro,
+        items: carro.items.map(item => 
+          typeof item === 'object' && item !== null 
+            ? item._id 
+            : item
+        )
+      };
+      return new Carro(carroData).save();
+    });
+    await Promise.all(promises);
+    return await this.getCarros();
+  }
+
+  async removeCarros() {
+    const result = await Carro.deleteMany({});
+    return result.deletedCount;
+  }
+
   // ==================== FACTURAS ====================
 
   async getFacturas() {
@@ -539,7 +613,10 @@ export class Libreria {
     if (!cliente) throw new Error('Cliente no encontrado');
     if (!cliente.carro) throw new Error('Cliente no tiene carro');
 
-    const carro = await Carro.findById(cliente.carro);
+    const carro = await Carro.findById(cliente.carro).populate({
+      path: 'items',
+      populate: { path: 'libro' }
+    });
     if (!carro || carro.items.length < 1) {
       throw new Error('No hay items en el carrito');
     }
@@ -556,7 +633,7 @@ export class Libreria {
       email: obj.email,
       dni: obj.dni,
       cliente: cliente._id,
-      items: carro.items,
+      items: carro.items.map(item => item._id),
       subtotal: carro.subtotal,
       iva: carro.iva,
       total: carro.total
@@ -564,6 +641,11 @@ export class Libreria {
 
     // Guardar factura
     const factura = await new Factura(facturaData).save();
+
+    // Descontar el stock de cada libro comprado
+    for (const item of carro.items) {
+      await this.decStockN(item.libro._id, item.cantidad);
+    }
 
     // Vaciar carro del cliente
     carro.items = [];

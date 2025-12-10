@@ -186,6 +186,54 @@ export class LibreriaProxy {
     return await response.json();
   }
 
+  /* ==================== ITEMS ==================== */
+
+  async getItems() {
+    const response = await fetch(`${API_BASE_URL}/items`);
+    if (!response.ok) throw new Error((await response.json()).error);
+    return await response.json();
+  }
+
+  async setItems(array) {
+    const response = await fetch(`${API_BASE_URL}/items`, {
+      method: 'PUT',
+      body: JSON.stringify(array),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!response.ok) throw new Error((await response.json()).error);
+    return await response.json();
+  }
+
+  async removeItems() {
+    const response = await fetch(`${API_BASE_URL}/items`, { method: 'DELETE' });
+    if (!response.ok) throw new Error((await response.json()).error);
+    return await response.json();
+  }
+
+  /* ==================== CARROS ==================== */
+
+  async getCarros() {
+    const response = await fetch(`${API_BASE_URL}/carros`);
+    if (!response.ok) throw new Error((await response.json()).error);
+    return await response.json();
+  }
+
+  async setCarros(array) {
+    const response = await fetch(`${API_BASE_URL}/carros`, {
+      method: 'PUT',
+      body: JSON.stringify(array),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!response.ok) throw new Error((await response.json()).error);
+    return await response.json();
+  }
+
+  async removeCarros() {
+    const response = await fetch(`${API_BASE_URL}/carros`, { method: 'DELETE' });
+    if (!response.ok) throw new Error((await response.json()).error);
+    return await response.json();
+  }
+
   /* ==================== ADMINISTRADORES ==================== */
 
   async getAdmins() {
