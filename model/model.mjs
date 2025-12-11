@@ -234,7 +234,8 @@ export class Libreria {
     const cliente = await this.getClientePorEmail(email);
 
     if (!cliente) throw new Error('Cliente no encontrado');
-    if (cliente.password === password) return cliente;
+    const isValidPassword = await bcrypt.compare(password, cliente.password);
+    if (isValidPassword) return cliente;
     throw new Error('Error en la contraseña');
   }
 
@@ -515,7 +516,7 @@ export class Libreria {
   async calcularCarro(carroId) {
     const carro = await Carro.findById(carroId).populate('items');
     if (!carro) throw new Error('Carro no encontrado');
-    
+
     let subtotal = 0;
     for (const item of carro.items) {
       await this.calcularItem(item._id);
